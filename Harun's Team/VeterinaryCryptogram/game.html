@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veterinary Cryptogram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #00c9ff, #92fe9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+
+  .subtitle { font-size: 0.95rem; color: #8ab4c4; margin-bottom: 18px; }
+
+  .scoreboard { display: flex; gap: 30px; margin-bottom: 18px; font-size: 1.05rem; }
+  .scoreboard span { color: #92fe9d; font-weight: 700; }
+
+  .controls { margin-bottom: 20px; }
+
+  .btn {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    color: #0f2027; border: none; padding: 10px 28px;
+    font-size: 1rem; font-weight: 700; border-radius: 8px;
+    cursor: pointer; transition: transform .15s, box-shadow .15s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,201,255,.4); }
+
+  .puzzle-area {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 4px 2px; max-width: 900px; margin-bottom: 28px; min-height: 90px;
+  }
+
+  .word-group { display: flex; gap: 2px; margin: 0 8px 8px 0; }
+
+  .cell {
+    width: 42px; display: flex; flex-direction: column;
+    align-items: center; cursor: pointer; user-select: none;
+    transition: transform .1s;
+  }
+  .cell:hover { transform: translateY(-2px); }
+
+  .cell .guess {
+    width: 40px; height: 44px; border: 2px solid #3a6073; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; font-weight: 700; color: #fff;
+    background: rgba(255,255,255,.06);
+    transition: background .2s, border-color .2s, box-shadow .2s;
+    text-transform: uppercase;
+  }
+
+  .cell.selected .guess {
+    border-color: #00c9ff; box-shadow: 0 0 12px rgba(0,201,255,.5);
+    background: rgba(0,201,255,.12);
+  }
+
+  .cell.correct .guess {
+    border-color: #92fe9d; background: rgba(146,254,157,.15); color: #92fe9d;
+  }
+
+  .cell .cipher {
+    font-size: .75rem; margin-top: 3px; color: #6a9fb5;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .letter-buttons {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; max-width: 720px; margin-bottom: 24px;
+  }
+
+  .letter-btn {
+    width: 42px; height: 42px; border-radius: 6px;
+    border: 2px solid #3a6073; background: rgba(255,255,255,.06);
+    color: #e0e0e0; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; transition: background .15s, border-color .15s, transform .1s;
+    text-transform: uppercase;
+  }
+  .letter-btn:hover {
+    border-color: #00c9ff; background: rgba(0,201,255,.15); transform: translateY(-2px);
+  }
+  .letter-btn.used { opacity: .35; }
+
+  .message {
+    font-size: 1.1rem; min-height: 28px; margin-bottom: 10px;
+    font-weight: 600; transition: color .3s;
+  }
+  .message.wrong { color: #ff6b6b; }
+  .message.info  { color: #ffc107; }
+
+  .confetti-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 999;
+  }
+
+  .confetti {
+    position: absolute; width: 10px; height: 10px; opacity: 0;
+    border-radius: 2px; animation: confetti-fall 2.5s ease-out forwards;
+  }
+
+  @keyframes confetti-fall {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(.4); }
+  }
+
+  .win-banner {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(0);
+    background: linear-gradient(135deg, #0f2027ee, #203a43ee);
+    border: 3px solid #92fe9d; border-radius: 18px;
+    padding: 40px 60px; text-align: center; z-index: 1000;
+    animation: pop-in .5s ease forwards;
+    box-shadow: 0 0 60px rgba(146,254,157,.3);
+  }
+  .win-banner h2 { font-size: 2rem; color: #92fe9d; margin-bottom: 10px; }
+  .win-banner p  { font-size: 1.15rem; color: #c0c0c0; margin-bottom: 18px; }
+
+  @keyframes pop-in {
+    0%   { transform: translate(-50%,-50%) scale(0); }
+    70%  { transform: translate(-50%,-50%) scale(1.1); }
+    100% { transform: translate(-50%,-50%) scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Veterinary Cryptogram</h1>
+<p class="subtitle">Decode the hidden veterinary phrase!</p>
+
+<div class="scoreboard">
+  <div>Total Score: <span id="totalScore">0</span></div>
+  <div>Round Points: <span id="roundPoints">1000</span></div>
+  <div>Games Won: <span id="gamesWon">0</span></div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="newGameBtn">New Game</button>
+</div>
+
+<div class="message" id="message"></div>
+<div class="puzzle-area" id="puzzleArea"></div>
+<div class="letter-buttons" id="letterButtons"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+(function () {
+  var PHRASES = [
+    "canine parvovirus is very contagious",
+    "feline leukemia virus needs testing",
+    "heartworm prevention saves dog lives",
+    "always check the gum color of a pet",
+    "spaying and neutering reduces strays",
+    "rabbits need annual wellness exams too",
+    "equine colic can be a fatal condition",
+    "dental disease is common in older cats",
+    "microchipping helps lost pets come home",
+    "hip dysplasia often affects large breeds",
+    "avian patients require gentle handling",
+    "proper wound care prevents infections",
+    "blood panels reveal hidden health issues",
+    "vaccination schedules protect young pups",
+    "exotic reptiles need specialized husbandry",
+    "fluid therapy treats dehydration quickly",
+    "abdominal ultrasound aids in diagnosis",
+    "anesthesia monitoring is critically vital",
+    "skin scraping tests detect mange mites",
+    "orthopedic surgery repairs broken bones",
+    "nutrition plans support healing patients",
+    "urinalysis helps detect kidney problems",
+    "parasite control is essential year round",
+    "ticks can transmit several deadly diseases",
+    "regular grooming prevents skin conditions",
+    "the stethoscope is a vital clinical tool",
+    "bovine tuberculosis requires quarantine",
+    "puppy socialization prevents aggression",
+    "feral cat colonies need managed programs",
+    "pain management improves recovery speed"
+  ];
+
+  var answer = "";
+  var cipherMap = {};
+  var reverseMap = {};
+  var guesses = {};
+  var solvedSet = new Set();
+  var selectedCipher = null;
+  var roundPoints = 1000;
+  var totalScore = 0;
+  var gamesWon = 0;
+  var gameActive = false;
+
+  var puzzleArea = document.getElementById("puzzleArea");
+  var letterButtonsEl = document.getElementById("letterButtons");
+  var messageEl = document.getElementById("message");
+  var totalScoreEl = document.getElementById("totalScore");
+  var roundPointsEl = document.getElementById("roundPoints");
+  var gamesWonEl = document.getElementById("gamesWon");
+  var newGameBtn = document.getElementById("newGameBtn");
+  var confettiBox = document.getElementById("confettiContainer");
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function buildCipherMap(phrase) {
+    var letters = phrase.toLowerCase().replace(/[^a-z]/g, "").split("");
+    var seen = {}, unique = [];
+    for (var i = 0; i < letters.length; i++) {
+      if (!seen[letters[i]]) { seen[letters[i]] = true; unique.push(letters[i]); }
+    }
+    var alpha = "abcdefghijklmnopqrstuvwxyz".split("");
+    var pool = shuffle(alpha);
+    var map = {}, used = {};
+    for (var k = 0; k < unique.length; k++) {
+      var ch = unique[k];
+      for (var p = 0; p < pool.length; p++) {
+        if (pool[p] !== ch && !used[pool[p]]) {
+          map[ch] = pool[p]; used[pool[p]] = true; break;
+        }
+      }
+    }
+    return map;
+  }
+
+  function renderPuzzle() {
+    puzzleArea.innerHTML = "";
+    var words = answer.split(" ");
+    for (var w = 0; w < words.length; w++) {
+      var group = document.createElement("div");
+      group.className = "word-group";
+      for (var i = 0; i < words[w].length; i++) {
+        var pc = words[w][i].toLowerCase();
+        if (!/[a-z]/.test(pc)) {
+          var s = document.createElement("div"); s.className = "cell";
+          s.innerHTML = '<div class="guess" style="border-color:transparent;background:transparent;color:#6a9fb5;">'
+            + pc + '</div><div class="cipher">&nbsp;</div>';
+          group.appendChild(s); continue;
+        }
+        var cc = cipherMap[pc];
+        var cell = document.createElement("div");
+        cell.className = "cell";
+        cell.setAttribute("data-plain", pc);
+        cell.setAttribute("data-cipher", cc);
+        if (solvedSet.has(pc)) { cell.classList.add("correct"); }
+        else if (selectedCipher && cc === selectedCipher) { cell.classList.add("selected"); }
+        var dc = solvedSet.has(pc) ? pc : (guesses[cc] || "");
+        var gd = document.createElement("div"); gd.className = "guess"; gd.textContent = dc;
+        var cd = document.createElement("div"); cd.className = "cipher"; cd.textContent = cc;
+        cell.appendChild(gd); cell.appendChild(cd);
+        (function (cipher) {
+          cell.addEventListener("click", function () { selectCipher(cipher); });
+        })(cc);
+        group.appendChild(cell);
+      }
+      puzzleArea.appendChild(group);
+    }
+  }
+
+  function renderLetterButtons() {
+    letterButtonsEl.innerHTML = "";
+    var alpha = "abcdefghijklmnopqrstuvwxyz".split("");
+    var guessVals = {};
+    for (var k in guesses) guessVals[guesses[k]] = true;
+    for (var i = 0; i < alpha.length; i++) {
+      var ch = alpha[i];
+      var btn = document.createElement("button");
+      btn.className = "letter-btn"; btn.textContent = ch;
+      if (guessVals[ch] || solvedSet.has(ch)) btn.classList.add("used");
+      (function (c) {
+        btn.addEventListener("click", function () { handleGuess(c); });
+      })(ch);
+      letterButtonsEl.appendChild(btn);
+    }
+  }
+
+  function updateScoreboard() {
+    totalScoreEl.textContent = totalScore;
+    roundPointsEl.textContent = roundPoints;
+    gamesWonEl.textContent = gamesWon;
+  }
+
+  function selectCipher(cc) {
+    if (!gameActive) return;
+    if (reverseMap[cc] && solvedSet.has(reverseMap[cc])) return;
+    selectedCipher = cc;
+    renderPuzzle();
+  }
+
+  function handleGuess(letter) {
+    if (!gameActive || !selectedCipher) {
+      showMessage("Select a space first!", "info"); return;
+    }
+    var pc = reverseMap[selectedCipher];
+    if (!pc || solvedSet.has(pc)) return;
+
+    if (letter === pc) {
+      solvedSet.add(pc);
+      delete guesses[selectedCipher];
+      showMessage("Correct!", "");
+      messageEl.style.color = "#92fe9d";
+      selectedCipher = null;
+      renderPuzzle();
+      renderLetterButtons();
+      var all = answer.toLowerCase().replace(/[^a-z]/g, "").split("");
+      var win = true;
+      for (var i = 0; i < all.length; i++) { if (!solvedSet.has(all[i])) { win = false; break; } }
+      if (win) winGame();
+    } else {
+      roundPoints = Math.max(0, roundPoints - 100);
+      updateScoreboard();
+      guesses[selectedCipher] = letter;
+      showMessage("Wrong guess! -100 points", "wrong");
+      renderPuzzle();
+      renderLetterButtons();
+    }
+  }
+
+  function showMessage(t, cls) {
+    messageEl.textContent = t;
+    messageEl.className = "message";
+    messageEl.style.color = "";
+    if (cls) messageEl.classList.add(cls);
+  }
+
+  function winGame() {
+    gameActive = false;
+    totalScore += roundPoints;
+    gamesWon++;
+    updateScoreboard();
+    launchConfetti();
+    showWinBanner();
+  }
+
+  function launchConfetti() {
+    confettiBox.innerHTML = "";
+    var colors = ["#92fe9d","#00c9ff","#ffc107","#ff6b6b","#c792ea","#f8f8f2","#50fa7b"];
+    for (var i = 0; i < 150; i++) {
+      var c = document.createElement("div"); c.className = "confetti";
+      c.style.left = Math.random() * 100 + "%";
+      c.style.top = "-10px";
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.width = (6 + Math.random() * 8) + "px";
+      c.style.height = (6 + Math.random() * 8) + "px";
+      c.style.animationDelay = (Math.random() * 1.2) + "s";
+      c.style.animationDuration = (2 + Math.random() * 1.5) + "s";
+      confettiBox.appendChild(c);
+    }
+    setTimeout(function () { confettiBox.innerHTML = ""; }, 5000);
+  }
+
+  function showWinBanner() {
+    var ex = document.querySelector(".win-banner"); if (ex) ex.remove();
+    var b = document.createElement("div"); b.className = "win-banner";
+    var h = document.createElement("h2"); h.textContent = "\uD83C\uDF89 Puzzle Solved!";
+    var p1 = document.createElement("p"); p1.textContent = '"' + answer + '"';
+    var p2 = document.createElement("p");
+    p2.innerHTML = 'Points earned: <strong style="color:#92fe9d">' + roundPoints + '</strong>';
+    var bt = document.createElement("button"); bt.className = "btn"; bt.textContent = "Play Again";
+    bt.addEventListener("click", function () { b.remove(); startNewGame(); });
+    b.appendChild(h); b.appendChild(p1); b.appendChild(p2); b.appendChild(bt);
+    document.body.appendChild(b);
+  }
+
+  function startNewGame() {
+    var ex = document.querySelector(".win-banner"); if (ex) ex.remove();
+    answer = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+    cipherMap = buildCipherMap(answer);
+    reverseMap = {};
+    var keys = Object.keys(cipherMap);
+    for (var i = 0; i < keys.length; i++) { reverseMap[cipherMap[keys[i]]] = keys[i]; }
+    guesses = {};
+    solvedSet = new Set();
+    selectedCipher = null;
+    roundPoints = 1000;
+    gameActive = true;
+    showMessage("Select a cipher letter, then type or click your guess.", "info");
+    updateScoreboard();
+    renderPuzzle();
+    renderLetterButtons();
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (!gameActive) return;
+    var key = e.key.toLowerCase();
+    if (/^[a-z]$/.test(key)) { handleGuess(key); }
+    else if (e.key === "Backspace" || e.key === "Delete") {
+      if (selectedCipher && guesses[selectedCipher]) {
+        delete guesses[selectedCipher]; renderPuzzle(); renderLetterButtons();
+      }
+    } else if (e.key === "Escape") { selectedCipher = null; renderPuzzle(); }
+  });
+
+  newGameBtn.addEventListener("click", startNewGame);
+  startNewGame();
+})();
+</script>
+
+</body>
+</html>

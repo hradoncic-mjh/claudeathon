@@ -1,0 +1,45 @@
+{
+    "id": "addisons-disease",
+    "title": "Veterinary Diagnosis: The Great Pretender",
+    "hint": "A hormonal disease known as 'the great pretender' due to vague symptoms",
+    "maxScore": 1200,
+    "clues": [
+        {
+            "text": "Episodic weakness and lethargy that comes and goes",
+            "image": null,
+            "explanation": "Cortisol and aldosterone deficiency causes periodic episodes of weakness, often triggered by stress, with apparent recovery between episodes."
+        },
+        {
+            "text": "Poor appetite with weight loss and vomiting",
+            "image": null,
+            "explanation": "Low cortisol levels affect metabolism and GI function, causing chronic nausea, decreased appetite, and intermittent vomiting."
+        },
+        {
+            "text": "Symptoms worsen during stressful situations",
+            "image": null,
+            "explanation": "Without adequate cortisol production, dogs cannot mount appropriate stress responses, leading to severe decompensation during illness or anxiety."
+        },
+        {
+            "text": "Low sodium and high potassium on bloodwork",
+            "image": null,
+            "explanation": "Aldosterone deficiency causes loss of sodium in urine and retention of potassium, creating characteristic electrolyte abnormalities (low Na:K ratio)."
+        },
+        {
+            "text": "History of responding well to IV fluids but then relapsing",
+            "image": null,
+            "explanation": "Fluid therapy temporarily corrects dehydration and electrolyte imbalances, providing dramatic improvement, but underlying hormone deficiency causes relapse."
+        },
+        {
+            "text": "Low cortisol levels on ACTH stimulation test",
+            "image": null,
+            "explanation": "The ACTH stimulation test shows inadequate cortisol response to hormonal stimulation, confirming adrenal insufficiency (Addison's disease)."
+        }
+    ],
+    "answers": [
+        "addison's disease",
+        "addisons disease",
+        "addison's",
+        "addisons",
+        "hypoadrenocorticism"
+    ]
+}

@@ -1,0 +1,563 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predisposed</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 20px 0 5px;
+            letter-spacing: 3px;
+            color: #e94560;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 0.95rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        #hud {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        #hud span { color: #e94560; font-weight: bold; }
+        #timer-bar-container {
+            width: 80%;
+            max-width: 900px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #e94560, #0f3460);
+            border-radius: 3px;
+            transition: width 0.25s linear;
+        }
+
+        /* Game area */
+        #game-area {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 20px;
+            width: 95%;
+            max-width: 1100px;
+        }
+        .breed-panel {
+            flex: 0 0 220px;
+            text-align: center;
+        }
+        .breed-panel img {
+            width: 200px;
+            height: 267px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid #0f3460;
+            background: #16213e;
+        }
+        .breed-panel .breed-name {
+            margin-top: 10px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #e94560;
+        }
+
+        /* Maladies column */
+        #maladies-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 550px;
+        }
+        .malady-row {
+            display: flex;
+            align-items: center;
+            background: #16213e;
+            border-radius: 10px;
+            padding: 10px 12px;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
+        .malady-row.answered { opacity: 0.55; pointer-events: none; }
+        .malady-row.correct-answer { border: 2px solid #4ecca3; }
+        .malady-row.wrong-answer { border: 2px solid #e94560; }
+        .malady-btn {
+            flex: 0 0 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #0f3460;
+            background: transparent;
+            color: #eee;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .malady-btn:hover { background: #0f3460; border-color: #e94560; }
+        .malady-btn.selected-correct { background: #4ecca3; border-color: #4ecca3; color: #1a1a2e; }
+        .malady-btn.selected-wrong { background: #e94560; border-color: #e94560; color: #fff; }
+        .malady-name {
+            flex: 1;
+            font-size: 0.92rem;
+            line-height: 1.3;
+        }
+        .malady-detail {
+            font-size: 0.75rem;
+            color: #aaa;
+            min-width: 80px;
+            text-align: center;
+        }
+        .points-popup {
+            font-size: 0.85rem;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+        .points-popup.correct { color: #4ecca3; }
+        .points-popup.wrong { color: #e94560; }
+
+        /* Screens */
+        .screen { display: none; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        #start-screen { margin-top: 80px; text-align: center; }
+        #start-screen p { max-width: 500px; color: #aaa; margin: 15px 0 30px; line-height: 1.6; }
+        #results-screen { margin-top: 40px; text-align: center; width: 90%; max-width: 700px; }
+
+        .btn {
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #e94560;
+            color: #fff;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #c73652; }
+
+        /* Results */
+        .final-score { font-size: 3rem; color: #4ecca3; margin: 15px 0; }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.85rem;
+        }
+        .results-table th {
+            background: #0f3460;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        .results-table td {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+        .results-table tr.correct-row td:first-child { border-left: 3px solid #4ecca3; }
+        .results-table tr.wrong-row td:first-child { border-left: 3px solid #e94560; }
+        .result-icon { font-size: 1rem; }
+
+        #next-round-btn {
+            margin-top: 18px;
+            padding: 12px 36px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start-screen" class="screen active">
+    <h1>Predisposed</h1>
+    <p>Two breeds appear side by side. Five maladies are shown between them. Pick which breed is <strong>more predisposed</strong> to each one. Score points for correct answers — and earn bonus points for answering quickly!</p>
+    <button class="btn" onclick="startGame()">Start Game</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+    <h1>Predisposed</h1>
+    <div id="hud">
+        <div>Round: <span id="round-num">1</span> / 5</div>
+        <div>Score: <span id="current-score">0</span></div>
+        <div>Time: <span id="timer-display">30</span>s</div>
+    </div>
+    <div id="timer-bar-container"><div id="timer-bar"></div></div>
+    <div id="game-area">
+        <div class="breed-panel" id="left-panel">
+            <img id="left-img" src="" alt="Breed A">
+            <div class="breed-name" id="left-name"></div>
+        </div>
+        <div id="maladies-column"></div>
+        <div class="breed-panel" id="right-panel">
+            <img id="right-img" src="" alt="Breed B">
+            <div class="breed-name" id="right-name"></div>
+        </div>
+    </div>
+    <button id="next-round-btn" class="btn" style="display:none;" onclick="nextRound()">Next Round</button>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="screen">
+    <h1>Game Over</h1>
+    <div class="final-score" id="final-score">0</div>
+    <p class="subtitle">Total Points</p>
+    <table class="results-table">
+        <thead><tr><th></th><th>Round</th><th>Malady</th><th>Your Pick</th><th>Correct</th><th>Points</th></tr></thead>
+        <tbody id="results-body"></tbody>
+    </table>
+    <button class="btn" onclick="startGame()">Play Again</button>
+</div>
+
+<script>
+    // ── Embedded CSV data ──
+    const CSV_RAW = `Breed,Hip Dysplasia,Elbow Dysplasia,Patellar Luxation,Intervertebral Disc Disease (IVDD),Panosteitis,Legg-Calvé-Perthes Disease,Cranial Cruciate Ligament (CCL) Rupture,Spondylosis Deformans,Osteochondritis Dissecans (OCD),Mitral Valve Disease,Dilated Cardiomyopathy (DCM),Subaortic Stenosis,Pulmonic Stenosis,Von Willebrand's Disease,Hemangiosarcoma,Brachycephalic Obstructive Airway Syndrome (BOAS),Tracheal Collapse,Laryngeal Paralysis,Elongated Soft Palate,Stenotic Nares,Atopic Dermatitis,Skin Fold Pyoderma,Sebaceous Adenitis,Color Dilution Alopecia,Ichthyosis,Idiopathic Epilepsy,Degenerative Myelopathy,Syringomyelia,Gastric Dilatation-Volvulus (GDV/Bloat),Exocrine Pancreatic Insufficiency (EPI),Copper Storage Hepatopathy,Portosystemic Shunt,Hyperlipidemia-induced Pancreatitis,Hypoadrenocorticism (Addison's Disease),Hyperadrenocorticism (Cushing's Disease),Osteosarcoma,Mast Cell Tumors,Transitional Cell Carcinoma (TCC),Histiocytic Sarcoma,Lymphoma,MDR1 Drug Sensitivity,Cherry Eye,Progressive Retinal Atrophy (PRA),Entropion,Ectropion,Collie Eye Anomaly,Keratoconjunctivitis Sicca (Dry Eye),Dermoid Sinus,Fanconi Syndrome,Narcolepsy
+Great Dane,20%,5%,<1%,5%,4%,<1%,5%,25%,8%,5%,35%,4%,<1%,3%,6%,0%,0%,<1%,0%,0%,10%,<1%,<1%,<1%,2%,2%,15%,1%,35%,<1%,<1%,<1%,<1%,3%,<1%,5%,3%,<1%,<1%,4%,<1%,5%,<1%,15%,15%,<1%,2%,<1%,<1%,<1%
+Chihuahua,3%,<1%,30%,2%,<1%,5%,5%,<1%,<1%,20%,<1%,<1%,3%,<1%,<1%,<1%,30%,<1%,<1%,<1%,10%,<1%,<1%,5%,<1%,4%,<1%,5%,<1%,<1%,<1%,2%,2%,<1%,2%,<1%,1%,<1%,<1%,1%,<1%,3%,2%,<1%,<1%,<1%,4%,<1%,<1%,<1%
+Komondor,15%,3%,<1%,<1%,2%,<1%,3%,5%,3%,<1%,<1%,<1%,<1%,<1%,2%,0%,0%,<1%,0%,0%,5%,<1%,3%,<1%,<1%,1%,<1%,<1%,25%,<1%,<1%,<1%,<1%,<1%,<1%,1%,<1%,<1%,<1%,1%,<1%,<1%,<1%,20%,5%,<1%,<1%,<1%,<1%,<1%
+Chinese Crested Hairless,4%,1%,25%,2%,<1%,10%,4%,<1%,<1%,5%,<1%,<1%,<1%,<1%,<1%,<1%,2%,<1%,<1%,<1%,15%,<1%,<1%,<1%,<1%,4%,<1%,<1%,<1%,<1%,<1%,2%,<1%,<1%,2%,<1%,1%,<1%,<1%,1%,<1%,2%,15%,<1%,<1%,<1%,15%,<1%,<1%,<1%
+Greyhound,<1%,<1%,<1%,<1%,2%,<1%,2%,5%,3%,1%,<1%,<1%,<1%,1%,5%,0%,0%,<1%,0%,0%,2%,<1%,<1%,<1%,<1%,2%,<1%,<1%,15%,<1%,<1%,<1%,<1%,<1%,<1%,25%,1%,<1%,<1%,2%,<1%,<1%,5%,<1%,<1%,<1%,<1%,<1%,<1%,<1%
+English Bulldog,72%,15%,5%,10%,<1%,<1%,20%,5%,<1%,2%,<1%,4%,10%,<1%,1%,55%,10%,2%,45%,50%,25%,35%,<1%,<1%,<1%,1%,<1%,<1%,5%,<1%,<1%,<1%,<1%,<1%,5%,<1%,10%,<1%,<1%,3%,<1%,40%,<1%,15%,15%,<1%,20%,<1%,<1%,<1%
+Dachshund,10%,10%,5%,24%,<1%,1%,2%,3%,<1%,15%,<1%,<1%,<1%,1%,1%,<1%,<1%,<1%,<1%,<1%,5%,<1%,1%,15%,<1%,5%,<1%,<1%,<1%,<1%,<1%,<1%,<1%,<1%,15%,<1%,2%,1%,<1%,1%,<1%,3%,15%,2%,<1%,<1%,10%,1%,<1%,2%
+Afghan Hound,6%,2%,<1%,<1%,3%,<1%,<1%,<1%,<1%,2%,<1%,<1%,<1%,2%,1%,0%,0%,8%,0%,0%,5%,<1%,<1%,<1%,<1%,1%,1%,<1%,15%,<1%,<1%,<1%,<1%,<1%,<1%,2%,<1%,<1%,<1%,1%,<1%,<1%,3%,2%,<1%,<1%,<1%,<1%,<1%,<1%
+Old English Sheepdog,19%,5%,<1%,<1%,2%,<1%,4%,5%,6%,2%,3%,2%,<1%,1%,3%,0%,0%,<1%,0%,0%,10%,<1%,3%,<1%,<1%,3%,10%,<1%,10%,<1%,<1%,<1%,<1%,3%,2%,1%,1%,<1%,<1%,2%,10%,<1%,5%,5%,<1%,<1%,2%,<1%,<1%,<1%
+Shar-Pei,15%,12%,10%,2%,<1%,<1%,5%,<1%,3%,2%,<1%,<1%,<1%,<1%,2%,20%,<1%,<1%,15%,15%,30%,35%,2%,<1%,<1%,2%,<1%,<1%,5%,<1%,<1%,<1%,<1%,<1%,2%,<1%,15%,<1%,<1%,2%,<1%,5%,2%,40%,5%,<1%,5%,<1%,<1%,<1%`;
+
+//    const CSV_RAW = `Breed,Hip Dysplasia,Elbow Dysplasia,Patellar Luxation,Intervertebral Disc Disease (IVDD),Panosteitis,Legg-Calvé-Perthes Disease,Cranial Cruciate Ligament (CCL) Rupture,Spondylosis Deformans,Osteochondritis Dissecans (OCD),Mitral Valve Disease,Dilated Cardiomyopathy (DCM),Subaortic Stenosis,Pulmonic Stenosis,Von Willebrand's Disease,Hemangiosarcoma,Brachycephalic Obstructive Airway Syndrome (BOAS),Tracheal Collapse,Laryngeal Paralysis,Elongated Soft Palate,Stenotic Nares,Atopic Dermatitis,Skin Fold Pyoderma,Sebaceous Adenitis,Color Dilution Alopecia,Ichthyosis,Idiopathic Epilepsy,Degenerative Myelopathy,Syringomyelia,Gastric Dilatation-Volvulus (GDV/Bloat),Exocrine Pancreatic Insufficiency (EPI),Copper Storage Hepatopathy,Portosystemic Shunt,Hyperlipidemia-induced Pancreatitis,Hypoadrenocorticism (Addison's Disease),Hyperadrenocorticism (Cushing's Disease),Osteosarcoma,Mast Cell Tumors,Transitional Cell Carcinoma (TCC),Histiocytic Sarcoma,Lymphoma,MDR1 Drug Sensitivity,Cherry Eye,Progressive Retinal Atrophy (PRA),Entropion,Ectropion,Collie Eye Anomaly,Keratoconjunctivitis Sicca (Dry Eye),Dermoid Sinus,Fanconi Syndrome,Narcolepsy
+//Shire,<1%,<1%,<1%,<1%,0%,0%,0%,5%,15%,<1%,<1%,<1%,<1%,0%,0%,0%,0%,5%,0%,0%,15%,10%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,5%,0%,<1%,0%,0%,1%,0%,0%,0%,1%,1%,0%,0%,0%,0%,0%
+//Falabella,<1%,<1%,10%,<1%,0%,0%,0%,<1%,5%,<1%,<1%,<1%,<1%,0%,0%,0%,5%,<1%,0%,0%,<1%,0%,0%,0%,0%,1%,0%,0%,0%,0%,0%,0%,15%,0%,5%,0%,<1%,0%,0%,<1%,0%,0%,0%,0%,0%,0%,0%,0%,0%,<1%
+//Akhal-Teke,<1%,<1%,<1%,<1%,0%,0%,0%,10%,8%,<1%,<1%,<1%,<1%,0%,0%,0%,0%,1%,0%,0%,<1%,0%,0%,0%,<1%,0%,5%,0%,0%,0%,0%,0%,0%,0%,<1%,0%,<1%,0%,0%,<1%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%
+//Bashkir Curly,<1%,<1%,<1%,<1%,0%,0%,0%,<1%,5%,<1%,<1%,<1%,<1%,0%,0%,0%,0%,<1%,0%,0%,<1%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%,2%,0%,<1%,0%,0%,<1%,0%,0%,0%,0%,0%,0%,0%,0%,0%,0%`;
+
+    // ── Parse CSV ──
+    function parseCSV(raw) {
+        const lines = raw.trim().split('\n');
+        const headers = parseCSVLine(lines[0]);
+        const maladies = headers.slice(1);
+        const breeds = [];
+        for (let i = 1; i < lines.length; i++) {
+            const cols = parseCSVLine(lines[i]);
+            const name = cols[0];
+            const data = {};
+            for (let j = 1; j < cols.length; j++) {
+                data[maladies[j - 1]] = parsePct(cols[j]);
+            }
+            breeds.push({ name, data });
+        }
+        return { breeds, maladies };
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { inQuotes = !inQuotes; }
+            else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+            else { current += ch; }
+        }
+        result.push(current.trim());
+        return result;
+    }
+
+    function parsePct(s) {
+        s = s.trim();
+        if (s === '<1%') return 0.5;
+        return parseFloat(s) || 0;
+    }
+
+    const { breeds: ALL_BREEDS, maladies: ALL_MALADIES } = parseCSV(CSV_RAW);
+
+    // ── Image path helper ──
+    function breedImagePath(breedName) {
+        return 'images/' + breedName + '.png';
+    }
+
+    // ── Game state ──
+    let round = 0;
+    let totalScore = 0;
+    let roundTimer = null;
+    let roundStartTime = 0;
+    let roundTimeLeft = 0;
+    const ROUND_SECONDS = 30;
+    const TOTAL_ROUNDS = 5;
+    const MALADY_COUNT = 5;
+    const MIN_DIFF = 5;
+    let answeredThisRound = 0;
+    let roundLog = []; // { round, malady, picked, correct, points, leftBreed, rightBreed }
+    let usedPairs = [];
+
+    // ── Shuffle helper ──
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // ── Pick a breed pair with enough qualifying maladies ──
+    function pickPair() {
+        const indices = ALL_BREEDS.map((_, i) => i);
+        shuffle(indices);
+        for (let a = 0; a < indices.length; a++) {
+            for (let b = a + 1; b < indices.length; b++) {
+                const i = indices[a], j = indices[b];
+                const key = Math.min(i, j) + '-' + Math.max(i, j);
+                if (usedPairs.includes(key)) continue;
+                const qualifying = getMaladiesForPair(ALL_BREEDS[i], ALL_BREEDS[j]);
+                if (qualifying.length >= MALADY_COUNT) {
+                    usedPairs.push(key);
+                    return [ALL_BREEDS[i], ALL_BREEDS[j], qualifying];
+                }
+            }
+        }
+        // Fallback: allow repeats
+        for (let a = 0; a < indices.length; a++) {
+            for (let b = a + 1; b < indices.length; b++) {
+                const i = indices[a], j = indices[b];
+                const qualifying = getMaladiesForPair(ALL_BREEDS[i], ALL_BREEDS[j]);
+                if (qualifying.length >= MALADY_COUNT) {
+                    return [ALL_BREEDS[i], ALL_BREEDS[j], qualifying];
+                }
+            }
+        }
+        return null;
+    }
+
+    function getMaladiesForPair(breedA, breedB) {
+        return ALL_MALADIES
+            .map(m => {
+                const diff = Math.abs(breedA.data[m] - breedB.data[m]);
+                return { name: m, diff, aVal: breedA.data[m], bVal: breedB.data[m] };
+            })
+            .filter(m => m.diff >= MIN_DIFF)
+            .sort((a, b) => b.diff - a.diff);
+    }
+
+    // ── Screens ──
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // ── Start ──
+    function startGame() {
+        round = 0;
+        totalScore = 0;
+        roundLog = [];
+        usedPairs = [];
+        document.getElementById('current-score').textContent = '0';
+        showScreen('game-screen');
+        nextRound();
+    }
+
+    // ── Round ──
+    function nextRound() {
+        round++;
+        if (round > TOTAL_ROUNDS) { showResults(); return; }
+
+        document.getElementById('next-round-btn').style.display = 'none';
+        document.getElementById('round-num').textContent = round;
+        answeredThisRound = 0;
+
+        const pair = pickPair();
+        if (!pair) { showResults(); return; }
+
+        const [breedA, breedB, qualifying] = pair;
+
+        // Randomly swap sides
+        const swap = Math.random() < 0.5;
+        const left = swap ? breedB : breedA;
+        const right = swap ? breedA : breedB;
+
+        document.getElementById('left-name').textContent = left.name;
+        document.getElementById('right-name').textContent = right.name;
+        document.getElementById('left-img').src = breedImagePath(left.name.replace(/\s/g, ''));
+        document.getElementById('right-img').src = breedImagePath(right.name.replace(/\s/g, ''));
+
+        // Pick 5 maladies
+        const selected = shuffle(qualifying.slice()).slice(0, MALADY_COUNT);
+
+        const col = document.getElementById('maladies-column');
+        col.innerHTML = '';
+
+        selected.forEach((mal, idx) => {
+            const row = document.createElement('div');
+            row.className = 'malady-row';
+            row.id = 'malady-row-' + idx;
+
+            const leftBtn = document.createElement('button');
+            leftBtn.className = 'malady-btn';
+            leftBtn.innerHTML = '◀';
+            leftBtn.title = left.name;
+            leftBtn.onclick = () => answerMalady(idx, left, right, mal, 'left', leftBtn, rightBtn, row);
+
+            const rightBtn = document.createElement('button');
+            rightBtn.className = 'malady-btn';
+            rightBtn.innerHTML = '▶';
+            rightBtn.title = right.name;
+            rightBtn.onclick = () => answerMalady(idx, left, right, mal, 'right', leftBtn, rightBtn, row);
+
+            const label = document.createElement('div');
+            label.className = 'malady-name';
+            label.textContent = mal.name;
+
+            const detail = document.createElement('div');
+            detail.className = 'malady-detail';
+            detail.id = 'malady-detail-' + idx;
+
+            const pts = document.createElement('div');
+            pts.className = 'points-popup';
+            pts.id = 'malady-pts-' + idx;
+
+            row.appendChild(leftBtn);
+            row.appendChild(label);
+            row.appendChild(rightBtn);
+            row.appendChild(detail);
+            row.appendChild(pts);
+            col.appendChild(row);
+        });
+
+        // Start timer
+        startTimer();
+    }
+
+    function answerMalady(idx, left, right, mal, side, leftBtn, rightBtn, row) {
+        if (row.classList.contains('answered')) return;
+        row.classList.add('answered');
+        answeredThisRound++;
+
+        const leftVal = left.data[mal.name];
+        const rightVal = right.data[mal.name];
+        const correctSide = leftVal >= rightVal ? 'left' : 'right';
+        const isCorrect = side === correctSide;
+
+        // Time bonus: more time left = more bonus (0–100 scale based on remaining fraction)
+        const elapsed = (Date.now() - roundStartTime) / 1000;
+        const timeFraction = Math.max(0, (ROUND_SECONDS - elapsed) / ROUND_SECONDS);
+        const diffPoints = Math.round(mal.diff);  // base points = percentage difference
+        const timeBonus = Math.round(diffPoints * timeFraction);
+        const points = isCorrect ? diffPoints + timeBonus : 0;
+
+        totalScore += points;
+        document.getElementById('current-score').textContent = totalScore;
+
+        // Visual feedback
+        const chosenBtn = side === 'left' ? leftBtn : rightBtn;
+        chosenBtn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+        row.classList.add(isCorrect ? 'correct-answer' : 'wrong-answer');
+
+        const detail = document.getElementById('malady-detail-' + idx);
+        detail.textContent = fmtPct(leftVal) + ' vs ' + fmtPct(rightVal);
+
+        const ptsEl = document.getElementById('malady-pts-' + idx);
+        ptsEl.textContent = isCorrect ? '+' + points : '+0';
+        ptsEl.classList.add(isCorrect ? 'correct' : 'wrong');
+
+        // Log
+        roundLog.push({
+            round,
+            malady: mal.name,
+            picked: side === 'left' ? left.name : right.name,
+            correct: correctSide === 'left' ? left.name : right.name,
+            isCorrect,
+            points,
+            leftBreed: left.name,
+            rightBreed: right.name,
+            leftVal,
+            rightVal
+        });
+
+        if (answeredThisRound >= MALADY_COUNT) {
+            clearInterval(roundTimer);
+            document.getElementById('next-round-btn').style.display = '';
+            document.getElementById('next-round-btn').textContent = round >= TOTAL_ROUNDS ? 'See Results' : 'Next Round';
+        }
+    }
+
+    function fmtPct(v) {
+        if (v === 0.5) return '<1%';
+        if (v === 0) return '0%';
+        return v + '%';
+    }
+
+    // ── Timer ──
+    function startTimer() {
+        roundStartTime = Date.now();
+        roundTimeLeft = ROUND_SECONDS;
+        document.getElementById('timer-display').textContent = ROUND_SECONDS;
+        document.getElementById('timer-bar').style.width = '100%';
+
+        clearInterval(roundTimer);
+        roundTimer = setInterval(() => {
+            const elapsed = (Date.now() - roundStartTime) / 1000;
+            const remaining = Math.max(0, ROUND_SECONDS - elapsed);
+            document.getElementById('timer-display').textContent = Math.ceil(remaining);
+            document.getElementById('timer-bar').style.width = (remaining / ROUND_SECONDS * 100) + '%';
+
+            if (remaining <= 0) {
+                clearInterval(roundTimer);
+                // Auto-skip unanswered maladies
+                autoSkipRemaining();
+            }
+        }, 250);
+    }
+
+    function autoSkipRemaining() {
+        document.querySelectorAll('.malady-row:not(.answered)').forEach(row => {
+            row.classList.add('answered', 'wrong-answer');
+        });
+        if (answeredThisRound < MALADY_COUNT) {
+            answeredThisRound = MALADY_COUNT;
+        }
+        document.getElementById('next-round-btn').style.display = '';
+        document.getElementById('next-round-btn').textContent = round >= TOTAL_ROUNDS ? 'See Results' : 'Next Round';
+    }
+
+    // ── Results ──
+    function showResults() {
+        clearInterval(roundTimer);
+        showScreen('results-screen');
+        document.getElementById('final-score').textContent = totalScore;
+
+        const tbody = document.getElementById('results-body');
+        tbody.innerHTML = '';
+        roundLog.forEach(entry => {
+            const tr = document.createElement('tr');
+            tr.className = entry.isCorrect ? 'correct-row' : 'wrong-row';
+            tr.innerHTML =
+                '<td class="result-icon">' + (entry.isCorrect ? '✅' : '❌') + '</td>' +
+                '<td>' + entry.round + '</td>' +
+                '<td>' + entry.malady + '</td>' +
+                '<td>' + entry.picked + '</td>' +
+                '<td>' + entry.correct + ' (' + fmtPct(entry.leftVal) + ' / ' + fmtPct(entry.rightVal) + ')</td>' +
+                '<td>' + entry.points + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+</script>
+</body>
+</html>

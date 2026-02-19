@@ -1,0 +1,110 @@
+Create an interactive Word Search Quiz game with the following specifications:
+Core Concept
+A word search puzzle where questions appear one at a time. Users must answer quiz questions to know which words to find in the grid. The game tracks time and hints to calculate scores.
+Game Flow
+
+Questions appear ONE AT A TIME (not all at once)
+User reads the question and searches for the answer in the grid
+User selects letters in the grid by clicking/dragging to form words
+System AUTO-CHECKS selections immediately - if correct, word is found
+User clicks "Next" button to proceed to next question
+Process repeats until all questions are answered
+
+Grid Specifications
+
+Configurable grid size (e.g., 15x15, 20x20) - set manually by creator
+Validation required: Before game starts, validate that all words can fit in the specified grid size. Show warning if grid is too small
+Word placement: Words can appear in ALL 8 DIRECTIONS (horizontal, vertical, diagonal - both forwards and backwards)
+Overlapping allowed: Words may share letters
+Random letter fill: Empty cells filled with random letters
+
+Question System
+
+Display ONE question at a time prominently
+Question formats should support rich text for veterinary terminology
+After word is found, user must click "Next" to advance to next question
+Questions should be numbered
+
+Hint System (Sequential Access)
+Three hint levels that must be used IN ORDER:
+
+Hint 1 (-10 points): Reveal first letter + word length (e.g., "C_____ (6 letters)")
+Hint 2 (-25 points): Reveal first and last letters (e.g., "C____E")
+Hint 3 (-50 points): Fill in alternating letters OR highlight word location in grid
+User must use Hint 1 before Hint 2 becomes available
+User must use Hint 2 before Hint 3 becomes available
+
+Timer System (Both Optional & Configurable)
+
+Global timer: Counts total time for entire puzzle (optional, configurable duration)
+Per-question timer: Counts time for each individual question (optional, configurable duration)
+When per-question timer expires: AUTO-REVEAL the answer in the grid, strike it through, and wait for the user to click 'NEXT' to advance to next question
+Both timers should be visible when enabled
+Timers should be pausable
+
+Visual Feedback
+
+Word selection: Click and drag to select letters, show visual highlight during selection
+Auto-check: Immediately validate selection - if correct, apply found word styling
+Found words:
+
+Apply strikethrough to the question text
+Fade letters in grid to a "completed" color (muted/greyed out)
+Keep word visible but distinguish it from unfound words
+
+
+Progress indicators:
+
+Question counter: "Question 3 of 10"
+Progress bar showing overall completion
+
+
+Running score: Display current score throughout the game (updates in real-time)
+
+Scoring System
+
+Base points per word: 100 points
+Time bonus: Faster completion = multiplier on global timer
+Hint penalties: -10 for Hint 1, -25 for Hint 2, -50 for Hint 3
+Per-question overtime: If question timer expires, apply penalty
+Display final score and statistics at end (total time, hints used, accuracy)
+
+Configuration Options (for game creator)
+
+Grid size (with validation)
+Enable/disable global timer + set duration
+Enable/disable per-question timer + set duration
+List of questions and answers
+Difficulty level labels
+Category/theme name
+
+Sample Veterinary Questions
+Include these as example content:
+
+"What term refers to inflammation of the stomach and intestines?" (Answer: GASTROENTERITIS)
+"What is the medical term for surgical removal of the uterus?" (Answer: OVARIOHYSTERECTOMY)
+"What vessel carries oxygenated blood from the lungs to the heart?" (Answer: PULMONARY VEIN)
+"What is the scientific name for the kneecap?" (Answer: PATELLA)
+"What term describes difficulty breathing?" (Answer: DYSPNEA)
+
+Technical Requirements
+
+Build as a single-page web application (HTML/CSS/JavaScript)
+Responsive design - works on desktop and tablet
+Clean, professional UI suitable for educational use
+Include a "Create New Game" mode where users can input their own questions/answers
+Save/load functionality for game configurations
+
+User Interface Elements Needed
+
+Question display area (prominent, centered)
+Word search grid (interactive, clickable cells)
+Hint buttons (sequential, show which level is available)
+Next button (appears after word is found)
+Timer displays (global and per-question if enabled)
+Score display (running total)
+Progress bar
+Question counter
+End game summary screen
+
+Build this as a fully functional, polished educational game suitable for veterinary students.

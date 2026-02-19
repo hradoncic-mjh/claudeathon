@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnosis Detective</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0B1120;
+    --bg-card: #111B2E;
+    --bg-card-hover: #162035;
+    --bg-surface: #1A2744;
+    --border: #1E3054;
+    --border-active: #3B82F6;
+    --text-primary: #E8ECF4;
+    --text-secondary: #8896B3;
+    --text-muted: #5A6A8A;
+    --accent-blue: #3B82F6;
+    --accent-blue-dim: #2563EB;
+    --accent-green: #10B981;
+    --accent-green-bg: rgba(16, 185, 129, 0.1);
+    --accent-red: #EF4444;
+    --accent-red-bg: rgba(239, 68, 68, 0.1);
+    --accent-amber: #F59E0B;
+    --accent-amber-bg: rgba(245, 158, 11, 0.1);
+    --accent-purple: #8B5CF6;
+    --accent-purple-bg: rgba(139, 92, 246, 0.08);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 2px 12px rgba(59,130,246,0.25);
+  }
+
+  .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .logo-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .header-meta {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .header-meta .case-id {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ===== INTRO SCREEN ===== */
+  .intro-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+  }
+
+  .intro-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-blue);
+    background: rgba(59,130,246,0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(59,130,246,0.2);
+    margin-bottom: 28px;
+  }
+
+  .intro-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 52px);
+    line-height: 1.15;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--text-primary) 40%, var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .intro-desc {
+    color: var(--text-secondary);
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 40px;
+  }
+
+  .intro-patient-preview {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-align: left;
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .patient-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-purple-bg);
+    border: 2px solid rgba(139,92,246,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .patient-preview-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .patient-preview-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius);
+    padding: 14px 32px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--accent-blue);
+    color: white;
+    box-shadow: 0 2px 12px rgba(59,130,246,0.3);
+  }
+  .btn-primary:hover {
+    background: var(--accent-blue-dim);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+  }
+
+  .btn-secondary {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--text-muted);
+  }
+
+  .btn-sm {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ===== GAME LAYOUT ===== */
+  .game-screen {
+    animation: fadeIn 0.4s ease;
+  }
+
+  /* ===== COMPACT TOP BAR ===== */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+
+  .top-bar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .logo-icon-sm {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .logo-text-sm {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .top-bar-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .stat-pill-icon {
+    font-size: 11px;
+  }
+
+  .stat-pill-value {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .top-bar-case-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ===== PHASE COMPLETE BANNER ===== */
+  .phase-complete-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--accent-green-bg);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    animation: slideUp 0.3s ease;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-green);
+  }
+
+  .phase-complete-banner .btn {
+    flex-shrink: 0;
+  }
+
+  /* ===== COLLAPSIBLE JOURNAL ===== */
+  .journal-collapsible {
+    margin-top: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .journal-toggle {
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+
+  .journal-toggle::-webkit-details-marker { display: none; }
+
+  .journal-toggle::after {
+    content: '▸';
+    margin-left: auto;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+
+  details[open] .journal-toggle::after {
+    transform: rotate(90deg);
+  }
+
+  .journal-body {
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .top-bar {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .top-bar-stats {
+      order: 1;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .logo-text-sm {
+      display: none;
+    }
+  }
+
+  /* ===== MAIN CONTENT AREA ===== */
+  .main-content {
+    min-height: 400px;
+  }
+  .patient-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+
+  .patient-bar-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent-purple-bg);
+    border: 1.5px solid rgba(139,92,246,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .patient-bar-info {
+    flex: 1;
+  }
+
+  .patient-bar-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .patient-bar-detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .patient-bar-complaint {
+    font-size: 12px;
+    color: var(--accent-amber);
+    background: var(--accent-amber-bg);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ===== PHASE TRACKER ===== */
+  .phase-tracker {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+  }
+
+  .phase-step {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-surface);
+    transition: background 0.4s ease;
+    position: relative;
+  }
+
+  .phase-step.completed {
+    background: var(--accent-blue);
+  }
+
+  .phase-step.active {
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    animation: phaseGlow 2s ease infinite;
+  }
+
+  @keyframes phaseGlow {
+    0%, 100% { box-shadow: 0 0 6px rgba(59,130,246,0.3); }
+    50% { box-shadow: 0 0 12px rgba(59,130,246,0.5); }
+  }
+
+  .phase-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .phase-labels span.active {
+    color: var(--accent-blue);
+    font-weight: 600;
+  }
+
+  .phase-labels span.completed {
+    color: var(--accent-green);
+  }
+
+  /* ===== MAIN CONTENT AREA ===== */
+  .main-content {
+    min-height: 400px;
+  }
+
+  /* ===== EVIDENCE CARD ===== */
+  .evidence-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: slideUp 0.4s ease;
+  }
+
+  .evidence-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .evidence-card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .evidence-card-title .icon {
+    font-size: 14px;
+  }
+
+  .evidence-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+
+  .badge-new {
+    color: var(--accent-blue);
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  .evidence-card-body {
+    padding: 20px;
+  }
+
+  .evidence-data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .evidence-data-cell {
+    background: var(--bg-card);
+    padding: 12px 16px;
+  }
+
+  .evidence-data-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .evidence-data-value {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .evidence-data-value.abnormal {
+    color: var(--accent-red);
+  }
+
+  .evidence-data-value.critical {
+    color: var(--accent-red);
+    animation: pulse 1.5s ease infinite;
+  }
+
+  .evidence-data-value .ref-range {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-family: 'IBM Plex Mono', monospace;
+    display: block;
+    margin-top: 2px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Narrative evidence */
+  .evidence-narrative {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  .evidence-narrative strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .evidence-narrative .highlight {
+    color: var(--accent-amber);
+    font-weight: 500;
+  }
+
+  /* Image evidence placeholder */
+  .evidence-image {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .evidence-image .img-placeholder {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .evidence-image .img-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== DIFFERENTIAL LIST ===== */
+  .differential-section {
+    margin-top: 8px;
+  }
+
+  .differential-section h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .diff-option {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .diff-option:hover:not(.eliminated):not(.locked) {
+    border-color: var(--accent-blue);
+    background: var(--bg-card-hover);
+  }
+
+  .diff-option.selected {
+    border-color: var(--accent-blue);
+    background: rgba(59,130,246,0.05);
+  }
+
+  .diff-option.eliminated {
+    opacity: 0.35;
+    cursor: default;
+    text-decoration: line-through;
+    border-style: dashed;
+  }
+
+  .diff-option.correct {
+    border-color: var(--accent-green);
+    background: var(--accent-green-bg);
+  }
+
+  .diff-option.incorrect {
+    border-color: var(--accent-red);
+    background: var(--accent-red-bg);
+    animation: shake 0.4s ease;
+  }
+
+  .diff-option.wrong-guess {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-style: dashed;
+    border-color: var(--accent-red);
+    background: var(--accent-red-bg);
+  }
+
+  .diff-option.wrong-guess .diff-radio {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .diff-option.locked {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .diff-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 11px;
+  }
+
+  .diff-option.selected .diff-radio {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue);
+  }
+
+  .diff-option.eliminated .diff-radio {
+    border-color: var(--accent-red);
+    background: var(--accent-red-bg);
+    color: var(--accent-red);
+    font-size: 13px;
+  }
+
+  .diff-option.correct .diff-radio {
+    border-color: var(--accent-green);
+    background: var(--accent-green);
+  }
+
+  .diff-info {
+    flex: 1;
+  }
+
+  .diff-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .diff-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .diff-likelihood {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .likelihood-high {
+    color: var(--accent-red);
+    background: var(--accent-red-bg);
+  }
+
+  .likelihood-med {
+    color: var(--accent-amber);
+    background: var(--accent-amber-bg);
+  }
+
+  .likelihood-low {
+    color: var(--text-muted);
+    background: var(--bg-surface);
+  }
+
+  /* ===== JOURNAL ENTRIES ===== */
+  .clue-entry {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    animation: slideUp 0.3s ease;
+  }
+
+  .clue-entry:last-child { border-bottom: none; }
+
+  .clue-entry-phase {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  /* ===== ACTION BAR ===== */
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+
+  .action-bar-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ===== FEEDBACK TOAST ===== */
+  .feedback-toast {
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: slideUp 0.3s ease;
+  }
+
+  .feedback-toast.success {
+    background: var(--accent-green-bg);
+    border: 1px solid rgba(16,185,129,0.3);
+    color: var(--accent-green);
+  }
+
+  .feedback-toast.error {
+    background: var(--accent-red-bg);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--accent-red);
+  }
+
+  .feedback-toast.info {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    color: var(--accent-blue);
+  }
+
+  .feedback-toast strong {
+    font-weight: 700;
+  }
+
+  /* ===== RESULTS SCREEN ===== */
+  .results-screen {
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .results-trophy {
+    font-size: 72px;
+    margin-bottom: 16px;
+    animation: bounceIn 0.6s ease;
+  }
+
+  .results-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .results-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 600px) {
+    .results-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .results-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+  }
+
+  .results-stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--accent-blue);
+  }
+
+  .results-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  .results-explanation {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: left;
+    margin-bottom: 28px;
+  }
+
+  .results-explanation h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-green);
+    margin-bottom: 12px;
+  }
+
+  .results-explanation p {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ===== ELIMINATE BTN ===== */
+  .eliminate-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  /* Phase instruction */
+  .phase-instruction {
+    background: var(--accent-purple-bg);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .phase-instruction .icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .phase-instruction strong {
+    color: var(--text-primary);
+  }
+
+  /* ===== HINT SYSTEM ===== */
+  .btn-hint {
+    background: var(--accent-amber-bg);
+    color: var(--accent-amber);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    position: relative;
+  }
+
+  .btn-hint:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-hint:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .hint-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-amber);
+    color: var(--bg-deep);
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-left: 2px;
+  }
+
+  .hint-display {
+    background: var(--accent-amber-bg);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: slideUp 0.35s ease;
+  }
+
+  .hint-display-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.12);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .hint-cost {
+    font-size: 10px;
+    color: var(--accent-red);
+    background: var(--accent-red-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .hint-display-text {
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  .hint-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.12);
+  }
+
+  .hint-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .hint-tab:hover {
+    color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.04);
+  }
+
+  .hint-tab.active {
+    color: var(--accent-amber);
+    font-weight: 600;
+  }
+
+  .hint-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: var(--accent-amber);
+    border-radius: 2px 2px 0 0;
+  }
+
+  .action-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="app" class="app"></div>
+
+<script>
+// ============================================================
+// DIAGNOSIS DETECTIVE — POC Game Engine
+// ============================================================
+
+const CASE_DATA = {
+  id: "2026-02-GDV",
+  title: "The Restless Dane",
+  month: "February 2026",
+  difficulty: "DVM",
+  patient: {
+    name: "Thor",
+    species: "Canine",
+    breed: "Great Dane",
+    age: "6 years",
+    weight: "58 kg",
+    sex: "Male, intact",
+    emoji: "🐕"
+  },
+  presentingComplaint: "Non-productive retching, restlessness, abdominal distension × 2 hours",
+  narrative: "Thor was fine after his evening meal, but approximately 90 minutes later the owner noticed him pacing, drooling excessively, and attempting to vomit without producing anything. His abdomen appears visibly enlarged. The owner reports Thor ate a large meal of dry kibble and was exercised vigorously about 30 minutes before eating.",
+
+  // Differentials the player will narrow down
+  differentials: [
+    { id: "gdv", name: "Gastric Dilatation-Volvulus (GDV)", desc: "Stomach dilation with torsion", isCorrect: true },
+    { id: "bloat", name: "Simple Gastric Dilatation", desc: "Stomach distension without torsion" },
+    { id: "splenic_torsion", name: "Splenic Torsion", desc: "Twisting of the splenic pedicle" },
+    { id: "foreign_body", name: "Gastric Foreign Body", desc: "Obstructive foreign material in stomach" },
+    { id: "pancreatitis", name: "Acute Pancreatitis", desc: "Pancreatic inflammation" },
+    { id: "peritonitis", name: "Septic Peritonitis", desc: "Abdominal infection with contamination" },
+  ],
+
+  // Progressive evidence phases
+  phases: [
+    {
+      id: "history",
+      label: "History",
+      instruction: "Review the patient history and signalment. Based on breed predisposition and clinical presentation, begin narrowing your differential list. **Eliminate 1 condition.**",
+      eliminateCount: 1,
+      correctEliminations: ["pancreatitis"],
+      evidence: [
+        {
+          type: "narrative",
+          title: "Patient History",
+          content: `<strong>Signalment:</strong> 6-year-old intact male Great Dane, 58 kg.<br><br><strong>History:</strong> Thor consumed a large meal of dry kibble approximately 2 hours ago. The owner exercised him vigorously (running in the yard) roughly 30 minutes <em>before</em> feeding. Within 90 minutes of eating, he became <span class="highlight">restless and began pacing</span>. He has made <span class="highlight">multiple non-productive retching attempts</span> and is <span class="highlight">hypersalivating profusely</span>. The owner notes his abdomen looks "bigger than normal." No prior episodes. No known toxin exposure. Vaccines current. No history of foreign body ingestion.`
+        }
+      ],
+      hints: [
+        "Great Danes are one of the breeds most predisposed to gastric conditions — think about what makes their anatomy unique.",
+        "The acute onset after a large meal with non-productive retching is a very specific clinical pattern. Which differential on this list typically presents more gradually with productive vomiting?",
+        "Focus on the time course: which condition on this list is least likely to cause visible abdominal distension within 90 minutes of eating?"
+      ],
+      feedback: {
+        pancreatitis: "Correct. While pancreatitis can cause vomiting and abdominal pain, the acute onset of non-productive retching with visible abdominal distension in a deep-chested breed is not consistent with a primary pancreatitis presentation.",
+        _wrong: "Consider the signalment carefully. Great Danes are a deep-chested, large breed — which conditions are they classically predisposed to, and which condition doesn't fit this acute presentation pattern?"
+      }
+    },
+    {
+      id: "physical_exam",
+      label: "Physical Exam",
+      instruction: "Review the physical examination findings. Look for key clinical signs that help distinguish between remaining differentials. **Eliminate 1 condition.**",
+      eliminateCount: 1,
+      correctEliminations: ["peritonitis"],
+      evidence: [
+        {
+          type: "vitals",
+          title: "Vital Signs",
+          data: [
+            { label: "Heart Rate", value: "180 bpm", ref: "60–140 bpm", abnormal: true },
+            { label: "Respiratory Rate", value: "44 breaths/min", ref: "10–30 /min", abnormal: true },
+            { label: "Temperature", value: "38.9°C", ref: "37.5–39.2°C", abnormal: false },
+            { label: "CRT", value: "> 3 seconds", ref: "< 2 sec", abnormal: true },
+            { label: "Mucous Membranes", value: "Pale, tacky", ref: "Pink, moist", abnormal: true },
+            { label: "Pulse Quality", value: "Weak, thready", ref: "Strong, regular", abnormal: true },
+          ]
+        },
+        {
+          type: "narrative",
+          title: "Physical Exam Notes",
+          content: `Abdomen is <span class="highlight">markedly distended and tympanic on percussion</span>. Thor is painful on abdominal palpation and resists lateral recumbency. <strong>No fluid wave detected.</strong> An attempt to pass an orogastric tube meets <span class="highlight">firm resistance at the cardia</span> and cannot be advanced into the stomach. Thoracic auscultation reveals tachycardia with no murmur. Femoral pulses are weak bilaterally.`
+        }
+      ],
+      hints: [
+        "Pay close attention to the temperature reading. Is it elevated? What does that tell you about infectious or inflammatory processes?",
+        "The absence of a fluid wave on abdominal palpation is an important negative finding. Which condition would almost always present with detectable abdominal effusion?",
+        "The inability to pass an orogastric tube past the cardia is a hallmark finding — but first, rule out the condition that doesn't match the temperature and effusion profile."
+      ],
+      feedback: {
+        peritonitis: "Correct. The normal temperature and absence of a fluid wave argue against septic peritonitis at this stage. Peritonitis typically presents with fever, abdominal effusion, and a more systemically toxic patient. This patient's signs point to an obstructive gastric process.",
+        _wrong: "Focus on the temperature and the absence of abdominal fluid. Which condition would you expect to present with fever and detectable peritoneal effusion?"
+      }
+    },
+    {
+      id: "diagnostics",
+      label: "Diagnostics",
+      instruction: "Review the laboratory results and imaging. Key findings should help you narrow to the final 2–3 differentials. **Eliminate 1 condition.**",
+      eliminateCount: 1,
+      correctEliminations: ["foreign_body"],
+      evidence: [
+        {
+          type: "vitals",
+          title: "Emergency Bloodwork",
+          data: [
+            { label: "Lactate", value: "6.8 mmol/L", ref: "< 2.5 mmol/L", abnormal: true, critical: true },
+            { label: "PCV", value: "58%", ref: "37–55%", abnormal: true },
+            { label: "TP", value: "8.2 g/dL", ref: "5.5–7.5 g/dL", abnormal: true },
+            { label: "BUN", value: "32 mg/dL", ref: "7–27 mg/dL", abnormal: true },
+            { label: "Glucose", value: "62 mg/dL", ref: "65–120 mg/dL", abnormal: true },
+            { label: "K+", value: "5.8 mEq/L", ref: "3.5–5.5 mEq/L", abnormal: true },
+          ]
+        },
+        {
+          type: "image",
+          title: "Right Lateral Abdominal Radiograph",
+          description: "Right lateral projection showing a markedly gas-distended stomach with a soft tissue band creating compartmentalization — classic \"double bubble\" or \"Popeye arm\" sign. The pylorus is displaced dorsally and cranially. No radiopaque foreign material identified.",
+          label: "Radiograph — R Lateral Abdomen"
+        }
+      ],
+      hints: [
+        "The radiograph report specifically mentions whether radiopaque material was found. What does its absence mean for one of your remaining differentials?",
+        "The 'double bubble' or 'Popeye arm' sign is pathognomonic for a specific condition. Does that pattern match a simple obstruction?",
+        "A gastric foreign body large enough to cause these signs would typically be visible on radiographs — consider what the clean radiograph tells you."
+      ],
+      feedback: {
+        foreign_body: "Correct. The radiographs show no radiopaque foreign material, and the classic compartmentalized gas pattern (\"double bubble\" sign) with dorsal pyloric displacement is characteristic of gastric volvulus, not a simple foreign body obstruction.",
+        _wrong: "Look at the radiograph description carefully. What does the absence of radiopaque material and the presence of the classic 'double bubble' sign tell you?"
+      }
+    },
+    {
+      id: "diagnosis",
+      label: "Diagnosis",
+      instruction: "You've gathered all available evidence. It's time to make your final diagnosis. **Select the correct condition.**",
+      eliminateCount: 0,
+      isFinalDiagnosis: true,
+      evidence: [],
+      hints: [
+        "The key distinguishing finding in this case is the inability to pass an orogastric tube. What does resistance at the cardia indicate?",
+        "Simple gastric dilatation (bloat) and GDV share many signs — but the radiographic 'double bubble' with dorsal pyloric displacement is only seen in one of them.",
+        "The combination of OG tube resistance + compartmentalized gas on radiographs + dorsal pyloric displacement = a specific diagnosis. Which one involves torsion?"
+      ],
+      feedback: {
+        gdv: "🎯 Excellent work, Detective! Your diagnosis of Gastric Dilatation-Volvulus (GDV) is correct. The combination of a deep-chested breed, post-prandial onset, non-productive retching, gastric tympany, inability to pass an orogastric tube, elevated lactate, hemoconcentration, and the radiographic 'double bubble' sign all point definitively to GDV. This is a surgical emergency requiring immediate stabilization and gastric decompression followed by exploratory laparotomy with gastropexy.",
+        bloat: "Not quite. Simple gastric dilatation (bloat without volvulus) would allow passage of an orogastric tube and would not produce the classic 'double bubble' radiographic sign. The resistance at the cardia and compartmentalized gas pattern confirm torsion is present.",
+        splenic_torsion: "Not quite. While splenic torsion can occur concurrently with GDV, the primary pathology here is gastric — the tympanic distension, inability to pass an OG tube, and classic radiographic signs all point to the stomach as the affected organ.",
+        _wrong: "Review all collected evidence. The inability to pass an orogastric tube and the radiographic compartmentalization are the critical distinguishing findings."
+      }
+    }
+  ],
+
+  // Final explanation shown on results
+  explanation: "Thor presented with a classic case of Gastric Dilatation-Volvulus (GDV), one of the most time-critical emergencies in veterinary medicine. Key diagnostic findings included non-productive retching in a deep-chested breed, tympanic abdominal distension, inability to pass an orogastric tube (indicating torsion), cardiovascular compromise (tachycardia, poor pulse quality, prolonged CRT), significantly elevated lactate suggesting tissue hypoperfusion, and the pathognomonic radiographic 'double bubble' sign with dorsal pyloric displacement. Immediate treatment involves aggressive IV fluid resuscitation, gastric decompression (trocarization if OG tube cannot pass), and emergency surgery for devolvulus and incisional gastropexy. Prognosis is fair to good with early intervention but worsens significantly when lactate exceeds 6.0 mmol/L or gastric necrosis is present."
+};
+
+// ============================================================
+// GAME STATE
+// ============================================================
+
+let state = {
+  screen: 'intro', // intro | playing | results
+  currentPhase: 0,
+  eliminatedIds: [],
+  selectedId: null,
+  score: 0,
+  wrongAttempts: 0,
+  totalWrongAttempts: 0,
+  phaseComplete: false,
+  feedback: null, // { type: 'success'|'error'|'info', text }
+  clueJournal: [],
+  startTime: null,
+  endTime: null,
+  hintsRemaining: 5,
+  hintsUsedTotal: 0,
+  hintsUsedThisPhase: 0, // tracks how many hints used in current phase (for progressive hints)
+  hintPenalty: 0, // total points deducted from hints
+  revealedHints: [], // array of hint texts revealed this phase
+  viewingHintIndex: 0, // which hint the player is currently viewing
+  wrongGuessIds: [], // IDs guessed wrong this phase — disabled until next phase
+};
+
+function resetState() {
+  state = {
+    screen: 'intro',
+    currentPhase: 0,
+    eliminatedIds: [],
+    selectedId: null,
+    score: 0,
+    wrongAttempts: 0,
+    totalWrongAttempts: 0,
+    phaseComplete: false,
+    feedback: null,
+    clueJournal: [],
+    startTime: null,
+    endTime: null,
+    hintsRemaining: 5,
+    hintsUsedTotal: 0,
+    hintsUsedThisPhase: 0,
+    hintPenalty: 0,
+    revealedHints: [],
+    viewingHintIndex: 0,
+    wrongGuessIds: [],
+  };
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let timerInterval = null;
+
+function startTimer() {
+  state.startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const el = document.getElementById('timer-value');
+    if (el) el.textContent = formatTime(Date.now() - state.startTime);
+  }, 1000);
+}
+
+function stopTimer() {
+  state.endTime = Date.now();
+  if (timerInterval) clearInterval(timerInterval);
+}
+
+function formatTime(ms) {
+  const secs = Math.floor(ms / 1000);
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+
+function render() {
+  const app = document.getElementById('app');
+  switch(state.screen) {
+    case 'intro': app.innerHTML = renderIntro(); break;
+    case 'playing': app.innerHTML = renderGame(); break;
+    case 'results': app.innerHTML = renderResults(); break;
+  }
+  attachEvents();
+}
+
+// --- INTRO ---
+function renderIntro() {
+  return `
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo-icon">🔍</div>
+        <div>
+          <div class="logo-text">Diagnosis Detective</div>
+          <div class="logo-sub">Veterinary Case Challenge</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="case-id">Case #${CASE_DATA.id}</div>
+        <div>${CASE_DATA.month}</div>
+      </div>
+    </div>
+
+    <div class="intro-screen">
+      <div class="intro-badge">${CASE_DATA.difficulty} Level Case</div>
+      <h1 class="intro-title">${CASE_DATA.title}</h1>
+      <p class="intro-desc">
+        A patient has just arrived at your clinic. Evidence will be revealed progressively — 
+        review each phase carefully and narrow down the differential diagnosis list to crack the case.
+      </p>
+      
+      <div class="intro-patient-preview">
+        <div class="patient-icon">${CASE_DATA.patient.emoji}</div>
+        <div class="patient-preview-info">
+          <h3>${CASE_DATA.patient.name}</h3>
+          <p>${CASE_DATA.patient.age} ${CASE_DATA.patient.sex} ${CASE_DATA.patient.breed}, ${CASE_DATA.patient.weight}</p>
+          <p style="color: var(--accent-amber); margin-top: 4px; font-weight: 500;">"${CASE_DATA.presentingComplaint}"</p>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" data-action="start">
+        Begin Investigation →
+      </button>
+    </div>
+  `;
+}
+
+// --- GAME ---
+function renderGame() {
+  const phase = CASE_DATA.phases[state.currentPhase];
+  const totalPhases = CASE_DATA.phases.length;
+  
+  return `
+    <div class="game-screen">
+      <!-- Compact top bar: logo + stats + next phase -->
+      <div class="top-bar">
+        <div class="top-bar-logo">
+          <div class="logo-icon-sm">🔍</div>
+          <span class="logo-text-sm">Diagnosis Detective</span>
+        </div>
+        <div class="top-bar-stats">
+          <div class="stat-pill">
+            <span class="stat-pill-icon">⏱</span>
+            <span class="stat-pill-value" id="timer-value">${state.startTime ? formatTime(Date.now() - state.startTime) : '00:00'}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-icon">📊</span>
+            <span class="stat-pill-value">${state.score} pts</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-icon">❌</span>
+            <span class="stat-pill-value">${state.totalWrongAttempts}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-icon">💡</span>
+            <span class="stat-pill-value">${state.hintsRemaining} left</span>
+          </div>
+        </div>
+        ${state.phaseComplete ? `
+          <button class="btn btn-primary btn-sm" data-action="next-phase">
+            ${state.currentPhase < totalPhases - 1 ? 'Next Phase →' : 'View Results →'}
+          </button>
+        ` : `
+          <div class="top-bar-case-id">Case #${CASE_DATA.id}</div>
+        `}
+      </div>
+
+      <!-- Patient bar -->
+      <div class="patient-bar">
+        <div class="patient-bar-icon">${CASE_DATA.patient.emoji}</div>
+        <div class="patient-bar-info">
+          <div class="patient-bar-name">${CASE_DATA.patient.name}</div>
+          <div class="patient-bar-detail">${CASE_DATA.patient.age} ${CASE_DATA.patient.sex} ${CASE_DATA.patient.breed} · ${CASE_DATA.patient.weight}</div>
+        </div>
+        <div class="patient-bar-complaint">${CASE_DATA.presentingComplaint.split(',')[0]}</div>
+      </div>
+
+      <!-- Phase tracker -->
+      <div class="phase-tracker">
+        ${CASE_DATA.phases.map((p, i) => `
+          <div class="phase-step ${i < state.currentPhase ? 'completed' : ''} ${i === state.currentPhase ? 'active' : ''}"></div>
+        `).join('')}
+      </div>
+      <div class="phase-labels">
+        ${CASE_DATA.phases.map((p, i) => `
+          <span class="${i < state.currentPhase ? 'completed' : ''} ${i === state.currentPhase ? 'active' : ''}">${p.label}</span>
+        `).join('')}
+      </div>
+
+      <!-- Phase complete banner (prominent, top of content) -->
+      ${state.phaseComplete ? `
+        <div class="phase-complete-banner">
+          <span>✅ Phase complete</span>
+          <button class="btn btn-primary btn-sm" data-action="next-phase">
+            ${state.currentPhase < totalPhases - 1 ? 'Continue to Next Phase →' : 'View Results →'}
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Main content (single column) -->
+      <div class="main-content">
+        <!-- Phase instruction -->
+        <div class="phase-instruction">
+          <span class="icon">💡</span>
+          <span>${phase.instruction}</span>
+        </div>
+
+        <!-- Feedback -->
+        ${state.feedback ? `
+          <div class="feedback-toast ${state.feedback.type}">
+            ${state.feedback.text}
+          </div>
+        ` : ''}
+
+        <!-- Evidence cards -->
+        ${phase.evidence.map(ev => renderEvidence(ev)).join('')}
+
+        <!-- Active hint display -->
+        ${state.revealedHints.length > 0 ? `
+          <div class="hint-display">
+            <div class="hint-display-header">
+              <span>💡 Hints (${state.revealedHints.length} used this phase)</span>
+              <span class="hint-cost">−5 pts each</span>
+            </div>
+            ${state.revealedHints.length > 1 ? `
+              <div class="hint-tabs">
+                ${state.revealedHints.map((_, i) => `
+                  <button class="hint-tab ${i === state.viewingHintIndex ? 'active' : ''}" data-action="view-hint" data-index="${i}">
+                    Hint ${i + 1}
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+            <div class="hint-display-text">${state.revealedHints[state.viewingHintIndex]}</div>
+          </div>
+        ` : ''}
+
+        <!-- Differentials -->
+        <div class="differential-section">
+          <h3>🩺 Differential Diagnosis List ${phase.isFinalDiagnosis ? '— Select Your Diagnosis' : ''}</h3>
+          ${CASE_DATA.differentials.map(d => renderDifferential(d, phase)).join('')}
+        </div>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+          <div class="action-bar-left">
+            ${!state.phaseComplete ? `
+              <button class="btn btn-hint btn-sm" data-action="use-hint" 
+                ${state.hintsRemaining <= 0 || state.hintsUsedThisPhase >= (phase.hints ? phase.hints.length : 0) ? 'disabled' : ''}>
+                💡 Use Hint
+                <span class="hint-counter">${state.hintsRemaining}</span>
+              </button>
+            ` : ''}
+            <div class="action-bar-hint">
+              ${getActionHint(phase)}
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            ${!phase.isFinalDiagnosis && !state.phaseComplete ? `
+              <button class="btn btn-primary btn-sm" data-action="eliminate" ${!state.selectedId ? 'disabled' : ''}>
+                ✕ Eliminate Selected
+              </button>
+            ` : ''}
+            ${phase.isFinalDiagnosis && !state.phaseComplete ? `
+              <button class="btn btn-primary btn-sm" data-action="diagnose" ${!state.selectedId ? 'disabled' : ''}>
+                🎯 Confirm Diagnosis
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Collapsible Case Journal -->
+        ${state.clueJournal.length > 0 ? `
+          <details class="journal-collapsible">
+            <summary class="journal-toggle">📋 Case Journal (${state.clueJournal.length} entries)</summary>
+            <div class="journal-body">
+              ${state.clueJournal.map(c => `
+                <div class="clue-entry">
+                  <div class="clue-entry-phase">${c.phase}</div>
+                  ${c.text}
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderEvidence(ev) {
+  if (ev.type === 'narrative') {
+    return `
+      <div class="evidence-card">
+        <div class="evidence-card-header">
+          <span class="evidence-card-title"><span class="icon">📄</span> ${ev.title}</span>
+          <span class="evidence-badge badge-new">New</span>
+        </div>
+        <div class="evidence-card-body">
+          <div class="evidence-narrative">${ev.content}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (ev.type === 'vitals') {
+    return `
+      <div class="evidence-card">
+        <div class="evidence-card-header">
+          <span class="evidence-card-title"><span class="icon">🔬</span> ${ev.title}</span>
+          <span class="evidence-badge badge-new">New</span>
+        </div>
+        <div class="evidence-card-body">
+          <div class="evidence-data-grid">
+            ${ev.data.map(d => `
+              <div class="evidence-data-cell">
+                <div class="evidence-data-label">${d.label}</div>
+                <div class="evidence-data-value ${d.critical ? 'critical' : (d.abnormal ? 'abnormal' : '')}">
+                  ${d.value}
+                  <span class="ref-range">Ref: ${d.ref}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (ev.type === 'image') {
+    return `
+      <div class="evidence-card">
+        <div class="evidence-card-header">
+          <span class="evidence-card-title"><span class="icon">🩻</span> ${ev.title}</span>
+          <span class="evidence-badge badge-new">New</span>
+        </div>
+        <div class="evidence-card-body">
+          <div class="evidence-image">
+            <div class="img-placeholder">🩻</div>
+            <div class="img-label">${ev.label}</div>
+          </div>
+          <div class="evidence-narrative" style="margin-top: 16px;">
+            ${ev.description}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+function renderDifferential(d, phase) {
+  const isEliminated = state.eliminatedIds.includes(d.id);
+  const isSelected = state.selectedId === d.id;
+  const isLocked = state.phaseComplete;
+  const isWrongGuess = state.wrongGuessIds.includes(d.id);
+  const remaining = CASE_DATA.differentials.filter(x => !state.eliminatedIds.includes(x.id));
+
+  // If final diagnosis phase is complete, show correct/incorrect styling
+  let extraClass = '';
+  if (phase.isFinalDiagnosis && state.phaseComplete) {
+    if (d.isCorrect) extraClass = 'correct';
+    else if (isSelected && !d.isCorrect) extraClass = 'incorrect';
+  }
+
+  if (isEliminated) {
+    return `
+      <div class="diff-option eliminated">
+        <div class="diff-radio">✕</div>
+        <div class="diff-info">
+          <div class="diff-name">${d.name}</div>
+          <div class="diff-desc">${d.desc}</div>
+        </div>
+        <span class="diff-likelihood likelihood-low">Ruled Out</span>
+      </div>
+    `;
+  }
+
+  if (isWrongGuess && !state.phaseComplete) {
+    return `
+      <div class="diff-option wrong-guess">
+        <div class="diff-radio">–</div>
+        <div class="diff-info">
+          <div class="diff-name">${d.name}</div>
+          <div class="diff-desc">${d.desc}</div>
+        </div>
+        <span class="diff-likelihood likelihood-med">Tried</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="diff-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${extraClass}" 
+         data-action="select-diff" data-id="${d.id}">
+      <div class="diff-radio">${isSelected ? '●' : ''}</div>
+      <div class="diff-info">
+        <div class="diff-name">${d.name}</div>
+        <div class="diff-desc">${d.desc}</div>
+      </div>
+    </div>
+  `;
+}
+
+function getActionHint(phase) {
+  if (state.phaseComplete) return 'Phase complete — review the feedback and continue.';
+  if (phase.isFinalDiagnosis) return 'Select the correct diagnosis from the remaining differentials.';
+  return `Select a condition to eliminate (${phase.eliminateCount} remaining this phase).`;
+}
+
+// --- RESULTS ---
+function renderResults() {
+  const elapsed = state.endTime - state.startTime;
+  const maxScore = CASE_DATA.phases.length * 25;
+  const pct = Math.round((state.score / maxScore) * 100);
+
+  let grade, gradeEmoji;
+  if (pct >= 90) { grade = 'Master Detective'; gradeEmoji = '🏆'; }
+  else if (pct >= 70) { grade = 'Senior Clinician'; gradeEmoji = '🥈'; }
+  else if (pct >= 50) { grade = 'Resident'; gradeEmoji = '🥉'; }
+  else { grade = 'Intern'; gradeEmoji = '📚'; }
+
+  return `
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo-icon">🔍</div>
+        <div>
+          <div class="logo-text">Diagnosis Detective</div>
+          <div class="logo-sub">Veterinary Case Challenge</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-screen">
+      <div class="results-trophy">${gradeEmoji}</div>
+      <h1 class="results-title">Case Closed!</h1>
+      <p class="results-subtitle">${grade} — ${CASE_DATA.title}</p>
+
+      <div class="results-stats">
+        <div class="results-stat">
+          <div class="results-stat-value">${state.score}</div>
+          <div class="results-stat-label">Points (of ${maxScore})</div>
+        </div>
+        <div class="results-stat">
+          <div class="results-stat-value">${formatTime(elapsed)}</div>
+          <div class="results-stat-label">Time Elapsed</div>
+        </div>
+        <div class="results-stat">
+          <div class="results-stat-value">${state.totalWrongAttempts}</div>
+          <div class="results-stat-label">Wrong Attempts</div>
+        </div>
+        <div class="results-stat">
+          <div class="results-stat-value">${state.hintsUsedTotal}</div>
+          <div class="results-stat-label">Hints Used (−${state.hintPenalty} pts)</div>
+        </div>
+      </div>
+
+      <div class="results-explanation">
+        <h3>✅ Case Resolution: ${CASE_DATA.differentials.find(d => d.isCorrect).name}</h3>
+        <p>${CASE_DATA.explanation}</p>
+      </div>
+
+      <button class="btn btn-primary" data-action="restart">
+        Play Again ↻
+      </button>
+    </div>
+  `;
+}
+
+// ============================================================
+// EVENT HANDLING
+// ============================================================
+
+function attachEvents() {
+  document.querySelectorAll('[data-action]').forEach(el => {
+    el.addEventListener('click', handleAction);
+  });
+}
+
+function handleAction(e) {
+  const target = e.currentTarget;
+  const action = target.dataset.action;
+
+  switch (action) {
+    case 'start':
+      state.screen = 'playing';
+      startTimer();
+      render();
+      break;
+
+    case 'select-diff':
+      if (state.phaseComplete) return;
+      const id = target.dataset.id;
+      if (state.eliminatedIds.includes(id)) return;
+      if (state.wrongGuessIds.includes(id)) return;
+      state.selectedId = id;
+      state.feedback = null;
+      render();
+      break;
+
+    case 'eliminate':
+      handleElimination();
+      break;
+
+    case 'diagnose':
+      handleFinalDiagnosis();
+      break;
+
+    case 'use-hint':
+      handleUseHint();
+      break;
+
+    case 'view-hint':
+      state.viewingHintIndex = parseInt(target.dataset.index);
+      render();
+      break;
+
+    case 'next-phase':
+      handleNextPhase();
+      break;
+
+    case 'restart':
+      stopTimer();
+      resetState();
+      render();
+      break;
+  }
+}
+
+function handleUseHint() {
+  const phase = CASE_DATA.phases[state.currentPhase];
+  if (state.hintsRemaining <= 0 || state.phaseComplete) return;
+  if (!phase.hints || state.hintsUsedThisPhase >= phase.hints.length) return;
+
+  const hintIndex = state.hintsUsedThisPhase;
+  const hintText = phase.hints[hintIndex];
+  const HINT_COST = 5;
+
+  state.revealedHints.push(hintText);
+  state.viewingHintIndex = state.revealedHints.length - 1;
+  state.hintsRemaining--;
+  state.hintsUsedTotal++;
+  state.hintsUsedThisPhase++;
+  state.hintPenalty += HINT_COST;
+  state.score -= HINT_COST;
+  
+  state.feedback = {
+    type: 'info',
+    text: `<strong>Hint revealed!</strong> (−${HINT_COST} pts · ${state.hintsRemaining} hint${state.hintsRemaining !== 1 ? 's' : ''} remaining)`
+  };
+
+  state.clueJournal.push({
+    phase: phase.label,
+    text: `💡 Used a hint (−${HINT_COST} pts)`
+  });
+
+  render();
+}
+
+function handleElimination() {
+  const phase = CASE_DATA.phases[state.currentPhase];
+  if (!state.selectedId || state.phaseComplete) return;
+
+  const isCorrectElimination = phase.correctEliminations.includes(state.selectedId);
+
+  if (isCorrectElimination) {
+    state.eliminatedIds.push(state.selectedId);
+    const eliminated = CASE_DATA.differentials.find(d => d.id === state.selectedId);
+    
+    const points = state.wrongAttempts === 0 ? 25 : state.wrongAttempts === 1 ? 15 : 10;
+    state.score += points;
+
+    state.feedback = {
+      type: 'success',
+      text: `<strong>Correct!</strong> ${phase.feedback[state.selectedId]} <em>(+${points} pts)</em>`
+    };
+
+    state.clueJournal.push({
+      phase: phase.label,
+      text: `Eliminated <strong>${eliminated.name}</strong> — ${eliminated.desc}`
+    });
+
+    state.selectedId = null;
+    state.wrongAttempts = 0;
+    state.phaseComplete = true;
+  } else {
+    state.wrongGuessIds.push(state.selectedId);
+    state.wrongAttempts++;
+    state.totalWrongAttempts++;
+    state.score -= 1;
+    state.feedback = {
+      type: 'error',
+      text: `<strong>Not quite.</strong> ${phase.feedback._wrong} <em>(−1 pt)</em>`
+    };
+    state.selectedId = null;
+  }
+
+  render();
+}
+
+function handleFinalDiagnosis() {
+  const phase = CASE_DATA.phases[state.currentPhase];
+  if (!state.selectedId) return;
+
+  const selected = CASE_DATA.differentials.find(d => d.id === state.selectedId);
+
+  if (selected.isCorrect) {
+    const points = state.wrongAttempts === 0 ? 25 : state.wrongAttempts === 1 ? 15 : 10;
+    state.score += points;
+
+    state.feedback = {
+      type: 'success',
+      text: `${phase.feedback[state.selectedId]}`
+    };
+
+    state.clueJournal.push({
+      phase: 'Diagnosis',
+      text: `Diagnosed: <strong>${selected.name}</strong>`
+    });
+
+    state.phaseComplete = true;
+  } else {
+    state.wrongGuessIds.push(state.selectedId);
+    state.wrongAttempts++;
+    state.totalWrongAttempts++;
+    state.score -= 1;
+    const feedbackText = phase.feedback[state.selectedId] || phase.feedback._wrong;
+    state.feedback = {
+      type: 'error',
+      text: `<strong>Incorrect.</strong> ${feedbackText} <em>(−1 pt)</em>`
+    };
+    state.selectedId = null;
+  }
+
+  render();
+}
+
+function handleNextPhase() {
+  if (state.currentPhase < CASE_DATA.phases.length - 1) {
+    state.currentPhase++;
+    state.phaseComplete = false;
+    state.selectedId = null;
+    state.wrongAttempts = 0;
+    state.feedback = null;
+    state.hintsUsedThisPhase = 0;
+    state.revealedHints = [];
+    state.viewingHintIndex = 0;
+    state.wrongGuessIds = [];
+    render();
+    // Scroll to top of main content
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    stopTimer();
+    state.screen = 'results';
+    render();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+    "id": "heartworm-disease",
+    "title": "Veterinary Diagnosis: Cardiac Parasite",
+    "hint": "A parasitic disease transmitted by mosquitoes",
+    "maxScore": 1200,
+    "clues": [
+        {
+            "text": "Persistent dry cough, especially after exercise",
+            "image": null,
+            "explanation": "Adult heartworms living in the pulmonary arteries cause inflammation and irritation, triggering chronic coughing particularly during activity."
+        },
+        {
+            "text": "Exercise intolerance and fatigue",
+            "image": null,
+            "explanation": "Heartworms obstruct blood flow through the heart and lungs, reducing oxygen delivery to tissues and causing rapid exhaustion."
+        },
+        {
+            "text": "Difficulty breathing and increased respiratory rate",
+            "image": null,
+            "explanation": "Pulmonary arterial damage and inflammation from heartworms impair gas exchange, leading to labored breathing."
+        },
+        {
+            "text": "Weight loss despite normal appetite",
+            "image": null,
+            "explanation": "The metabolic burden of parasitic infection and reduced cardiac output cause progressive weight loss even with adequate food intake."
+        },
+        {
+            "text": "Heartworm antigen detected in blood test",
+            "image": null,
+            "explanation": "The 4DX SNAP test or ELISA detects adult female heartworm antigen in the bloodstream, confirming active infection."
+        },
+        {
+            "text": "Enlarged heart and pulmonary vessels on X-ray",
+            "image": null,
+            "explanation": "Radiographs show characteristic changes including right-sided heart enlargement and prominent, tortuous pulmonary arteries."
+        }
+    ],
+    "answers": [
+        "heartworm",
+        "heartworms",
+        "heartworm disease",
+        "dirofilaria immitis"
+    ]
+}

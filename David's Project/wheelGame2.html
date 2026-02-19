@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wheel of Fortune – Cancer Diagnosis Edition</title>
+<style>
+  body {font-family:Arial,Helvetica,sans-serif; background:#f0f0f0; padding:20px;}
+  #board {font-size:2rem; letter-spacing:0.3rem; margin:20px 0;}
+  #hints {margin:10px 0; color:#555; display:none;}
+  #letters {margin:10px 0; display:flex; flex-wrap:wrap; gap:6px;}
+  .letter {
+    width:44px; height:44px; line-height:44px;
+    font-size:1.2rem; text-align:center;
+    border:1px solid #999; background:#fff; cursor:pointer;
+    user-select:none;
+  }
+  .letter.used {background:#ddd; cursor:not-allowed;}
+  #msg {margin-top:15px; font-weight:bold;}
+  button {padding:5px 10px; margin-top:10px;}
+  #showHintBtn, #addPlayerBtn {margin-bottom:10px;}
+  #scoreBox, #sessionScoreBox {font-size:1.2rem; margin-top:10px;}
+  #earlyGuessContainer {margin-top:15px;}
+  #earlyGuessInput {width:150px; padding:3px;}
+  #answerBox {margin-top:20px; padding:10px; background:#fff; border:1px solid #ccc;}
+  #definition {margin-top:8px; font-style:italic; color:#333;}
+  #sourceLink a {color:#0066cc; text-decoration:none;}
+  #sourceLink a:hover {text-decoration:underline;}
+  #leaderboard {margin-top:20px; border-collapse:collapse; width:100%; max-width:400px;}
+  #leaderboard th, #leaderboard td {border:1px solid #bbb; padding:4px 8px; text-align:left;}
+  #leaderboard th {background:#e0e0e0;}
+  #namePrompt, #gameArea {margin-top:20px;}
+  #gameOverBanner {margin-top:20px; font-size:1.4rem; color:#c00; font-weight:bold;}
+</style>
+</head>
+<body>
+
+<h1>Wheel of Fortune – Cancer Diagnosis Edition</h1>
+
+<!-- ==== PLAYER NAME PROMPT ==== -->
+<div id="namePrompt">
+  <label for="playerNameInput"><strong>Enter your name:</strong></label>
+  <input id="playerNameInput" placeholder="Your name">
+  <button id="addPlayerBtn">Start Playing</button>
+</div>
+
+<!-- ==== MAIN GAME AREA (hidden until a name is entered) ==== -->
+<div id="gameArea" style="display:none;">
+  <div id="sessionScoreBox">Session Score: <span id="sessionScore">0</span></div>
+  <div id="scoreBox">Current Word Score: <span id="score">0</span></div>
+  <button id="toggleHints">Show Hints ▼</button>
+  <button id="showHintBtn" style="display:none;">Show Next Hint (<strong>-2 pts</strong>)</button>
+
+  <div id="hints"></div>
+  <div id="board"></div>
+  <div id="letters"></div>
+
+  <div id="earlyGuessContainer">
+    <input id="earlyGuessInput" placeholder="Enter whole word">
+    <button id="earlyGuessBtn">Guess Word</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <!-- Answer / definition area (shown after a round ends) -->
+  <div id="answerBox" style="display:none;">
+    <strong>Word:</strong> <span id="revealedWord"></span> 
+    <div id="definition"></div>
+    <div id="sourceLink"></div>
+    <!-- The Next Word button is only shown when the round ended in a win -->
+    <button id="nextWordBtn" style="display:none;">Next Word</button>
+  </div>
+
+  <!-- Game‑over banner (appears only after a loss) -->
+  <div id="gameOverBanner" style="display:none;">Game Over – you ran out of attempts.</div>
+
+  <!-- Leaderboard -->
+  <h3>Leaderboard</h3>
+  <table id="leaderboard">
+    <thead>
+      <tr><th>Name</th><th>Total Score</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+/* ---------- 1️⃣ WORD DATA (with reputable sources) ---------- */
+const WORDS = [
+  {
+    word: "MELANOMA",
+    hints: [
+      "A malignant tumor of melanocytes.",
+      "Often appears on skin exposed to sunlight.",
+      "Most dangerous form of skin cancer."
+    ],
+    source: "https://www.cancer.gov/types/skin/melanoma"
+  },
+  {
+    word: "BRCA1",
+    hints: [
+      "Gene associated with hereditary breast cancer.",
+      "Mutations increase risk of ovarian cancer.",
+      "Often screened via genetic testing."
+    ],
+    source: "https://www.nhlbi.nih.gov/health-topics/brca1-gene"
+  },
+  {
+    word: "LEUKEMIA",
+    hints: [
+      "Cancer of the blood‑forming tissues.",
+      "Characterized by excess white blood cells.",
+      "Can be acute or chronic."
+    ],
+    source: "https://www.cancer.org/cancer/leukemia.html"
+  },
+  {
+    word: "GLIOMA",
+    hints: [
+      "Tumor arising from glial cells in the brain.",
+      "Includes astrocytoma, oligodendroglioma, etc.",
+      "May cause seizures or headaches."
+    ],
+    source: "https://www.mayoclinic.org/diseases-conditions/glioma/symptoms-causes/syc-20355744"
+  },
+  {
+    word: "CARCINOMA",
+    hints: [
+      "Malignant tumor of epithelial origin.",
+      "Common types: lung, breast, prostate.",
+      "Often spreads via lymphatic system."
+    ],
+    source: "https://www.cancer.gov/publications/dictionaries/cancer-terms/def/carcinoma"
+  }
+];
+
+/* ---------- 2️⃣ STATE ---------- */
+let currentWord = "";
+let displayed = [];
+let usedLetters = new Set();
+let remainingAttempts = 10;
+
+let roundScore = 0;          // points earned for the current word
+let sessionScore = 0;        // cumulative for the current player
+
+let nextHintIdx = 0;         // how many hints have been shown
+let currentEntry = null;     // the object (word + hints + source) for the round
+
+let currentPlayer = "";      // name entered by the user
+let leaderboard = {};        // { playerName: totalScore }
+let gameEnded = false;       // true when the player loses a round
+
+/* ---------- 3️⃣ LOCAL STORAGE (Leaderboard) ---------- */
+function loadLeaderboard() {
+  const stored = localStorage.getItem('lumoLeaderboard');
+  leaderboard = stored ? JSON.parse(stored) : {};
+}
+function saveLeaderboard() {
+  localStorage.setItem('lumoLeaderboard', JSON.stringify(leaderboard));
+}
+function updateLeaderboardUI() {
+  const tbody = document.querySelector('#leaderboard tbody');
+  tbody.innerHTML = '';
+  const sorted = Object.entries(leaderboard).sort((a,b)=>b[1]-a[1]);
+  for (const [name, score] of sorted) {
+    const tr = document.createElement('tr');
+    const tdName = document.createElement('td');
+    const tdScore = document.createElement('td');
+    tdName.textContent = name;
+    tdScore.textContent = score;
+    tr.appendChild(tdName);
+    tr.appendChild(tdScore);
+    tbody.appendChild(tr);
+  }
+}
+
+/* ---------- 4️⃣ UI HELPERS ---------- */
+function renderBoard() {
+  const board = displayed.map(ch => ch ? ch : "_").join(" ");
+  document.getElementById("board").textContent = board;
+}
+function renderHints(hints) {
+  const container = document.getElementById("hints");
+  const shown = hints.slice(0, nextHintIdx);
+  container.innerHTML = "<strong>Hints:</strong><ul>" +
+    shown.map(h => `<li>${h}</li>`).join("") + "</ul>";
+  document.getElementById("showHintBtn").style.display =
+    (nextHintIdx < hints.length) ? "inline-block" : "none";
+}
+function renderAlphabet() {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const container = document.getElementById("letters");
+  container.innerHTML = "";
+  alphabet.forEach(l => {
+    const span = document.createElement("span");
+    span.textContent = l;
+    span.className = "letter";
+    if (usedLetters.has(l)) span.classList.add("used");
+    span.onclick = () => guessLetter(l);
+    container.appendChild(span);
+  });
+}
+function setMessage(msg, color = "black") {
+  const el = document.getElementById("msg");
+  el.textContent = msg;
+  el.style.color = color;
+}
+function updateScoreDisplays() {
+  document.getElementById("score").textContent = roundScore;
+  document.getElementById("sessionScore").textContent = sessionScore;
+}
+
+/* ---------- 5️⃣ HINT REVEAL ---------- */
+function toggleHintsVisibility() {
+  const hintsDiv = document.getElementById("hints");
+  const btn = document.getElementById("toggleHints");
+  if (hintsDiv.style.display === "none") {
+    hintsDiv.style.display = "block";
+    btn.textContent = "Hide Hints ▲";
+  } else {
+    hintsDiv.style.display = "none";
+    btn.textContent = "Show Hints ▼";
+  }
+}
+document.getElementById("toggleHints").onclick = toggleHintsVisibility;
+									   
+function showNextHint() {
+  roundScore -= 2;               // cost of a hint (‑2 points)
+  nextHintIdx++;
+  renderHints(currentEntry.hints);
+  updateScoreDisplays();
+}
+
+/* ---------- 6️⃣ END‑OF‑ROUND HANDLING ---------- */
+function finishRound(isEarlyGuess = false, didWin = true) {
+  // ----- BONUS CALCULATION -----
+  // Early guess (anytime) → +10
+  // Early guess with ZERO hints → +25
+  // Normal win with NO hints → +15
+  let bonus = 0;
+  if (isEarlyGuess) {
+    bonus = (nextHintIdx === 0) ? 25 : 10;
+  } else if (didWin && nextHintIdx === 0) {
+    bonus = 15;
+  }
+  roundScore += bonus;           // add to whatever points the player already has
+
+  // Update session total and leaderboard
+  sessionScore += roundScore;
+  leaderboard[currentPlayer] = (leaderboard[currentPlayer] || 0) + roundScore;
+  saveLeaderboard();
+  updateLeaderboardUI();
+  updateScoreDisplays();
+
+  // ---- DISPLAY WORD, DEFINITION & SOURCE LINK ----
+  document.getElementById("revealedWord").textContent = currentWord;
+  document.getElementById("definition").textContent = currentEntry.hints.join(" ");
+  document.getElementById("sourceLink").innerHTML =
+    `<a href="${currentEntry.source}" target="_blank">Learn more from a reputable source</a>`;
+
+  // Hide gameplay UI
+  document.getElementById("board").style.display = "none";
+  document.getElementById("letters").style.display = "none";
+  document.getElementById("earlyGuessContainer").style.display = "none";
+  document.getElementById("msg").style.display = "none";
+
+  // Show answer box
+  document.getElementById("answerBox").style.display = "block";
+
+  // If the player won, allow them to continue; otherwise end the session
+  if (didWin) {
+    document.getElementById("nextWordBtn").style.display = "inline-block";
+    document.getElementById("gameOverBanner").style.display = "none";
+  } else {
+    // Loss – game ends permanently
+    gameEnded = true;
+    document.getElementById("nextWordBtn").style.display = "none";
+    document.getElementById("gameOverBanner").style.display = "block";
+  }
+}
+
+/* ---------- 7️⃣ GAME LOGIC ---------- */
+function startNewRound() {
+  // If the game has already ended due to a loss, do nothing
+  if (gameEnded) return;
+
+  // Pick a random entry
+  currentEntry = WORDS[Math.floor(Math.random() * WORDS.length)];
+  currentWord = currentEntry.word.toUpperCase();
+
+  displayed = Array(currentWord.length).fill(null);
+  usedLetters.clear();
+  remainingAttempts = 10;
+
+  roundScore = 0;
+  nextHintIdx = 0;
+
+  // Reset UI for a fresh round
+  document.getElementById("answerBox").style.display = "none";
+  document.getElementById("board").style.display = "block";
+  document.getElementById("letters").style.display = "block";
+  document.getElementById("earlyGuessContainer").style.display = "block";
+  document.getElementById("msg").style.display = "block";
+  document.getElementById("gameOverBanner").style.display = "none";
+
+  renderHints(currentEntry.hints);
+  document.getElementById("hints").style.display = "none";
+
+  renderBoard();
+  renderAlphabet();
+  setMessage(`You have ${remainingAttempts} attempts left.`);
+  updateScoreDisplays();
+
+  document.getElementById("earlyGuessInput").value = "";
+}
+
+/* Guess a single letter */
+function guessLetter(letter) {
+  if (usedLetters.has(letter) || remainingAttempts <= 0 || gameEnded) return;
+  usedLetters.add(letter);
+  renderAlphabet();
+
+  if (currentWord.includes(letter)) {
+    let occ = 0;
+    for (let i = 0; i < currentWord.length; i++) {
+      if (currentWord[i] === letter) {
+        displayed[i] = letter;
+        occ++;
+      }
+    }
+    roundScore += occ;            // +1 per correct occurrence
+    renderBoard();
+    updateScoreDisplays();
+
+    if (!displayed.includes(null)) {
+      finishRound(false, true);   // solved by letters → win
+    } else {
+      setMessage(`Good! ${remainingAttempts} attempts left.`);
+    }
+  } else {
+    remainingAttempts--;
+    roundScore -= 1;              // penalty for wrong guess
+    updateScoreDisplays();
+    setMessage(`Nope. ${remainingAttempts} attempts left.`, "red");
+    if (remainingAttempts === 0) {
+      finishRound(false, false);  // loss → game ends
+    }
+  }
+}
+
+/* Early‑guess handler */
+function earlyGuess() {
+  if (gameEnded) return;
+  const guess = document.getElementById("earlyGuessInput").value.trim().toUpperCase();
+  if (!guess) return;
+
+  if (guess === currentWord) {
+    displayed = currentWord.split("");
+    renderBoard();
+    finishRound(true, true);      // early‑guess win
+  } else {
+    remainingAttempts--;
+    roundScore -= 1;
+    updateScoreDisplays();
+    setMessage(`Wrong guess. ${remainingAttempts} attempts left.`, "red");
+    if (remainingAttempts === 0) {
+      finishRound(false, false);  // loss → game ends
+    }
+  }
+}
+
+/* ---------- 8️⃣ PLAYER ENTRY & INITIALISATION ---------- */
+function startPlaying() {
+  const name = document.getElementById("playerNameInput").value.trim();
+  if (!name) {
+    alert("Please enter a name before playing.");
+    return;
+  }
+  currentPlayer = name;
+
+  document.getElementById("namePrompt").style.display = "none";
+  document.getElementById("gameArea").style.display = "block";
+
+  loadLeaderboard();
+  updateLeaderboardUI();
+  startNewRound();
+}
+document.getElementById("addPlayerBtn").onclick = startPlaying;
+
+/* ---------- 9️⃣ OTHER EVENT LISTENERS ---------- */
+document.getElementById("showHintBtn").onclick = showNextHint;
+document.getElementById("earlyGuessBtn").onclick = earlyGuess;
+document.getElementById("earlyGuessInput")
+        .addEventListener("keypress", e => { if (e.key === "Enter") earlyGuess(); });
+document.getElementById("nextWordBtn").onclick = startNewRound;
+
+/* ---------- 10️⃣ INITIAL LOAD ---------- */
+loadLeaderboard();
+updateLeaderboardUI();
+</script>
+
+</body>
+</html>

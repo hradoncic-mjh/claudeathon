@@ -1,0 +1,44 @@
+{
+    "id": "canine-parvovirus",
+    "title": "Veterinary Diagnosis: Puppy Emergency",
+    "hint": "A highly contagious viral disease affecting puppies",
+    "maxScore": 1200,
+    "clues": [
+        {
+            "text": "Severe bloody diarrhea with a distinctive foul odor",
+            "image": null,
+            "explanation": "Parvovirus attacks rapidly dividing cells in the intestinal lining, causing severe hemorrhagic diarrhea with a characteristic metallic smell."
+        },
+        {
+            "text": "Most common in unvaccinated puppies aged 6 weeks to 6 months",
+            "image": null,
+            "explanation": "Young puppies are most vulnerable before completing their vaccination series, as maternal antibodies wane and immunity hasn't fully developed."
+        },
+        {
+            "text": "Extreme lethargy and refusal to eat or drink",
+            "image": null,
+            "explanation": "The virus causes severe systemic illness with profound weakness, anorexia, and rapid dehydration."
+        },
+        {
+            "text": "Persistent vomiting leading to severe dehydration",
+            "image": null,
+            "explanation": "Viral damage to the GI tract causes uncontrollable vomiting, which combined with diarrhea leads to life-threatening fluid loss."
+        },
+        {
+            "text": "Low white blood cell count on bloodwork",
+            "image": null,
+            "explanation": "Parvovirus attacks bone marrow cells, causing leukopenia (low WBC count), which increases risk of secondary bacterial infections."
+        },
+        {
+            "text": "Positive fecal ELISA test for viral antigen",
+            "image": null,
+            "explanation": "The fecal SNAP test detects parvovirus antigen in stool samples, providing rapid confirmation of infection in clinical settings."
+        }
+    ],
+    "answers": [
+        "parvovirus",
+        "parvo",
+        "canine parvovirus",
+        "cpv"
+    ]
+}

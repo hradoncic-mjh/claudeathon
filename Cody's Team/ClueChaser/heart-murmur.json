@@ -1,0 +1,45 @@
+{
+    "id": "heart-murmur",
+    "title": "Veterinary Diagnosis: Cardiac Auscultation",
+    "hint": "A common cardiac abnormality detected during physical examination",
+    "maxScore": 1000,
+    "clues": [
+        {
+            "text": "Primary diagnostic tool used in physical examination",
+            "image": "stethoscope.png",
+            "imageCredit": "Image: CC0 Public Domain",
+            "explanation": "The stethoscope is the essential tool for cardiac auscultation, allowing veterinarians to hear heart sounds and detect abnormalities."
+        },
+        {
+            "text": "Abnormal whooshing or swishing sound heard between normal heart beats",
+            "image": null,
+            "explanation": "Heart murmurs are abnormal sounds caused by turbulent blood flow through the heart, heard as a whoosh between the normal 'lub-dub' sounds."
+        },
+        {
+            "text": "Graded on a scale from 1 to 6 based on loudness",
+            "image": null,
+            "explanation": "Murmurs are graded I/VI (barely audible) to VI/VI (can be heard without stethoscope touching chest), helping assess severity."
+        },
+        {
+            "text": "Can be caused by leaky heart valves or abnormal blood flow",
+            "image": null,
+            "explanation": "Murmurs result from valvular insufficiency (leaky valves), stenosis (narrowed valves), or structural heart defects causing turbulent flow."
+        },
+        {
+            "text": "Most commonly detected in older small breed dogs",
+            "image": null,
+            "explanation": "Mitral valve disease causing murmurs is extremely common in aging small breeds like Cavalier King Charles Spaniels, Chihuahuas, and Poodles."
+        },
+        {
+            "text": "Requires echocardiogram to identify underlying cause and severity",
+            "image": null,
+            "explanation": "Cardiac ultrasound (echocardiography) visualizes heart structure and function, definitively identifying the cause of the murmur and guiding treatment."
+        }
+    ],
+    "answers": [
+        "heart murmur",
+        "cardiac murmur",
+        "murmur",
+        "heart murmurs"
+    ]
+}

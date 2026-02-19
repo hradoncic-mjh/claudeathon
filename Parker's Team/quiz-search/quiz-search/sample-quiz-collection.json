@@ -1,0 +1,263 @@
+{
+  "Veterinary Science": [
+    {
+      "quizId": "vet-diseases-001",
+      "title": "Common Pet Diseases",
+      "category": "Veterinary Science",
+      "gridSize": 15,
+      "globalTimer": 300,
+      "questionTimer": 60,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What highly contagious viral disease in dogs causes coughing, fever, and nasal discharge?", "answer": "DISTEMPER" },
+        { "question": "What disease caused by a virus is fatal in mammals and transmitted through saliva?", "answer": "RABIES" },
+        { "question": "What external parasite commonly infests dogs and cats and can transmit disease?", "answer": "TICK" },
+        { "question": "What intestinal worms are one of the most common parasites found in puppies?", "answer": "ROUNDWORM" },
+        { "question": "What skin condition causes intense itching and hair loss in dogs?", "answer": "MANGE" }
+      ]
+    },
+    {
+      "quizId": "vet-anatomy-001",
+      "title": "Animal Anatomy Basics",
+      "category": "Veterinary Science",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What organ filters toxins from the blood in animals?", "answer": "LIVER" },
+        { "question": "What is the largest organ in the body that protects against infection?", "answer": "SKIN" },
+        { "question": "What organ pumps blood throughout the body?", "answer": "HEART" },
+        { "question": "What organs allow animals to breathe and extract oxygen from air?", "answer": "LUNGS" },
+        { "question": "What organ processes food and absorbs nutrients?", "answer": "STOMACH" }
+      ]
+    },
+    {
+      "quizId": "vet-procedures-001",
+      "title": "Veterinary Procedures",
+      "category": "Veterinary Science",
+      "gridSize": 15,
+      "globalTimer": 300,
+      "questionTimer": 60,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the medical term for the surgical removal of an animal's reproductive organs?", "answer": "SPAY" },
+        { "question": "What procedure removes tartar and plaque from an animal's teeth?", "answer": "CLEANING" },
+        { "question": "What injection helps prevent disease by stimulating immunity?", "answer": "VACCINE" },
+        { "question": "What procedure uses X-rays to view internal structures?", "answer": "RADIOGRAPH" },
+        { "question": "What is the term for surgically removing a male animal's testicles?", "answer": "NEUTER" }
+      ]
+    },
+    {
+      "quizId": "vet-pets-001",
+      "title": "Common Pet Terms",
+      "category": "Veterinary Science",
+      "gridSize": 15,
+      "globalTimer": 180,
+      "questionTimer": 40,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the term for a young cat?", "answer": "KITTEN" },
+        { "question": "What is the term for a young dog?", "answer": "PUPPY" },
+        { "question": "What small rodent is a popular pocket pet?", "answer": "HAMSTER" },
+        { "question": "What long-eared pet is known for hopping?", "answer": "RABBIT" },
+        { "question": "What colorful bird is often kept in a cage?", "answer": "PARROT" }
+      ]
+    },
+    {
+      "quizId": "vet-nutrition-001",
+      "title": "Animal Nutrition",
+      "category": "Veterinary Science",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What nutrient is the main source of energy for animals?", "answer": "PROTEIN" },
+        { "question": "What mineral is essential for strong bones and teeth?", "answer": "CALCIUM" },
+        { "question": "What nutrient helps animals digest food?", "answer": "FIBER" },
+        { "question": "What clear liquid is essential for all life?", "answer": "WATER" },
+        { "question": "What fat-soluble nutrient helps with vision and immunity?", "answer": "VITAMINA" }
+      ]
+    }
+  ],
+  "World Geography": [
+    {
+      "quizId": "geo-capitals-001",
+      "title": "World Capital Cities",
+      "category": "World Geography",
+      "gridSize": 15,
+      "globalTimer": 300,
+      "questionTimer": 60,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the capital city of France?", "answer": "PARIS" },
+        { "question": "What is the capital city of Japan?", "answer": "TOKYO" },
+        { "question": "What is the capital city of Italy?", "answer": "ROME" },
+        { "question": "What is the capital city of Egypt?", "answer": "CAIRO" },
+        { "question": "What is the capital city of Brazil?", "answer": "BRASILIA" }
+      ]
+    },
+    {
+      "quizId": "geo-oceans-001",
+      "title": "Oceans and Seas",
+      "category": "World Geography",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the largest ocean on Earth?", "answer": "PACIFIC" },
+        { "question": "What ocean lies between Europe and North America?", "answer": "ATLANTIC" },
+        { "question": "What ocean surrounds Antarctica?", "answer": "SOUTHERN" },
+        { "question": "What ocean is north of Russia?", "answer": "ARCTIC" },
+        { "question": "What ocean is between Africa and Australia?", "answer": "INDIAN" }
+      ]
+    },
+    {
+      "quizId": "geo-mountains-001",
+      "title": "Famous Mountains",
+      "category": "World Geography",
+      "gridSize": 15,
+      "globalTimer": 300,
+      "questionTimer": 60,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the tallest mountain in the world?", "answer": "EVEREST" },
+        { "question": "What mountain range separates Europe and Asia?", "answer": "URALS" },
+        { "question": "What famous peak is located in Tanzania?", "answer": "KILIMANJARO" },
+        { "question": "What mountain range runs along the west coast of South America?", "answer": "ANDES" },
+        { "question": "What mountain range runs through central Europe?", "answer": "ALPS" }
+      ]
+    },
+    {
+      "quizId": "geo-rivers-001",
+      "title": "Major Rivers",
+      "category": "World Geography",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the longest river in the world?", "answer": "NILE" },
+        { "question": "What great river flows through Brazil?", "answer": "AMAZON" },
+        { "question": "What major river flows through Egypt?", "answer": "NILE" },
+        { "question": "What river flows through London?", "answer": "THAMES" },
+        { "question": "What major river flows through China?", "answer": "YANGTZE" }
+      ]
+    },
+    {
+      "quizId": "geo-deserts-001",
+      "title": "World Deserts",
+      "category": "World Geography",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the largest hot desert in the world?", "answer": "SAHARA" },
+        { "question": "What desert covers much of northern China and southern Mongolia?", "answer": "GOBI" },
+        { "question": "What desert is located in southwestern United States?", "answer": "MOJAVE" },
+        { "question": "What desert covers much of central Australia?", "answer": "GIBSON" },
+        { "question": "What cold desert is located in southern Argentina?", "answer": "PATAGONIAN" }
+      ]
+    }
+  ],
+  "Science & Nature": [
+    {
+      "quizId": "sci-elements-001",
+      "title": "Chemical Elements",
+      "category": "Science & Nature",
+      "gridSize": 15,
+      "globalTimer": 300,
+      "questionTimer": 60,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What element has the chemical symbol O and is essential for breathing?", "answer": "OXYGEN" },
+        { "question": "What element has the symbol H and is the lightest?", "answer": "HYDROGEN" },
+        { "question": "What precious metal has the symbol Au?", "answer": "GOLD" },
+        { "question": "What element has the symbol Fe and is magnetic?", "answer": "IRON" },
+        { "question": "What element has the symbol C and forms diamonds?", "answer": "CARBON" }
+      ]
+    },
+    {
+      "quizId": "sci-planets-001",
+      "title": "Solar System",
+      "category": "Science & Nature",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What planet is known as the Red Planet?", "answer": "MARS" },
+        { "question": "What is the largest planet in our solar system?", "answer": "JUPITER" },
+        { "question": "What planet is closest to the Sun?", "answer": "MERCURY" },
+        { "question": "What planet has beautiful rings around it?", "answer": "SATURN" },
+        { "question": "What planet do we live on?", "answer": "EARTH" }
+      ]
+    },
+    {
+      "quizId": "sci-animals-001",
+      "title": "Animal Kingdom",
+      "category": "Science & Nature",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What is the largest land animal?", "answer": "ELEPHANT" },
+        { "question": "What striped big cat is the largest of its kind?", "answer": "TIGER" },
+        { "question": "What marine mammal is the largest animal on Earth?", "answer": "WHALE" },
+        { "question": "What tall African animal has a very long neck?", "answer": "GIRAFFE" },
+        { "question": "What black and white bear eats bamboo?", "answer": "PANDA" }
+      ]
+    },
+    {
+      "quizId": "sci-plants-001",
+      "title": "Plant Life",
+      "category": "Science & Nature",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What process do plants use to convert sunlight into energy?", "answer": "PHOTOSYNTHESIS" },
+        { "question": "What part of the plant absorbs water from the soil?", "answer": "ROOTS" },
+        { "question": "What colorful part of a plant attracts pollinators?", "answer": "FLOWER" },
+        { "question": "What green substance in plants captures sunlight?", "answer": "CHLOROPHYLL" },
+        { "question": "What part of the plant produces seeds?", "answer": "FRUIT" }
+      ]
+    },
+    {
+      "quizId": "sci-weather-001",
+      "title": "Weather Phenomena",
+      "category": "Science & Nature",
+      "gridSize": 15,
+      "globalTimer": 240,
+      "questionTimer": 50,
+      "streakBonus": 25,
+      "debug": false,
+      "questions": [
+        { "question": "What rotating column of air extends from clouds to ground?", "answer": "TORNADO" },
+        { "question": "What tropical storm has winds over 74 mph?", "answer": "HURRICANE" },
+        { "question": "What forms when water vapor condenses in the atmosphere?", "answer": "CLOUDS" },
+        { "question": "What weather event involves electrical discharge?", "answer": "LIGHTNING" },
+        { "question": "What frozen precipitation falls in winter?", "answer": "SNOW" }
+      ]
+    }
+  ]
+}

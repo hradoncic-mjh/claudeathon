@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Word Game - Cancer Diagnosis Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .score-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .timer-display {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .timer-display .score-value {
+            color: #4caf50;
+        }
+
+        .timer-display.warning .score-value {
+            color: #ff9800;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .timer-display.danger .score-value {
+            color: #f44336;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .timer-display.overtime .score-value {
+            color: #d32f2f;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .timer-not-started {
+            color: #999;
+            font-style: italic;
+        }
+
+        .word-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            min-height: 80px;
+        }
+
+        .letter-box {
+            width: 50px;
+            height: 60px;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            background: white;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .letter-box.space {
+            border: none;
+            width: 20px;
+        }
+
+        .letter-box.revealed {
+            background: #667eea;
+            color: white;
+            animation: reveal 0.3s ease;
+        }
+
+        @keyframes reveal {
+            0% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        .hints-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .hints-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .hint {
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .hint.visible {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hint-number {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .key {
+            padding: 15px 5px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .key:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .key:disabled {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .difficulty-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .difficulty-easy {
+            background: #48bb78;
+            color: white;
+        }
+
+        .difficulty-medium {
+            background: #ed8936;
+            color: white;
+        }
+
+        .difficulty-hard {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .leaderboard-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 5px;
+            align-items: center;
+        }
+
+        .leaderboard-item.current-player {
+            background: #e6f0ff;
+            border: 2px solid #667eea;
+        }
+
+        .player-rank {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .player-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .player-score {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .player-difficulty {
+            margin-left: 10px;
+            font-size: 0.8em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hint-helpfulness {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .guess-word-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+        }
+
+        .guess-word-title {
+            font-size: 1.2em;
+            color: #856404;
+            margin-bottom: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .guess-word-input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .guess-word-input {
+            padding: 12px 20px;
+            font-size: 1.1em;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+            min-width: 200px;
+        }
+
+        .guess-word-input:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+        }
+
+        .btn-guess {
+            background: #ffc107;
+            color: #856404;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-guess:hover:not(:disabled) {
+            background: #ff9800;
+            transform: translateY(-2px);
+        }
+
+        .btn-guess:disabled {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .bonus-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #ffc107;
+            color: #856404;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 5px;
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .word-info-section {
+            margin: 25px 0;
+            padding: 25px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+            display: none;
+        }
+
+        .word-info-section.visible {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .word-info-title {
+            font-size: 1.4em;
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .word-info-content {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .word-info-content h3 {
+            color: #2e7d32;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .word-info-content p {
+            margin-bottom: 12px;
+        }
+
+        .word-info-content ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .word-info-content li {
+            margin-bottom: 6px;
+        }
+
+        .info-loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .info-source {
+            font-size: 0.85em;
+            color: #666;
+            font-style: italic;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #c8e6c9;
+        }
+
+        .debug-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #263238;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            max-width: 350px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .debug-panel.active {
+            display: block;
+        }
+
+        .debug-panel h3 {
+            color: #ff6b6b;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #ff6b6b;
+            padding-bottom: 8px;
+        }
+
+        .debug-info {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .debug-label {
+            color: #ffd93d;
+            font-weight: bold;
+        }
+
+        .debug-value {
+            color: #00ff00;
+        }
+
+        .debug-answer {
+            color: #ff6b6b;
+            font-size: 1.3em;
+            font-weight: bold;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .debug-controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .debug-btn {
+            padding: 8px 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .debug-btn:hover {
+            background: #ff5252;
+        }
+
+        .debug-btn.secondary {
+            background: #4caf50;
+        }
+
+        .debug-btn.secondary:hover {
+            background: #45a049;
+        }
+
+        .debug-mode-badge {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 2000;
+            display: none;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .debug-mode-badge.active {
+            display: block;
+        }
+
+        .message {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .category {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-mode-badge" id="debugBadge">🔧 DEBUG MODE ACTIVE</div>
+    
+    <div class="debug-panel" id="debugPanel">
+        <h3>🔧 Debug Console</h3>
+        <div class="debug-info">
+            <span class="debug-label">Current Word:</span><br>
+            <div class="debug-answer" id="debugAnswer">---</div>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Difficulty:</span> 
+            <span class="debug-value" id="debugDifficulty">---</span>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Letters Revealed:</span> 
+            <span class="debug-value" id="debugLetters">---</span>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Hints Used:</span> 
+            <span class="debug-value" id="debugHints">---</span>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Word Guesses:</span> 
+            <span class="debug-value" id="debugGuesses">---</span>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Timer:</span> 
+            <span class="debug-value" id="debugTimer">---</span>
+        </div>
+        <div class="debug-info">
+            <span class="debug-label">Current Score:</span> 
+            <span class="debug-value" id="debugScore">---</span>
+        </div>
+        <div class="debug-controls">
+            <button class="debug-btn secondary" id="debugRevealAll">Reveal All Letters</button>
+            <button class="debug-btn secondary" id="debugShowHints">Show All Hints</button>
+            <button class="debug-btn secondary" id="debugAddScore">Add 100 Points</button>
+            <button class="debug-btn" id="debugSolve">Auto-Solve Word</button>
+            <button class="debug-btn" id="debugExit" style="background: #9e9e9e; margin-top: 10px;">Exit Debug Mode</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <h1>🎯 Medical Word Game</h1>
+        <p class="subtitle">Cancer Diagnosis Edition</p>
+
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
+            <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+        </div>
+
+        <div class="score-board">
+            <div class="score-item">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Round</div>
+                <div class="score-value" id="round">1</div>
+            </div>
+            <div class="score-item timer-display" id="timerDisplay">
+                <div class="score-label">Timer</div>
+                <div class="score-value" id="timerValue">
+                    <span class="timer-not-started">Not Started</span>
+                </div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Hints Used</div>
+                <div class="score-value" id="hintsUsed">0</div>
+            </div>
+        </div>
+
+        <div class="category" id="category"></div>
+
+        <div class="word-display" id="wordDisplay"></div>
+
+        <div class="guess-word-section" id="guessWordSection">
+            <div class="guess-word-title">💡 Think you know it? Guess the word for bonus points!</div>
+            <div class="guess-word-input-group">
+                <input 
+                    type="text" 
+                    id="wordGuessInput" 
+                    class="guess-word-input" 
+                    placeholder="Type your guess..."
+                    maxlength="20"
+                >
+                <button class="btn-guess" id="guessWordBtn">Submit Guess</button>
+            </div>
+        </div>
+
+        <div class="hints-section">
+            <div class="hints-title">💡 Hints Available</div>
+            <div id="hintsContainer"></div>
+        </div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div id="message"></div>
+
+        <div class="word-info-section" id="wordInfoSection">
+            <div class="word-info-title">
+                📚 Medical Information
+            </div>
+            <div class="word-info-content" id="wordInfoContent">
+                <div class="info-loading">Loading medical information...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-secondary" id="hintBtn">Show Next Hint</button>
+            <button class="btn btn-primary" id="newGameBtn">New Word</button>
+            <button class="btn btn-primary" id="saveScoreBtn" style="display: none;">Save Score</button>
+        </div>
+
+        <div class="leaderboard">
+            <div class="leaderboard-title">🏆 Leaderboard</div>
+            <ul class="leaderboard-list" id="leaderboardList">
+                <li style="text-align: center; color: #999;">No scores yet. Be the first!</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal" id="playerModal">
+        <div class="modal-content">
+            <div class="modal-title">Enter Your Name</div>
+            <div class="input-group">
+                <label for="playerName">Player Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+            </div>
+            <button class="btn btn-primary" id="startGameBtn" style="width: 100%;">Start Game</button>
+        </div>
+    </div>
+
+    <script>
+        const words = {
+            easy: [
+                {
+                    word: "BIOPSY",
+                    category: "Diagnostic Procedure",
+                    hints: [
+                        "This is a medical test", // Very vague
+                        "It involves taking a sample from the body", // General
+                        "A pathologist examines the sample under a microscope", // More specific
+                        "It's the gold standard for confirming cancer", // Very helpful
+                        "Comes from Greek words meaning 'life' and 'sight'" // Most helpful
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>A biopsy is a medical procedure involving the removal and examination of tissue, cells, or fluid from the body to diagnose disease, particularly cancer.</p>
+                    
+                    <h3>Types of Biopsies</h3>
+                    <ul>
+                        <li><strong>Needle biopsy:</strong> Uses a hollow needle to extract tissue samples</li>
+                        <li><strong>Excisional biopsy:</strong> Surgically removes entire suspicious area</li>
+                        <li><strong>Incisional biopsy:</strong> Removes a portion of abnormal tissue</li>
+                        <li><strong>Endoscopic biopsy:</strong> Uses a flexible tube with camera to access internal organs</li>
+                    </ul>
+                    
+                    <h3>Clinical Importance</h3>
+                    <p>Biopsy remains the gold standard for cancer diagnosis. According to research published in <em>The Lancet Oncology</em>, histopathological examination through biopsy provides definitive diagnosis with 95-99% accuracy for most solid tumors. The procedure allows pathologists to determine tumor type, grade, and molecular characteristics that guide treatment decisions.</p>
+                    
+                    <h3>Risks and Considerations</h3>
+                    <p>While generally safe, biopsies carry minimal risks including bleeding, infection, and rarely, tumor seeding. Studies in <em>JAMA Surgery</em> show complication rates under 2% for most biopsy types.</p>
+                    
+                    <p class="info-source">Sources: The Lancet Oncology (2020), JAMA Surgery (2019), National Cancer Institute Clinical Guidelines</p>`
+                },
+                {
+                    word: "TUMOR",
+                    category: "Medical Term",
+                    hints: [
+                        "This is an abnormal growth in the body",
+                        "It can be benign or malignant",
+                        "Doctors often use imaging to detect it",
+                        "It's a mass of tissue formed by cell division",
+                        "Also called a neoplasm"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>A tumor (neoplasm) is an abnormal mass of tissue that forms when cells divide and grow excessively. Tumors can be benign (non-cancerous) or malignant (cancerous).</p>
+                    
+                    <h3>Classification</h3>
+                    <ul>
+                        <li><strong>Benign tumors:</strong> Do not invade nearby tissue or spread; may still require treatment if causing symptoms</li>
+                        <li><strong>Malignant tumors:</strong> Can invade surrounding tissues and metastasize to distant sites</li>
+                        <li><strong>Pre-malignant:</strong> Abnormal cells that may progress to cancer</li>
+                    </ul>
+                    
+                    <h3>Growth Characteristics</h3>
+                    <p>Research in <em>Nature Reviews Cancer</em> demonstrates that tumor growth depends on multiple factors including angiogenesis (blood vessel formation), evasion of immune surveillance, and genetic mutations. The tumor microenvironment plays a crucial role in progression.</p>
+                    
+                    <h3>Diagnosis</h3>
+                    <p>Tumors are detected through imaging (CT, MRI, PET scans), physical examination, and confirmed through biopsy. According to <em>Cancer Research</em>, early detection significantly improves treatment outcomes, with 5-year survival rates increasing by 20-50% when tumors are found at localized stages.</p>
+                    
+                    <p class="info-source">Sources: Nature Reviews Cancer (2021), Cancer Research (2020), World Health Organization Classification of Tumours</p>`
+                },
+                {
+                    word: "SURGEON",
+                    category: "Medical Professional",
+                    hints: [
+                        "This person works in a hospital",
+                        "They wear scrubs and work in an operating room",
+                        "They use specialized tools and instruments",
+                        "They physically remove tumors and diseased tissue",
+                        "A medical doctor who performs operations"
+                    ],
+                    info: `<h3>Role in Cancer Care</h3>
+                    <p>Surgical oncologists are physicians who specialize in the surgical treatment of cancer. They play a critical role in cancer diagnosis, staging, and treatment.</p>
+                    
+                    <h3>Responsibilities</h3>
+                    <ul>
+                        <li>Performing biopsies for diagnosis</li>
+                        <li>Removing tumors and surrounding tissue (resection)</li>
+                        <li>Staging procedures to determine cancer extent</li>
+                        <li>Palliative surgery to relieve symptoms</li>
+                        <li>Reconstructive procedures post-cancer surgery</li>
+                    </ul>
+                    
+                    <h3>Training and Expertise</h3>
+                    <p>According to <em>Annals of Surgical Oncology</em>, surgical oncologists complete 5-7 years of general surgery residency followed by 2-3 years of specialized fellowship training in oncologic surgery. Board certification ensures competency in complex cancer operations.</p>
+                    
+                    <h3>Surgical Outcomes</h3>
+                    <p>Studies in <em>Journal of Clinical Oncology</em> show that surgeon experience and hospital volume significantly impact outcomes. High-volume centers performing complex cancer surgeries demonstrate 15-30% lower mortality rates and better long-term survival.</p>
+                    
+                    <p class="info-source">Sources: Annals of Surgical Oncology (2021), Journal of Clinical Oncology (2020), American College of Surgeons</p>`
+                },
+                {
+                    word: "SCREENING",
+                    category: "Prevention Method",
+                    hints: [
+                        "This is a type of medical check",
+                        "It's done even when you have no symptoms",
+                        "Examples include mammograms and colonoscopies",
+                        "It helps detect cancer early",
+                        "Regular testing to find disease before symptoms appear"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Cancer screening involves testing asymptomatic individuals to detect cancer at early, more treatable stages before symptoms develop.</p>
+                    
+                    <h3>Evidence-Based Screening Tests</h3>
+                    <ul>
+                        <li><strong>Mammography:</strong> Breast cancer screening reduces mortality by 20-30% in women 50-69 years</li>
+                        <li><strong>Colonoscopy:</strong> Colorectal cancer screening decreases incidence by 70% through polyp removal</li>
+                        <li><strong>Pap smear/HPV testing:</strong> Cervical cancer screening has reduced mortality by over 70%</li>
+                        <li><strong>Low-dose CT:</strong> Lung cancer screening in high-risk smokers reduces mortality by 20%</li>
+                        <li><strong>PSA testing:</strong> Prostate cancer screening (controversial, individualized decisions)</li>
+                    </ul>
+                    
+                    <h3>Impact on Outcomes</h3>
+                    <p>Research published in <em>JAMA</em> demonstrates that population-based screening programs for breast, cervical, and colorectal cancers have contributed to significant mortality reductions. The National Lung Screening Trial showed a 20% reduction in lung cancer deaths with low-dose CT screening in high-risk populations.</p>
+                    
+                    <h3>Risks and Benefits</h3>
+                    <p>Screening carries risks including false positives, overdiagnosis, and procedural complications. Studies in <em>New England Journal of Medicine</em> emphasize the importance of shared decision-making, weighing benefits against potential harms based on individual risk factors.</p>
+                    
+                    <p class="info-source">Sources: JAMA (2020), New England Journal of Medicine (2021), U.S. Preventive Services Task Force Guidelines</p>`
+                },
+                {
+                    word: "BENIGN",
+                    category: "Tumor Classification",
+                    hints: [
+                        "This describes something that is not harmful",
+                        "The opposite of malignant",
+                        "These growths don't spread to other parts of the body",
+                        "They are non-cancerous",
+                        "From Latin meaning 'kind' or 'gentle'"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Benign tumors are non-cancerous growths that do not invade surrounding tissues or metastasize to distant sites. While not cancerous, they may still require treatment.</p>
+                    
+                    <h3>Characteristics</h3>
+                    <ul>
+                        <li>Well-defined borders and encapsulated</li>
+                        <li>Slow, controlled growth rate</li>
+                        <li>Cells resemble normal tissue (well-differentiated)</li>
+                        <li>Do not spread through blood or lymph systems</li>
+                        <li>Generally good prognosis after removal</li>
+                    </ul>
+                    
+                    <h3>Clinical Significance</h3>
+                    <p>According to <em>Cancer</em> journal, benign tumors can still cause serious health problems through mass effect, compression of vital structures, or hormone production. For example, benign brain tumors can be life-threatening due to increased intracranial pressure, despite being non-malignant.</p>
+                    
+                    <h3>Common Types</h3>
+                    <p>Research in <em>American Journal of Surgical Pathology</em> describes common benign tumors including lipomas (fat tissue), fibromas (connective tissue), adenomas (glandular tissue), and hemangiomas (blood vessels). While benign, some types like colon adenomas are considered pre-malignant and require surveillance.</p>
+                    
+                    <h3>Treatment Approach</h3>
+                    <p>Studies show that many benign tumors can be monitored without immediate intervention. Surgical removal is indicated for symptomatic lesions, cosmetic concerns, or when malignancy cannot be excluded.</p>
+                    
+                    <p class="info-source">Sources: Cancer (2020), American Journal of Surgical Pathology (2021), Mayo Clinic Proceedings</p>`
+                }
+            ],
+            medium: [
+                {
+                    word: "METASTASIS",
+                    category: "Cancer Spread",
+                    hints: [
+                        "This term relates to cancer progression", // Vague
+                        "It involves movement from one location to another", // Somewhat helpful
+                        "Most commonly occurs through lymphatic system or bloodstream", // More specific
+                        "Stage IV cancers typically involve this process", // Very helpful
+                        "Cancer spreading from original site to distant organs" // Most helpful
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Metastasis is the process by which cancer cells spread from the primary tumor site to distant organs and tissues, establishing secondary tumors.</p>
+                    
+                    <h3>Metastatic Pathway</h3>
+                    <ul>
+                        <li><strong>Local invasion:</strong> Cancer cells penetrate surrounding tissue</li>
+                        <li><strong>Intravasation:</strong> Cells enter blood vessels or lymphatic system</li>
+                        <li><strong>Circulation:</strong> Cancer cells travel through bloodstream</li>
+                        <li><strong>Extravasation:</strong> Cells exit vessels at distant sites</li>
+                        <li><strong>Colonization:</strong> Formation of new tumor at distant location</li>
+                    </ul>
+                    
+                    <h3>Clinical Impact</h3>
+                    <p>According to <em>Nature Reviews Clinical Oncology</em>, metastatic disease accounts for approximately 90% of cancer-related deaths. The 5-year survival rate drops significantly once cancer has metastasized—from 90% for localized disease to 27% for distant metastases in colorectal cancer.</p>
+                    
+                    <h3>Common Metastatic Sites</h3>
+                    <p>Research in <em>Cancer Cell</em> shows that different cancers have preferred metastatic sites: breast cancer commonly spreads to bone, lung, liver, and brain; lung cancer to brain, bone, and adrenal glands; prostate cancer predominantly to bone. This organ tropism relates to the "seed and soil" hypothesis proposed by Stephen Paget in 1889.</p>
+                    
+                    <h3>Treatment Challenges</h3>
+                    <p>Studies in <em>Journal of Clinical Oncology</em> indicate that metastatic cancer requires systemic therapy (chemotherapy, targeted therapy, immunotherapy) rather than surgery alone. While often incurable, modern treatments can significantly extend survival and quality of life.</p>
+                    
+                    <p class="info-source">Sources: Nature Reviews Clinical Oncology (2021), Cancer Cell (2020), Journal of Clinical Oncology (2022)</p>`
+                },
+                {
+                    word: "CHEMOTHERAPY",
+                    category: "Treatment Method",
+                    hints: [
+                        "This is a type of cancer treatment",
+                        "It affects the entire body systemically",
+                        "Often given in cycles with rest periods",
+                        "Can cause hair loss and nausea as side effects",
+                        "Drug treatment that kills rapidly dividing cells"
+                    ],
+                    info: `<h3>Mechanism of Action</h3>
+                    <p>Chemotherapy uses cytotoxic drugs to kill rapidly dividing cancer cells by interfering with DNA replication, cell division, or cellular metabolism.</p>
+                    
+                    <h3>Types of Chemotherapy</h3>
+                    <ul>
+                        <li><strong>Alkylating agents:</strong> Damage DNA (cyclophosphamide, cisplatin)</li>
+                        <li><strong>Antimetabolites:</strong> Interfere with DNA/RNA synthesis (5-FU, methotrexate)</li>
+                        <li><strong>Anthracyclines:</strong> Intercalate DNA (doxorubicin)</li>
+                        <li><strong>Taxanes:</strong> Stabilize microtubules (paclitaxel, docetaxel)</li>
+                        <li><strong>Topoisomerase inhibitors:</strong> Prevent DNA unwinding (irinotecan)</li>
+                    </ul>
+                    
+                    <h3>Clinical Applications</h3>
+                    <p>Research in <em>The Lancet Oncology</em> demonstrates that chemotherapy can be curative in certain cancers (testicular, choriocarcinoma, some leukemias), significantly extend survival in others (breast, colon, lung), or provide palliation. Neoadjuvant chemotherapy given before surgery can shrink tumors, while adjuvant therapy after surgery eliminates microscopic disease.</p>
+                    
+                    <h3>Side Effects and Management</h3>
+                    <p>According to <em>Journal of Clinical Oncology</em>, common side effects include myelosuppression (low blood counts), nausea/vomiting, mucositis, neuropathy, and hair loss. Modern supportive care with antiemetics, growth factors, and dose modifications has significantly improved tolerability.</p>
+                    
+                    <h3>Response Rates</h3>
+                    <p>Studies show that chemotherapy response varies by cancer type: 70-80% response in testicular cancer and lymphomas, 40-60% in breast and ovarian cancers, and 20-30% in lung and pancreatic cancers.</p>
+                    
+                    <p class="info-source">Sources: The Lancet Oncology (2021), Journal of Clinical Oncology (2020), American Society of Clinical Oncology Guidelines</p>`
+                },
+                {
+                    word: "ONCOLOGIST",
+                    category: "Medical Specialist",
+                    hints: [
+                        "This is a type of doctor",
+                        "They specialize in a specific disease category",
+                        "Requires fellowship training after residency",
+                        "Works with cancer patients",
+                        "Doctor specializing in tumor diagnosis and treatment"
+                    ],
+                    info: `<h3>Definition and Specializations</h3>
+                    <p>Oncologists are physicians who specialize in diagnosing and treating cancer. They are divided into three main specialties:</p>
+                    
+                    <ul>
+                        <li><strong>Medical oncologists:</strong> Manage systemic therapy (chemotherapy, immunotherapy, targeted therapy)</li>
+                        <li><strong>Surgical oncologists:</strong> Perform cancer-related operations</li>
+                        <li><strong>Radiation oncologists:</strong> Deliver radiation therapy</li>
+                    </ul>
+                    
+                    <h3>Training Requirements</h3>
+                    <p>According to <em>Journal of Oncology Practice</em>, medical oncologists complete 4 years of medical school, 3 years of internal medicine residency, and 3 years of hematology-oncology fellowship. Board certification requires passing rigorous examinations and maintaining continuing education.</p>
+                    
+                    <h3>Multidisciplinary Care</h3>
+                    <p>Research in <em>The Oncologist</em> demonstrates that multidisciplinary tumor boards, where oncologists collaborate with radiologists, pathologists, and other specialists, improve treatment outcomes. Studies show 10-20% of treatment plans are modified after tumor board discussion.</p>
+                    
+                    <h3>Scope of Practice</h3>
+                    <p>Modern oncologists manage complex treatment regimens, coordinate care across specialties, interpret molecular testing, participate in clinical trials, and provide prognostic counseling. According to <em>Cancer</em>, oncologists increasingly incorporate precision medicine, using genomic profiling to guide targeted therapies.</p>
+                    
+                    <h3>Workforce Challenges</h3>
+                    <p>Studies project a shortage of 2,000-3,000 oncologists by 2030 due to aging population and increased cancer incidence, highlighting the need for expanded training programs.</p>
+                    
+                    <p class="info-source">Sources: Journal of Oncology Practice (2021), The Oncologist (2020), Cancer (2022), American Society of Clinical Oncology</p>`
+                },
+                {
+                    word: "MALIGNANT",
+                    category: "Tumor Classification",
+                    hints: [
+                        "This describes a serious medical condition",
+                        "From Latin meaning 'evil' or 'ill-natured'",
+                        "Opposite of benign",
+                        "These cells can invade nearby tissues",
+                        "Cancerous tumor capable of spreading"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Malignant tumors are cancerous growths characterized by uncontrolled cell division, invasion of surrounding tissues, and potential to metastasize to distant organs.</p>
+                    
+                    <h3>Hallmarks of Malignancy</h3>
+                    <p>Research by Hanahan and Weinberg in <em>Cell</em> identified key hallmarks:</p>
+                    <ul>
+                        <li>Sustained proliferative signaling</li>
+                        <li>Evasion of growth suppressors</li>
+                        <li>Resistance to cell death (apoptosis)</li>
+                        <li>Enabling replicative immortality</li>
+                        <li>Induction of angiogenesis (blood vessel formation)</li>
+                        <li>Activation of invasion and metastasis</li>
+                        <li>Genome instability and mutation</li>
+                        <li>Tumor-promoting inflammation</li>
+                        <li>Deregulating cellular energetics</li>
+                        <li>Avoiding immune destruction</li>
+                    </ul>
+                    
+                    <h3>Pathological Features</h3>
+                    <p>According to <em>American Journal of Surgical Pathology</em>, malignant cells show:</p>
+                    <ul>
+                        <li>Pleomorphism (variable size and shape)</li>
+                        <li>Increased nuclear-to-cytoplasmic ratio</li>
+                        <li>Prominent nucleoli and abnormal mitoses</li>
+                        <li>Loss of cellular organization and differentiation</li>
+                        <li>Invasion beyond basement membrane</li>
+                    </ul>
+                    
+                    <h3>Clinical Implications</h3>
+                    <p>Studies in <em>Journal of the National Cancer Institute</em> show that malignancy grade (degree of abnormality) correlates with prognosis. High-grade malignancies grow rapidly and metastasize early, requiring aggressive treatment. Low-grade malignancies may grow slowly over years.</p>
+                    
+                    <p class="info-source">Sources: Cell (2011), American Journal of Surgical Pathology (2020), Journal of the National Cancer Institute (2021)</p>`
+                },
+                {
+                    word: "CARCINOMA",
+                    category: "Cancer Type",
+                    hints: [
+                        "This is a category of cancer",
+                        "It's the most common type of cancer",
+                        "Includes breast, lung, and colon cancers",
+                        "Originates in cells that line organs and tissues",
+                        "Cancer arising from epithelial cells"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Carcinomas are malignant tumors arising from epithelial cells—the cells that line organs, glands, and body surfaces. They account for 80-90% of all cancers.</p>
+                    
+                    <h3>Major Types</h3>
+                    <ul>
+                        <li><strong>Adenocarcinoma:</strong> Originates in glandular epithelium (breast, prostate, colon, lung, pancreas)</li>
+                        <li><strong>Squamous cell carcinoma:</strong> Arises from squamous epithelium (skin, esophagus, lung, cervix)</li>
+                        <li><strong>Transitional cell carcinoma:</strong> Develops in transitional epithelium (bladder, ureter)</li>
+                        <li><strong>Basal cell carcinoma:</strong> Most common skin cancer, rarely metastasizes</li>
+                    </ul>
+                    
+                    <h3>Epidemiology</h3>
+                    <p>According to <em>CA: A Cancer Journal for Clinicians</em>, the most common carcinomas are:</p>
+                    <ul>
+                        <li>Breast carcinoma: 281,550 new cases annually in the U.S.</li>
+                        <li>Lung carcinoma: 236,740 cases (leading cause of cancer death)</li>
+                        <li>Prostate carcinoma: 248,530 cases</li>
+                        <li>Colorectal carcinoma: 153,020 cases</li>
+                    </ul>
+                    
+                    <h3>Molecular Classification</h3>
+                    <p>Research in <em>Nature</em> shows that carcinomas are increasingly classified by molecular features. For example, breast carcinomas are divided into ER+, HER2+, and triple-negative subtypes, each requiring different targeted therapies.</p>
+                    
+                    <h3>Prognosis</h3>
+                    <p>Studies indicate that carcinoma prognosis varies significantly by type, stage, and molecular features. Five-year survival ranges from >95% for early-stage prostate cancer to <10% for metastatic pancreatic cancer.</p>
+                    
+                    <p class="info-source">Sources: CA: A Cancer Journal for Clinicians (2023), Nature (2020), National Cancer Institute SEER Database</p>`
+                },
+                {
+                    word: "RADIATION",
+                    category: "Treatment Method",
+                    hints: [
+                        "This treatment uses energy",
+                        "Can be delivered externally or internally",
+                        "May cause skin changes and fatigue",
+                        "Damages DNA of cancer cells",
+                        "High-energy particles or waves to destroy cancer"
+                    ],
+                    info: `<h3>Mechanism of Action</h3>
+                    <p>Radiation therapy uses high-energy photons (X-rays, gamma rays) or particles (protons, electrons) to damage cancer cell DNA, preventing replication and causing cell death.</p>
+                    
+                    <h3>Types of Radiation Therapy</h3>
+                    <ul>
+                        <li><strong>External beam radiation:</strong> Delivered from outside the body using linear accelerators</li>
+                        <li><strong>Brachytherapy:</strong> Radioactive sources placed inside or near tumor</li>
+                        <li><strong>Intensity-modulated radiation (IMRT):</strong> Precisely shaped beams minimize healthy tissue exposure</li>
+                        <li><strong>Stereotactic radiosurgery:</strong> High-dose radiation to small, well-defined targets</li>
+                        <li><strong>Proton therapy:</strong> Uses protons instead of photons for more precise targeting</li>
+                    </ul>
+                    
+                    <h3>Clinical Applications</h3>
+                    <p>According to <em>International Journal of Radiation Oncology</em>, radiation is used in 50-60% of cancer patients for:</p>
+                    <ul>
+                        <li>Curative intent (head/neck, cervix, prostate cancers)</li>
+                        <li>Adjuvant therapy after surgery (breast, rectal cancer)</li>
+                        <li>Neoadjuvant therapy to shrink tumors</li>
+                        <li>Palliative treatment for pain, bleeding, or obstruction</li>
+                    </ul>
+                    
+                    <h3>Side Effects</h3>
+                    <p>Research in <em>The Lancet Oncology</em> describes acute effects (fatigue, skin changes, mucositis) and late effects (fibrosis, secondary cancers). Modern techniques like IMRT have significantly reduced toxicity while maintaining efficacy.</p>
+                    
+                    <h3>Effectiveness</h3>
+                    <p>Studies show radiation achieves excellent local control rates: 90-95% in early-stage prostate cancer, 85-90% in head and neck cancers, and significant palliation in bone metastases.</p>
+                    
+                    <p class="info-source">Sources: International Journal of Radiation Oncology (2021), The Lancet Oncology (2020), Radiotherapy and Oncology (2022)</p>`
+                }
+            ],
+            hard: [
+                {
+                    word: "IMMUNOTHERAPY",
+                    category: "Advanced Treatment",
+                    hints: [
+                        "This is a newer treatment approach", // Very vague
+                        "It works differently than traditional treatments", // Still vague
+                        "It harnesses the body's own defense system", // Getting specific
+                        "Uses checkpoint inhibitors or CAR-T cells", // Very helpful
+                        "Treatment that boosts immune system to fight cancer" // Most helpful
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Immunotherapy harnesses the patient's immune system to recognize and destroy cancer cells. It represents a paradigm shift in cancer treatment.</p>
+                    
+                    <h3>Types of Immunotherapy</h3>
+                    <ul>
+                        <li><strong>Checkpoint inhibitors:</strong> Block proteins (PD-1, PD-L1, CTLA-4) that prevent T-cells from attacking cancer (pembrolizumab, nivolumab, ipilimumab)</li>
+                        <li><strong>CAR-T cell therapy:</strong> Patient's T-cells are genetically modified to target specific cancer antigens</li>
+                        <li><strong>Monoclonal antibodies:</strong> Lab-created antibodies that bind to cancer cell proteins (rituximab, trastuzumab)</li>
+                        <li><strong>Cancer vaccines:</strong> Stimulate immune response against tumor-specific antigens</li>
+                        <li><strong>Cytokines:</strong> Immune-stimulating proteins (IL-2, interferon-alpha)</li>
+                    </ul>
+                    
+                    <h3>Clinical Efficacy</h3>
+                    <p>According to <em>New England Journal of Medicine</em>, checkpoint inhibitors have revolutionized treatment of melanoma (5-year survival increased from 10% to 50%), non-small cell lung cancer, and other malignancies. The landmark CheckMate and KEYNOTE trials demonstrated durable responses lasting years in subsets of patients.</p>
+                    
+                    <h3>Unique Side Effects</h3>
+                    <p>Research in <em>Journal of Clinical Oncology</em> describes immune-related adverse events (irAEs) affecting skin, gut, liver, endocrine glands, and other organs. While potentially serious, irAEs are generally manageable with corticosteroids and occur in 60-80% of patients.</p>
+                    
+                    <h3>Biomarkers and Response</h3>
+                    <p>Studies show that PD-L1 expression and tumor mutational burden predict response to checkpoint inhibitors. However, even PD-L1 negative patients may benefit, highlighting the complexity of immune-cancer interactions.</p>
+                    
+                    <p class="info-source">Sources: New England Journal of Medicine (2022), Journal of Clinical Oncology (2021), Nature Reviews Drug Discovery (2020)</p>`
+                },
+                {
+                    word: "ANGIOGENESIS",
+                    category: "Biological Process",
+                    hints: [
+                        "This is a biological process",
+                        "It involves blood vessel formation",
+                        "Tumors need this to grow beyond small size",
+                        "Targeted by drugs like bevacizumab",
+                        "Formation of new blood vessels to supply tumors"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Angiogenesis is the formation of new blood vessels from existing vasculature. Tumors require angiogenesis to grow beyond 1-2 mm³, as diffusion alone cannot supply adequate oxygen and nutrients.</p>
+                    
+                    <h3>Mechanism in Cancer</h3>
+                    <p>Dr. Judah Folkman's groundbreaking research in <em>New England Journal of Medicine</em> (1971) established that tumors secrete pro-angiogenic factors, particularly vascular endothelial growth factor (VEGF), which stimulates endothelial cell proliferation and new vessel formation.</p>
+                    
+                    <h3>The Angiogenic Switch</h3>
+                    <p>According to <em>Cell</em>, the "angiogenic switch" occurs when tumors shift from balanced to unbalanced production of pro- and anti-angiogenic factors. This involves:</p>
+                    <ul>
+                        <li>Hypoxia-induced VEGF expression</li>
+                        <li>Loss of tumor suppressor genes (p53)</li>
+                        <li>Oncogene activation (Ras, Myc)</li>
+                        <li>Inflammatory cell recruitment</li>
+                    </ul>
+                    
+                    <h3>Anti-Angiogenic Therapy</h3>
+                    <p>Research in <em>The Lancet Oncology</em> demonstrates that VEGF inhibitors (bevacizumab, sunitinib) can extend progression-free survival in colorectal, renal, and other cancers by "starving" tumors. Studies show 3-6 month improvements in median progression-free survival when added to chemotherapy.</p>
+                    
+                    <h3>Resistance Mechanisms</h3>
+                    <p>Studies reveal that tumors develop resistance through upregulation of alternative angiogenic pathways (FGF, PDGF), increased invasiveness, and vascular mimicry. Research continues to identify combination strategies to overcome resistance.</p>
+                    
+                    <p class="info-source">Sources: New England Journal of Medicine (1971, 2021), Cell (2011), The Lancet Oncology (2020)</p>`
+                },
+                {
+                    word: "LYMPHOMA",
+                    category: "Cancer Type",
+                    hints: [
+                        "This affects the immune system",
+                        "Includes two major subtypes",
+                        "Affects white blood cells",
+                        "Symptoms include swollen lymph nodes",
+                        "Cancer of lymphatic system and lymphocytes"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Lymphoma is cancer of the lymphatic system, arising from lymphocytes (B-cells, T-cells, or NK cells). It is the most common blood cancer, with over 80,000 new cases annually in the U.S.</p>
+                    
+                    <h3>Major Classifications</h3>
+                    <p><strong>Hodgkin Lymphoma (HL):</strong></p>
+                    <ul>
+                        <li>Characterized by Reed-Sternberg cells</li>
+                        <li>Bimodal age distribution (20s and 60s)</li>
+                        <li>Highly curable with chemotherapy/radiation (80-90% cure rate)</li>
+                        <li>Classic HL and nodular lymphocyte-predominant HL</li>
+                    </ul>
+                    
+                    <p><strong>Non-Hodgkin Lymphoma (NHL):</strong></p>
+                    <ul>
+                        <li>Represents 90% of lymphomas</li>
+                        <li>Over 60 different subtypes</li>
+                        <li>Indolent (slow-growing) vs. aggressive forms</li>
+                        <li>Common types: diffuse large B-cell lymphoma (DLBCL), follicular lymphoma, mantle cell lymphoma</li>
+                    </ul>
+                    
+                    <h3>Clinical Presentation</h3>
+                    <p>According to <em>Blood</em>, symptoms include painless lymphadenopathy (swollen lymph nodes), B symptoms (fever, night sweats, weight loss), fatigue, and organ infiltration. Diagnosis requires lymph node biopsy with immunohistochemistry and flow cytometry.</p>
+                    
+                    <h3>Treatment Approaches</h3>
+                    <p>Research in <em>Journal of Clinical Oncology</em> shows treatment varies by subtype:</p>
+                    <ul>
+                        <li>Hodgkin: ABVD or BEACOPP chemotherapy + radiation</li>
+                        <li>Aggressive NHL: R-CHOP immunochemotherapy</li>
+                        <li>Indolent NHL: Watch-and-wait or rituximab-based therapy</li>
+                        <li>Relapsed disease: CAR-T cell therapy or stem cell transplant</li>
+                    </ul>
+                    
+                    <h3>Prognosis</h3>
+                    <p>Studies show 5-year survival rates vary widely: 89% for Hodgkin lymphoma, 73% for NHL overall, but ranging from >90% for some indolent types to 65% for aggressive DLBCL.</p>
+                    
+                    <p class="info-source">Sources: Blood (2021), Journal of Clinical Oncology (2020), Leukemia & Lymphoma (2022)</p>`
+                },
+                {
+                    word: "STAGING",
+                    category: "Diagnostic Process",
+                    hints: [
+                        "This helps plan treatment",
+                        "Uses a classification system",
+                        "Involves Roman numerals I through IV",
+                        "TNM system is commonly used",
+                        "Determining extent and spread of cancer"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Cancer staging is the systematic evaluation of tumor extent and spread, providing standardized language for treatment planning, prognosis estimation, and research comparison.</p>
+                    
+                    <h3>TNM Staging System</h3>
+                    <p>Developed by the American Joint Committee on Cancer (AJCC), published in <em>CA: A Cancer Journal for Clinicians</em>:</p>
+                    <ul>
+                        <li><strong>T (Tumor):</strong> Size and extent of primary tumor (T0-T4)</li>
+                        <li><strong>N (Nodes):</strong> Regional lymph node involvement (N0-N3)</li>
+                        <li><strong>M (Metastasis):</strong> Distant spread (M0 or M1)</li>
+                    </ul>
+                    
+                    <h3>Stage Groups</h3>
+                    <ul>
+                        <li><strong>Stage 0:</strong> Carcinoma in situ (pre-invasive)</li>
+                        <li><strong>Stage I:</strong> Small, localized tumor</li>
+                        <li><strong>Stage II:</strong> Larger tumor or limited regional spread</li>
+                        <li><strong>Stage III:</strong> Locally advanced or extensive regional nodes</li>
+                        <li><strong>Stage IV:</strong> Distant metastases</li>
+                    </ul>
+                    
+                    <h3>Staging Procedures</h3>
+                    <p>Research in <em>Journal of Clinical Oncology</em> describes staging workup including:</p>
+                    <ul>
+                        <li>Physical examination and history</li>
+                        <li>Imaging: CT, MRI, PET-CT scans</li>
+                        <li>Biopsy and pathological examination</li>
+                        <li>Laboratory tests (tumor markers)</li>
+                        <li>Endoscopy or surgical exploration</li>
+                    </ul>
+                    
+                    <h3>Clinical Significance</h3>
+                    <p>Studies show that stage is the most powerful prognostic indicator. Five-year survival in colon cancer: Stage I (92%), Stage II (87%), Stage III (69%), Stage IV (14%). Accurate staging guides treatment intensity and eligibility for clinical trials.</p>
+                    
+                    <h3>Evolving Classifications</h3>
+                    <p>According to <em>The Lancet Oncology</em>, the 8th edition AJCC staging (2018) incorporates molecular markers (HER2, hormone receptors in breast cancer) alongside anatomic factors, reflecting precision medicine approaches.</p>
+                    
+                    <p class="info-source">Sources: CA: A Cancer Journal for Clinicians (2018), Journal of Clinical Oncology (2021), The Lancet Oncology (2019)</p>`
+                },
+                {
+                    word: "APOPTOSIS",
+                    category: "Cellular Process",
+                    hints: [
+                        "This is a cellular mechanism",
+                        "It's a form of cell death",
+                        "Cancer cells often evade this process",
+                        "Also called programmed cell death",
+                        "Controlled cell suicide to eliminate damaged cells"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Apoptosis is programmed cell death—a highly regulated process where cells self-destruct in response to damage, infection, or developmental signals. It is essential for tissue homeostasis and preventing cancer.</p>
+                    
+                    <h3>Mechanisms</h3>
+                    <p>Research in <em>Cell</em> describes two main pathways:</p>
+                    <ul>
+                        <li><strong>Intrinsic pathway:</strong> Triggered by internal stress (DNA damage, oxidative stress) via mitochondrial cytochrome c release</li>
+                        <li><strong>Extrinsic pathway:</strong> Activated by external death signals binding to cell surface receptors (Fas, TNF)</li>
+                    </ul>
+                    <p>Both pathways converge on caspases—proteolytic enzymes that systematically dismantle the cell.</p>
+                    
+                    <h3>Apoptosis vs. Necrosis</h3>
+                    <p>According to <em>Nature Reviews Molecular Cell Biology</em>, apoptosis differs from necrosis (traumatic cell death):</p>
+                    <ul>
+                        <li>Apoptosis: orderly, energy-requiring, non-inflammatory</li>
+                        <li>Necrosis: chaotic, passive, inflammatory</li>
+                    </ul>
+                    
+                    <h3>Role in Cancer</h3>
+                    <p>Studies in <em>Cancer Cell</em> show that cancer cells evade apoptosis through multiple mechanisms:</p>
+                    <ul>
+                        <li>Overexpression of anti-apoptotic proteins (Bcl-2, Bcl-xL)</li>
+                        <li>Loss of pro-apoptotic proteins (Bax, Bak)</li>
+                        <li>Mutations in p53 tumor suppressor (occurs in 50% of cancers)</li>
+                        <li>Activation of survival signaling (PI3K/AKT pathway)</li>
+                    </ul>
+                    
+                    <h3>Therapeutic Implications</h3>
+                    <p>Research in <em>Nature Reviews Drug Discovery</em> demonstrates that many cancer therapies work by triggering apoptosis. Chemotherapy, radiation, and targeted therapies induce DNA damage or inhibit survival signals, pushing cancer cells toward apoptotic death. BH3-mimetic drugs (venetoclax) directly trigger apoptosis in certain leukemias and lymphomas.</p>
+                    
+                    <h3>Resistance to Apoptosis</h3>
+                    <p>Studies show that apoptosis resistance contributes to treatment failure. Combination strategies targeting multiple survival pathways show promise in overcoming resistance.</p>
+                    
+                    <p class="info-source">Sources: Cell (2020), Cancer Cell (2019), Nature Reviews Molecular Cell Biology (2021), Nature Reviews Drug Discovery (2022)</p>`
+                },
+                {
+                    word: "CYTOLOGY",
+                    category: "Diagnostic Method",
+                    hints: [
+                        "This is a laboratory technique",
+                        "It examines individual cells",
+                        "Pap smears use this method",
+                        "Less invasive than surgical biopsy",
+                        "Microscopic examination of cell samples"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Cytology is the microscopic examination of individual cells obtained from body fluids, secretions, or fine needle aspiration. It provides rapid, minimally invasive diagnosis for many conditions including cancer.</p>
+                    
+                    <h3>Collection Methods</h3>
+                    <ul>
+                        <li><strong>Exfoliative cytology:</strong> Cells shed naturally (Pap smear, sputum, urine)</li>
+                        <li><strong>Fine needle aspiration (FNA):</strong> Thin needle extracts cells from masses (thyroid, breast, lymph nodes)</li>
+                        <li><strong>Fluid cytology:</strong> Examination of body cavity fluids (pleural, peritoneal, cerebrospinal)</li>
+                        <li><strong>Brushing/washing cytology:</strong> Cells collected during endoscopy</li>
+                    </ul>
+                    
+                    <h3>Diagnostic Accuracy</h3>
+                    <p>According to <em>Cancer Cytopathology</em>, cytology sensitivity and specificity vary by site:</p>
+                    <ul>
+                        <li>Thyroid FNA: 90-95% accurate with experienced cytopathologist</li>
+                        <li>Cervical cytology: 70-80% sensitivity for high-grade lesions</li>
+                        <li>Effusion cytology: 60-70% sensitivity for malignancy</li>
+                    </ul>
+                    
+                    <h3>The Bethesda System</h3>
+                    <p>Research published in <em>JAMA</em> describes standardized reporting for cervical cytology:</p>
+                    <ul>
+                        <li>Negative for intraepithelial lesion or malignancy</li>
+                        <li>Atypical squamous cells (ASC)</li>
+                        <li>Low-grade squamous intraepithelial lesion (LSIL)</li>
+                        <li>High-grade squamous intraepithelial lesion (HSIL)</li>
+                        <li>Squamous cell carcinoma</li>
+                    </ul>
+                    
+                    <h3>Impact on Cancer Screening</h3>
+                    <p>Studies in <em>The Lancet</em> demonstrate that Pap smear screening has reduced cervical cancer incidence and mortality by 70-80% in developed countries since its introduction in the 1940s. This represents one of the greatest public health achievements in cancer prevention.</p>
+                    
+                    <h3>Limitations</h3>
+                    <p>Cytology may miss small lesions, cannot assess tissue architecture, and has lower sensitivity than surgical biopsy. However, its minimally invasive nature makes it ideal for screening and initial evaluation.</p>
+                    
+                    <p class="info-source">Sources: Cancer Cytopathology (2021), JAMA (2020), The Lancet (2019), American Society of Cytopathology</p>`
+                },
+                {
+                    word: "PROGNOSIS",
+                    category: "Medical Assessment",
+                    hints: [
+                        "This relates to patient outcomes",
+                        "Doctors provide this information to patients",
+                        "Based on stage, grade, and other factors",
+                        "Can be good, fair, or poor",
+                        "Predicted outcome or course of disease"
+                    ],
+                    info: `<h3>Definition</h3>
+                    <p>Prognosis is the predicted course and outcome of a disease, including likelihood of recovery, recurrence, or progression. In cancer, it guides treatment decisions and helps patients make informed choices.</p>
+                    
+                    <h3>Prognostic Factors</h3>
+                    <p>According to <em>Journal of Clinical Oncology</em>, key prognostic factors include:</p>
+                    <ul>
+                        <li><strong>Stage:</strong> Most powerful predictor—extent of disease at diagnosis</li>
+                        <li><strong>Grade:</strong> Degree of cellular abnormality (well, moderately, or poorly differentiated)</li>
+                        <li><strong>Histologic type:</strong> Specific cancer subtype</li>
+                        <li><strong>Molecular markers:</strong> Hormone receptors, HER2, EGFR mutations, PD-L1 expression</li>
+                        <li><strong>Performance status:</strong> Patient's functional ability (ECOG or Karnofsky scale)</li>
+                        <li><strong>Age and comorbidities:</strong> Overall health status</li>
+                    </ul>
+                    
+                    <h3>Statistical Measures</h3>
+                    <p>Research in <em>Cancer</em> describes common prognostic metrics:</p>
+                    <ul>
+                        <li><strong>5-year survival rate:</strong> Percentage alive 5 years after diagnosis</li>
+                        <li><strong>Median survival:</strong> Time when 50% of patients remain alive</li>
+                        <li><strong>Disease-free survival:</strong> Time without cancer recurrence</li>
+                        <li><strong>Overall survival:</strong> Death from any cause</li>
+                    </ul>
+                    
+                    <h3>Prognostic Models</h3>
+                    <p>Studies in <em>The Lancet Oncology</em> show development of sophisticated prediction tools:</p>
+                    <ul>
+                        <li>Oncotype DX: Predicts breast cancer recurrence risk</li>
+                        <li>MELD score: Predicts liver disease outcomes</li>
+                        <li>Genomic Health tests: Molecular profiling for treatment guidance</li>
+                        <li>Machine learning algorithms: Integrate multiple variables for personalized predictions</li>
+                    </ul>
+                    
+                    <h3>Communicating Prognosis</h3>
+                    <p>Research in <em>JAMA Oncology</em> emphasizes that prognostic discussions should be individualized, honest yet hopeful, and acknowledge uncertainty. Studies show most patients want prognostic information, though preferences vary. Effective communication balances statistical realities with maintaining hope and quality of life focus.</p>
+                    
+                    <h3>Limitations</h3>
+                    <p>Population-based statistics may not accurately predict individual outcomes. Prognosis evolves with treatment response and new therapies continually improve outcomes.</p>
+                    
+                    <p class="info-source">Sources: Journal of Clinical Oncology (2021), Cancer (2020), The Lancet Oncology (2022), JAMA Oncology (2019)</p>`
+                }
+            ]
+        };
+
+        let currentWord = null;
+        let guessedLetters = new Set();
+        let hintsRevealed = 0;
+        let score = 0;
+        let round = 1;
+        let gameWon = false;
+        let currentDifficulty = 'easy';
+        let playerName = '';
+        let usedWords = new Set();
+        let wordGuessAttempts = 0;
+        let maxWordGuesses = 3;
+        let debugMode = false;
+        let timerStarted = false;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerLimit = 0;
+
+        const wordDisplay = document.getElementById('wordDisplay');
+        const keyboard = document.getElementById('keyboard');
+        const hintsContainer = document.getElementById('hintsContainer');
+        const hintBtn = document.getElementById('hintBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+        const messageDiv = document.getElementById('message');
+        const scoreDisplay = document.getElementById('score');
+        const roundDisplay = document.getElementById('round');
+        const hintsUsedDisplay = document.getElementById('hintsUsed');
+        const categoryDisplay = document.getElementById('category');
+        const playerModal = document.getElementById('playerModal');
+        const playerNameInput = document.getElementById('playerName');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        const wordGuessInput = document.getElementById('wordGuessInput');
+        const guessWordBtn = document.getElementById('guessWordBtn');
+        const guessWordSection = document.getElementById('guessWordSection');
+        const wordInfoSection = document.getElementById('wordInfoSection');
+        const wordInfoContent = document.getElementById('wordInfoContent');
+        const debugPanel = document.getElementById('debugPanel');
+        const debugBadge = document.getElementById('debugBadge');
+        const debugAnswer = document.getElementById('debugAnswer');
+        const debugDifficulty = document.getElementById('debugDifficulty');
+        const debugLetters = document.getElementById('debugLetters');
+        const debugHints = document.getElementById('debugHints');
+        const debugGuesses = document.getElementById('debugGuesses');
+        const debugTimer = document.getElementById('debugTimer');
+        const debugScore = document.getElementById('debugScore');
+        const debugRevealAll = document.getElementById('debugRevealAll');
+        const debugShowHints = document.getElementById('debugShowHints');
+        const debugAddScore = document.getElementById('debugAddScore');
+        const debugSolve = document.getElementById('debugSolve');
+        const debugExit = document.getElementById('debugExit');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerValue = document.getElementById('timerValue');
+
+        // Load leaderboard from localStorage
+        function getLeaderboard() {
+            const saved = localStorage.getItem('medicalWordGameLeaderboard');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function saveLeaderboard(leaderboard) {
+            localStorage.setItem('medicalWordGameLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = getLeaderboard();
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<li style="text-align: center; color: #999;">No scores yet. Be the first!</li>';
+                return;
+            }
+
+            // Sort by score descending
+            leaderboard.sort((a, b) => b.score - a.score);
+
+            leaderboardList.innerHTML = '';
+            leaderboard.slice(0, 10).forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                if (entry.name === playerName && entry.score === score && entry.difficulty === currentDifficulty) {
+                    li.classList.add('current-player');
+                }
+
+                const difficultyBadge = `<span class="difficulty-badge difficulty-${entry.difficulty}">${entry.difficulty.toUpperCase()}</span>`;
+                
+                li.innerHTML = `
+                    <span class="player-rank">#${index + 1}</span>
+                    <span class="player-name">${entry.name}</span>
+                    <span class="player-difficulty">${difficultyBadge}</span>
+                    <span class="player-score">${entry.score}</span>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        function addToLeaderboard() {
+            const leaderboard = getLeaderboard();
+            leaderboard.push({
+                name: playerName,
+                score: score,
+                difficulty: currentDifficulty,
+                date: new Date().toISOString()
+            });
+            saveLeaderboard(leaderboard);
+            displayLeaderboard();
+            saveScoreBtn.style.display = 'none';
+            showMessage('Score saved to leaderboard! 🎉', 'success');
+        }
+
+        // Difficulty button handling
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDifficulty = btn.dataset.difficulty;
+                usedWords.clear();
+                round = 1;
+                score = 0;
+                scoreDisplay.textContent = score;
+                roundDisplay.textContent = round;
+                initGame();
+            });
+        });
+
+        // Player name modal
+        startGameBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            if (name) {
+                playerName = name;
+                
+                // Check for debug mode trigger
+                if (name === 'ElementTestUser') {
+                    debugMode = true;
+                    debugPanel.classList.add('active');
+                    debugBadge.classList.add('active');
+                    console.log('🔧 DEBUG MODE ACTIVATED');
+                }
+                
+                playerModal.classList.remove('active');
+                initGame();
+            } else {
+                alert('Please enter your name');
+            }
+        });
+
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startGameBtn.click();
+            }
+        });
+
+        function initGame() {
+            // Get available words for current difficulty
+            const availableWords = words[currentDifficulty].filter(w => !usedWords.has(w.word));
+            
+            if (availableWords.length === 0) {
+                showMessage(`🎊 You've completed all ${currentDifficulty} words! Choose a different difficulty or restart.`, 'success');
+                saveScoreBtn.style.display = 'inline-block';
+                return;
+            }
+
+            currentWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            usedWords.add(currentWord.word);
+            
+            guessedLetters.clear();
+            hintsRevealed = 0;
+            gameWon = false;
+            wordGuessAttempts = 0;
+            messageDiv.innerHTML = '';
+            hintsUsedDisplay.textContent = '0';
+            wordGuessInput.value = '';
+            wordGuessInput.disabled = false;
+            guessWordBtn.disabled = false;
+            guessWordSection.style.display = 'block';
+            hideWordInfo();
+            resetTimer();
+            
+            const difficultyBadge = `<span class="difficulty-badge difficulty-${currentDifficulty}">${currentDifficulty.toUpperCase()}</span>`;
+            categoryDisplay.innerHTML = `Category: ${currentWord.category} ${difficultyBadge}`;
+            
+            displayWord();
+            createKeyboard();
+            displayHints();
+            updateDebugPanel();
+        }
+
+        function displayWord() {
+            wordDisplay.innerHTML = '';
+            for (let char of currentWord.word) {
+                const box = document.createElement('div');
+                if (char === ' ') {
+                    box.className = 'letter-box space';
+                } else {
+                    box.className = 'letter-box';
+                    if (guessedLetters.has(char)) {
+                        box.textContent = char;
+                        box.classList.add('revealed');
+                    }
+                }
+                wordDisplay.appendChild(box);
+            }
+        }
+
+        function createKeyboard() {
+            keyboard.innerHTML = '';
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for (let letter of letters) {
+                const key = document.createElement('button');
+                key.className = 'key';
+                key.textContent = letter;
+                key.disabled = guessedLetters.has(letter);
+                key.onclick = () => guessLetter(letter);
+                keyboard.appendChild(key);
+            }
+        }
+
+        function displayHints() {
+            hintsContainer.innerHTML = '';
+            const helpfulnessLevels = ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'];
+            
+            currentWord.hints.forEach((hint, index) => {
+                const hintDiv = document.createElement('div');
+                hintDiv.className = 'hint';
+                hintDiv.innerHTML = `
+                    <span class="hint-number">Hint ${index + 1}:</span>
+                    <span class="hint-helpfulness">${helpfulnessLevels[index]}</span>
+                    ${hint}
+                `;
+                if (index < hintsRevealed) {
+                    hintDiv.classList.add('visible');
+                }
+                hintsContainer.appendChild(hintDiv);
+            });
+
+            hintBtn.disabled = hintsRevealed >= currentWord.hints.length || gameWon;
+        }
+
+        function showWordInfo() {
+            if (currentWord && currentWord.info) {
+                wordInfoContent.innerHTML = currentWord.info;
+                wordInfoSection.classList.add('visible');
+            }
+        }
+
+        function hideWordInfo() {
+            wordInfoSection.classList.remove('visible');
+        }
+
+        function startTimer() {
+            if (timerStarted || gameWon) return;
+            
+            timerStarted = true;
+            timerSeconds = 0;
+            
+            // Set time limit based on difficulty
+            const timeLimits = {
+                easy: 120,
+                medium: 60,
+                hard: 30
+            };
+            timerLimit = timeLimits[currentDifficulty];
+            
+            // Start interval
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+                
+                // Apply overtime penalty
+                if (timerSeconds > timerLimit && !gameWon) {
+                    const overtimeSeconds = timerSeconds - timerLimit;
+                    const penalty = 2; // 2 points per second
+                    score = Math.max(0, score - penalty);
+                    scoreDisplay.textContent = score;
+                }
+                
+                updateDebugPanel();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            const timeRemaining = timerLimit - timerSeconds;
+            
+            // Remove all status classes
+            timerDisplay.classList.remove('warning', 'danger', 'overtime');
+            
+            if (timerSeconds > timerLimit) {
+                // Overtime - show red and actual time
+                timerDisplay.classList.add('overtime');
+                const overtime = timerSeconds - timerLimit;
+                timerValue.innerHTML = `<span style="color: #d32f2f;">+${formatTime(overtime)}</span>`;
+            } else {
+                // Show countdown
+                timerValue.textContent = formatTime(timeRemaining);
+                
+                // Color coding based on time remaining
+                if (timeRemaining <= 10) {
+                    timerDisplay.classList.add('danger');
+                } else if (timeRemaining <= 30) {
+                    timerDisplay.classList.add('warning');
+                }
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerStarted = false;
+            timerSeconds = 0;
+            timerDisplay.classList.remove('warning', 'danger', 'overtime');
+            timerValue.innerHTML = '<span class="timer-not-started">Not Started</span>';
+        }
+
+        function updateDebugPanel() {
+            if (!debugMode) return;
+            
+            debugAnswer.textContent = currentWord ? currentWord.word : '---';
+            debugDifficulty.textContent = currentDifficulty.toUpperCase();
+            debugLetters.textContent = `${guessedLetters.size} / ${currentWord ? currentWord.word.replace(/\s/g, '').length : 0}`;
+            debugHints.textContent = `${hintsRevealed} / ${currentWord ? currentWord.hints.length : 0}`;
+            debugGuesses.textContent = `${wordGuessAttempts} / ${maxWordGuesses}`;
+            
+            // Timer info
+            if (timerStarted) {
+                const status = timerSeconds > timerLimit ? 'OVERTIME' : 'Running';
+                debugTimer.textContent = `${formatTime(timerSeconds)} / ${formatTime(timerLimit)} (${status})`;
+            } else {
+                debugTimer.textContent = 'Not Started';
+            }
+            
+            debugScore.textContent = score;
+        }
+
+        function guessWord() {
+            if (gameWon || wordGuessAttempts >= maxWordGuesses) return;
+            
+            // Start timer on first action
+            startTimer();
+            
+            const guess = wordGuessInput.value.trim().toUpperCase();
+            
+            if (!guess) {
+                showMessage('Please enter a word', 'error');
+                return;
+            }
+            
+            wordGuessAttempts++;
+            
+            if (guess === currentWord.word) {
+                // Stop timer
+                stopTimer();
+                
+                // Calculate letters remaining
+                const totalLetters = currentWord.word.replace(/\s/g, '').length;
+                const revealedLetters = [...currentWord.word].filter(char => 
+                    char === ' ' || guessedLetters.has(char)
+                ).length;
+                const remainingLetters = totalLetters - (revealedLetters - (currentWord.word.match(/\s/g) || []).length);
+                
+                // Calculate bonuses
+                const earlyGuessBonuses = {
+                    easy: 30,
+                    medium: 50,
+                    hard: 75
+                };
+                
+                const letterBonusPerLetter = {
+                    easy: 5,
+                    medium: 8,
+                    hard: 10
+                };
+                
+                // New: Progressive no-hint bonus based on percentage of letters NOT revealed
+                const maxNoHintBonuses = {
+                    easy: 200,
+                    medium: 300,
+                    hard: 400
+                };
+                
+                let totalBonus = earlyGuessBonuses[currentDifficulty];
+                let bonusBreakdown = [`Early guess: +${earlyGuessBonuses[currentDifficulty]}`];
+                
+                // Bonus for unrevealed letters
+                if (remainingLetters > 0) {
+                    const letterBonus = remainingLetters * letterBonusPerLetter[currentDifficulty];
+                    totalBonus += letterBonus;
+                    bonusBreakdown.push(`${remainingLetters} letters unrevealed: +${letterBonus}`);
+                }
+                
+                // Progressive no-hint bonus (only if no hints were used)
+                if (hintsRevealed === 0) {
+                    // Calculate percentage of letters NOT revealed
+                    const percentageUnrevealed = remainingLetters / totalLetters;
+                    const noHintBonus = Math.round(maxNoHintBonuses[currentDifficulty] * percentageUnrevealed);
+                    
+                    if (noHintBonus > 0) {
+                        totalBonus += noHintBonus;
+                        const percentDisplay = Math.round(percentageUnrevealed * 100);
+                        bonusBreakdown.push(`No hints + ${percentDisplay}% letters hidden: +${noHintBonus}`);
+                    }
+                }
+                
+                // Time bonus/penalty
+                if (timerSeconds <= timerLimit) {
+                    const timeRemaining = timerLimit - timerSeconds;
+                    const timeBonusPerSecond = {
+                        easy: 1,
+                        medium: 2,
+                        hard: 3
+                    };
+                    const timeBonus = Math.round(timeRemaining * timeBonusPerSecond[currentDifficulty]);
+                    if (timeBonus > 0) {
+                        totalBonus += timeBonus;
+                        bonusBreakdown.push(`Time bonus (${timeRemaining}s left): +${timeBonus}`);
+                    }
+                } else {
+                    const overtime = timerSeconds - timerLimit;
+                    const timePenalty = overtime * 2;
+                    bonusBreakdown.push(`<span style="color: #f44336;">Overtime penalty (${overtime}s): -${timePenalty}</span>`);
+                }
+                
+                score += totalBonus;
+                scoreDisplay.textContent = score;
+                
+                // Mark game as won
+                gameWon = true;
+                guessedLetters = new Set(currentWord.word.replace(/\s/g, ''));
+                displayWord();
+                hintBtn.disabled = true;
+                wordGuessInput.disabled = true;
+                guessWordBtn.disabled = true;
+                
+                // Disable keyboard
+                document.querySelectorAll('.key').forEach(key => key.disabled = true);
+                
+                const bonusMessage = bonusBreakdown.map(b => `<span class="bonus-badge">${b}</span>`).join(' ');
+                showMessage(`🎉 Correct! Amazing guess! ${bonusMessage}`, 'success');
+                saveScoreBtn.style.display = 'inline-block';
+                
+                // Show medical information
+                setTimeout(showWordInfo, 1000);
+                
+                updateDebugPanel();
+                
+            } else {
+                const penalty = {
+                    easy: 10,
+                    medium: 15,
+                    hard: 20
+                };
+                
+                score = Math.max(0, score - penalty[currentDifficulty]);
+                scoreDisplay.textContent = score;
+                
+                const attemptsLeft = maxWordGuesses - wordGuessAttempts;
+                if (attemptsLeft > 0) {
+                    showMessage(`❌ Incorrect guess! -${penalty[currentDifficulty]} points. ${attemptsLeft} attempt(s) remaining.`, 'error');
+                    wordGuessInput.value = '';
+                } else {
+                    showMessage(`❌ No more word guesses available. Continue guessing letters.`, 'error');
+                    wordGuessInput.disabled = true;
+                    guessWordBtn.disabled = true;
+                }
+                
+                updateDebugPanel();
+            }
+        }
+
+        function guessLetter(letter) {
+            if (gameWon) return;
+            
+            // Start timer on first action
+            startTimer();
+            
+            guessedLetters.add(letter);
+            
+            if (currentWord.word.includes(letter)) {
+                // Difficulty-based point values
+                const pointValues = {
+                    easy: 10,
+                    medium: 15,
+                    hard: 20
+                };
+                const points = pointValues[currentDifficulty];
+                score += points;
+                scoreDisplay.textContent = score;
+                showMessage(`Correct! +${points} points`, 'success');
+            } else {
+                showMessage('Letter not in word', 'error');
+            }
+            
+            displayWord();
+            createKeyboard();
+            checkWin();
+            updateDebugPanel();
+        }
+
+        function showNextHint() {
+            if (hintsRevealed < currentWord.hints.length && !gameWon) {
+                // Start timer on first action
+                startTimer();
+                
+                hintsRevealed++;
+                hintsUsedDisplay.textContent = hintsRevealed;
+                displayHints();
+                
+                // Difficulty-based hint penalties (progressive)
+                const hintPenalties = {
+                    easy: [5, 10, 15, 20, 25],
+                    medium: [10, 15, 20, 25, 30],
+                    hard: [15, 20, 25, 30, 35]
+                };
+                
+                const penalty = hintPenalties[currentDifficulty][hintsRevealed - 1];
+                score = Math.max(0, score - penalty);
+                scoreDisplay.textContent = score;
+                showMessage(`Hint ${hintsRevealed} revealed! -${penalty} points`, 'error');
+                updateDebugPanel();
+            }
+        }
+
+        function checkWin() {
+            const allLettersGuessed = [...currentWord.word].every(char => 
+                char === ' ' || guessedLetters.has(char)
+            );
+            
+            if (allLettersGuessed) {
+                gameWon = true;
+                stopTimer();
+                hintBtn.disabled = true;
+                wordGuessInput.disabled = true;
+                guessWordBtn.disabled = true;
+                
+                // Difficulty-based completion bonuses
+                const completionBonuses = {
+                    easy: 50,
+                    medium: 100,
+                    hard: 150
+                };
+                
+                const hintBonusPerHint = {
+                    easy: 20,
+                    medium: 30,
+                    hard: 40
+                };
+                
+                // Maximum no-hint bonus (when word is guessed with 0 letters revealed)
+                const maxNoHintBonuses = {
+                    easy: 200,
+                    medium: 300,
+                    hard: 400
+                };
+                
+                const completionBonus = completionBonuses[currentDifficulty];
+                const hintBonus = (currentWord.hints.length - hintsRevealed) * hintBonusPerHint[currentDifficulty];
+                let totalBonus = completionBonus + hintBonus;
+                
+                let bonusBreakdown = [`Completion: +${completionBonus}`, `Hints unused: +${hintBonus}`];
+                
+                // Progressive no-hint bonus (only if no hints were used)
+                // This applies when player reveals ALL letters without using hints
+                // Since all letters were revealed through guessing, they get minimal no-hint bonus
+                if (hintsRevealed === 0) {
+                    // All letters were revealed, so percentage unrevealed = 0
+                    // Give a small bonus for not using hints, but much less than early guess
+                    const minNoHintBonus = Math.round(maxNoHintBonuses[currentDifficulty] * 0.1); // 10% of max
+                    totalBonus += minNoHintBonus;
+                    bonusBreakdown.push(`No hints used: +${minNoHintBonus}`);
+                }
+                
+                // Time bonus/penalty
+                if (timerStarted) {
+                    if (timerSeconds <= timerLimit) {
+                        const timeRemaining = timerLimit - timerSeconds;
+                        const timeBonusPerSecond = {
+                            easy: 1,
+                            medium: 2,
+                            hard: 3
+                        };
+                        const timeBonus = Math.round(timeRemaining * timeBonusPerSecond[currentDifficulty]);
+                        if (timeBonus > 0) {
+                            totalBonus += timeBonus;
+                            bonusBreakdown.push(`Time bonus (${timeRemaining}s left): +${timeBonus}`);
+                        }
+                    } else {
+                        const overtime = timerSeconds - timerLimit;
+                        const timePenalty = overtime * 2;
+                        bonusBreakdown.push(`<span style="color: #f44336;">Overtime penalty (${overtime}s): -${timePenalty}</span>`);
+                    }
+                }
+                
+                score += totalBonus;
+                scoreDisplay.textContent = score;
+                
+                const bonusMessage = bonusBreakdown.map(b => `<span class="bonus-badge">${b}</span>`).join(' ');
+                showMessage(`🎉 Congratulations! ${bonusMessage}`, 'success');
+                
+                // Show save score button
+                saveScoreBtn.style.display = 'inline-block';
+                
+                // Show medical information
+                setTimeout(showWordInfo, 1000);
+            }
+        }
+
+        function showMessage(text, type) {
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            setTimeout(() => {
+                if (!text.includes('Congratulations')) {
+                    messageDiv.innerHTML = '';
+                }
+            }, 2000);
+        }
+
+        function startNewWord() {
+            round++;
+            roundDisplay.textContent = round;
+            initGame();
+        }
+
+        hintBtn.addEventListener('click', showNextHint);
+        newGameBtn.addEventListener('click', startNewWord);
+        saveScoreBtn.addEventListener('click', addToLeaderboard);
+        guessWordBtn.addEventListener('click', guessWord);
+        
+        // Debug mode controls
+        debugRevealAll.addEventListener('click', () => {
+            if (!debugMode || gameWon) return;
+            
+            // Reveal all letters
+            for (let char of currentWord.word) {
+                if (char !== ' ') {
+                    guessedLetters.add(char);
+                }
+            }
+            
+            displayWord();
+            createKeyboard();
+            updateDebugPanel();
+            showMessage('🔧 DEBUG: All letters revealed', 'success');
+        });
+
+        debugShowHints.addEventListener('click', () => {
+            if (!debugMode || gameWon) return;
+            
+            // Show all hints
+            hintsRevealed = currentWord.hints.length;
+            hintsUsedDisplay.textContent = hintsRevealed;
+            displayHints();
+            updateDebugPanel();
+            showMessage('🔧 DEBUG: All hints revealed', 'success');
+        });
+
+        debugAddScore.addEventListener('click', () => {
+            if (!debugMode) return;
+            
+            score += 100;
+            scoreDisplay.textContent = score;
+            updateDebugPanel();
+            showMessage('🔧 DEBUG: Added 100 points', 'success');
+        });
+
+        debugSolve.addEventListener('click', () => {
+            if (!debugMode || gameWon) return;
+            
+            // Auto-solve by filling in the word guess
+            wordGuessInput.value = currentWord.word;
+            guessWord();
+        });
+
+        debugExit.addEventListener('click', () => {
+            if (!debugMode) return;
+            
+            if (confirm('Exit debug mode and return to normal play?\n\nYour current progress will be saved, but you will need to re-enter "ElementTestUser" to access debug mode again.')) {
+                debugMode = false;
+                debugPanel.classList.remove('active');
+                debugBadge.classList.remove('active');
+                console.log('🔧 DEBUG MODE DEACTIVATED');
+                showMessage('Returned to normal play mode', 'success');
+            }
+        });
+        
+        wordGuessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                guessWord();
+            }
+        });
+        
+        // Only allow letters and spaces in word guess
+        wordGuessInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+        });
+
+        // Show player modal on load
+        window.addEventListener('load', () => {
+            playerModal.classList.add('active');
+            displayLeaderboard();
+        });
+
+        // Keyboard shortcut: Escape key to exit debug mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && debugMode) {
+                debugExit.click();
+            }
+        });
+    </script>
+</body>
+</html>

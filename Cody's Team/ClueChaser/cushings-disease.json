@@ -1,0 +1,45 @@
+{
+    "id": "cushings-disease",
+    "title": "Veterinary Diagnosis: Senior Dog Symptoms",
+    "hint": "An endocrine disorder common in older dogs",
+    "maxScore": 1200,
+    "clues": [
+        {
+            "text": "Excessive thirst and urination (polydipsia and polyuria)",
+            "image": null,
+            "explanation": "Elevated cortisol levels interfere with the kidneys' ability to concentrate urine, leading to increased water consumption and urination."
+        },
+        {
+            "text": "Pendulous pot-bellied appearance",
+            "image": null,
+            "explanation": "Chronic cortisol excess causes redistribution of fat to the abdomen and weakening of abdominal muscles, creating a characteristic sagging belly."
+        },
+        {
+            "text": "Bilateral symmetrical hair loss and thin skin",
+            "image": null,
+            "explanation": "Excess cortisol inhibits hair follicle growth and causes skin atrophy, resulting in thinning fur on both sides of the body and paper-thin skin."
+        },
+        {
+            "text": "Excessive panting even at rest",
+            "image": null,
+            "explanation": "High cortisol levels affect respiratory control and muscle weakness in the diaphragm, causing persistent panting."
+        },
+        {
+            "text": "Elevated alkaline phosphatase on chemistry panel",
+            "image": null,
+            "explanation": "Cortisol induces a specific liver enzyme (steroid-induced ALP), which dramatically elevates on blood chemistry tests."
+        },
+        {
+            "text": "Enlarged adrenal glands visible on ultrasound",
+            "image": null,
+            "explanation": "The disease causes either pituitary-dependent bilateral adrenal enlargement or a unilateral adrenal tumor, both visible on abdominal ultrasound."
+        }
+    ],
+    "answers": [
+        "cushing's disease",
+        "cushings disease",
+        "cushing's",
+        "cushings",
+        "hyperadrenocorticism"
+    ]
+}

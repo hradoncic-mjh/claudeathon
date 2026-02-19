@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClueChaser - Word Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --dark-bg: #0a0a0f;
+            --card-bg: #1a1a2e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --success: #00ff88;
+            --danger: #ff0055;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 255, 255, 0.03) 0px,
+                    rgba(0, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            pointer-events: none;
+            z-index: 1;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, rgba(10, 10, 15, 0.95) 100%);
+            padding: 1.5rem 2rem 1rem 2rem;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .title-section {
+            flex: 1;
+        }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            letter-spacing: 0.1em;
+            animation: titlePulse 3s ease-in-out infinite;
+            line-height: 1;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .stats-header {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .timer-display {
+            padding: 0.75rem 1.5rem;
+            background: rgba(26, 26, 46, 0.6);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .score-display {
+            padding: 0.75rem 1.5rem;
+            background: rgba(26, 26, 46, 0.6);
+            border: 2px solid var(--neon-magenta);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .timer-label, .score-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .timer-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan);
+            line-height: 1;
+        }
+
+        .score-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--neon-magenta);
+            text-shadow: 0 0 15px var(--neon-magenta);
+            line-height: 1;
+        }
+
+        .timer-value.warning {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 15px var(--neon-yellow);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .timer-value.danger {
+            color: var(--danger);
+            text-shadow: 0 0 15px var(--danger);
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .hint-section {
+            position: fixed;
+            top: 120px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.4);
+            border-bottom: 2px solid rgba(255, 0, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .hint-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hint-label {
+            font-size: 0.7rem;
+            color: var(--neon-magenta);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .hint-text {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .main-content {
+            margin-top: 200px;
+            margin-bottom: 180px;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .current-clue-section {
+            margin-bottom: 2rem;
+        }
+
+        .current-clue-card {
+            padding: 2.5rem;
+            background: var(--card-bg);
+            border: 3px solid var(--neon-cyan);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            transform-origin: center;
+            animation: slideInCurrent 0.6s ease-out;
+        }
+
+        @keyframes slideInCurrent {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .current-clue-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+            animation: shimmer 2s linear infinite;
+        }
+
+        .clue-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--neon-yellow);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+        }
+
+        .current-clue-text {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .previous-clues-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .previous-clues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .previous-clue-card {
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            transform: scale(0.75);
+            transform-origin: top left;
+            width: 133.33%;
+            animation: scaleDown 0.5s ease-out forwards;
+        }
+
+        @keyframes scaleDown {
+            from {
+                transform: scale(1);
+                opacity: 0;
+            }
+            to {
+                transform: scale(0.75);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .previous-clue-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--neon-yellow);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .previous-clue-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(0deg, var(--dark-bg) 0%, rgba(10, 10, 15, 0.95) 100%);
+            border-top: 2px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .guess-input {
+            width: 100%;
+            padding: 1.5rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
+            background: var(--card-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .guess-input:focus {
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .guess-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .guess-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            border-radius: 8px;
+            color: var(--dark-bg);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .demo-btn {
+            width: 100%;
+            margin-top: 0.75rem;
+            padding: 0.8rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid var(--neon-yellow);
+            border-radius: 8px;
+            color: var(--neon-yellow);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .demo-btn:hover {
+            opacity: 1;
+            background: rgba(255, 255, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+        }
+
+        .clue-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .previous-clue-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .start-screen.hidden {
+            display: none;
+        }
+
+        .start-content {
+            max-width: 900px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .start-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            animation: titlePulse 3s ease-in-out infinite;
+            line-height: 1;
+        }
+
+        .start-subtitle {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            letter-spacing: 0.2em;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .games-list-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-top: 1rem;
+            padding-right: 0.5rem;
+        }
+
+        .games-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .games-list-container::-webkit-scrollbar-track {
+            background: rgba(26, 26, 46, 0.3);
+            border-radius: 4px;
+        }
+
+        .games-list-container::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+        }
+
+        .games-list-container::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-magenta);
+        }
+
+        .games-list {
+            display: grid;
+            gap: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .game-card {
+            padding: 2rem;
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 80px;
+        }
+
+        .game-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .game-card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            line-height: 1.3;
+            flex: 1;
+            padding-right: 1rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .game-card-hint {
+            display: none;
+        }
+
+        .game-card-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--neon-magenta);
+            background: rgba(255, 0, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--neon-magenta);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .explanations-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .explanations-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--neon-yellow);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .explanation-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .explanation-clue {
+            font-size: 0.85rem;
+            color: var(--neon-yellow);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .explanation-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .explanation-text a {
+            color: var(--neon-cyan);
+            text-decoration: underline;
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .game-over-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .game-over-content {
+            text-align: center;
+            padding: 3rem;
+            background: var(--card-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .game-over-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .game-over-title.win {
+            color: var(--success);
+            text-shadow: 0 0 20px var(--success);
+        }
+
+        .game-over-title.lose {
+            color: var(--danger);
+            text-shadow: 0 0 20px var(--danger);
+        }
+
+        .answer-reveal {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .answer-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .answer-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 15px var(--neon-yellow);
+        }
+
+        .restart-btn {
+            padding: 1rem 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-yellow));
+            border: none;
+            border-radius: 8px;
+            color: var(--dark-bg);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(255, 0, 255, 0.5);
+        }
+
+        .stats-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--neon-cyan);
+            font-weight: 700;
+        }
+
+        .final-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--neon-magenta);
+            text-shadow: 0 0 20px var(--neon-magenta);
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .start-title {
+                font-size: 2.5rem;
+            }
+
+            .start-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .game-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .game-card-title {
+                font-size: 1.1rem;
+                padding-right: 0;
+            }
+
+            .game-card-score {
+                align-self: flex-end;
+            }
+
+            .game-title {
+                font-size: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-header {
+                gap: 1rem;
+            }
+
+            .timer-value, .score-value {
+                font-size: 1.5rem;
+            }
+
+            .current-clue-text {
+                font-size: 1.2rem;
+            }
+
+            .previous-clues-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                margin-top: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <div class="start-content">
+            <h1 class="start-title">CLUECHASER</h1>
+            <p class="start-subtitle">
+                A time-based word game where clues are revealed every 10 seconds.<br>
+                Guess the answer before time runs out to maximize your score!
+            </p>
+            <div class="games-list-container">
+                <div class="games-list" id="gamesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container" style="display: none;" id="gameContainer">
+        <div class="game-header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1 class="game-title">CLUECHASER</h1>
+                </div>
+                <div class="stats-header">
+                    <div class="timer-display">
+                        <div class="timer-label">TIME</div>
+                        <div class="timer-value" id="timer">60</div>
+                    </div>
+                    <div class="score-display">
+                        <div class="score-label">SCORE</div>
+                        <div class="score-value" id="score">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hint-section">
+            <div class="hint-container">
+                <div class="hint-label">Game Hint</div>
+                <div class="hint-text" id="gameHint"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-wrapper">
+                <div class="current-clue-section" id="currentClueSection">
+                    <!-- Current clue will be inserted here -->
+                </div>
+
+                <div class="previous-clues-section" id="previousCluesSection" style="display: none;">
+                    <div class="section-title">Previous Clues</div>
+                    <div class="previous-clues-grid" id="previousCluesGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="guessInput" 
+                        class="guess-input" 
+                        placeholder="Enter your guess..."
+                        autocomplete="off"
+                    >
+                </div>
+                <button class="submit-btn" id="submitBtn">Submit Guess</button>
+                <button class="demo-btn" id="demoBtn">Demo Reveal - Show Answer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-content">
+            <h2 class="game-over-title" id="gameOverTitle"></h2>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="answer-reveal">
+                <div class="answer-label">The Answer Was</div>
+                <div class="answer-text" id="answerText"></div>
+            </div>
+            <div class="stats-section" id="statsSection">
+                <div class="stat-item">
+                    <span class="stat-label">Time Elapsed:</span>
+                    <span class="stat-value" id="timeElapsed"></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Clues Revealed:</span>
+                    <span class="stat-value" id="cluesRevealed"></span>
+                </div>
+                <div class="stat-item" id="guessCountItem" style="display: none;">
+                    <span class="stat-label">Your Guess:</span>
+                    <span class="stat-value" id="finalGuess"></span>
+                </div>
+            </div>
+            <div class="explanations-section" id="explanationsSection">
+                <div class="explanations-title">How Each Clue Relates</div>
+                <div id="explanationsList"></div>
+            </div>
+            <button class="restart-btn" id="restartBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // GAME DATA - Multiple games stored in array
+        const ALL_GAMES = [
+            {
+                "id": "canine-parvovirus",
+                "title": "Veterinary Diagnosis: Puppy Emergency",
+                "hint": "A highly contagious viral disease affecting puppies",
+                "maxScore": 1200,
+                "clues": [
+                    {
+                        "text": "Severe bloody diarrhea with a distinctive foul odor",
+                        "image": null,
+                        "explanation": "Parvovirus attacks rapidly dividing cells in the intestinal lining, causing severe hemorrhagic diarrhea with a characteristic metallic smell."
+                    },
+                    {
+                        "text": "Most common in unvaccinated puppies aged 6 weeks to 6 months",
+                        "image": null,
+                        "explanation": "Young puppies are most vulnerable before completing their vaccination series, as maternal antibodies wane and immunity hasn't fully developed."
+                    },
+                    {
+                        "text": "Extreme lethargy and refusal to eat or drink",
+                        "image": null,
+                        "explanation": "The virus causes severe systemic illness with profound weakness, anorexia, and rapid dehydration."
+                    },
+                    {
+                        "text": "Persistent vomiting leading to severe dehydration",
+                        "image": null,
+                        "explanation": "Viral damage to the GI tract causes uncontrollable vomiting, which combined with diarrhea leads to life-threatening fluid loss."
+                    },
+                    {
+                        "text": "Low white blood cell count on bloodwork",
+                        "image": null,
+                        "explanation": "Parvovirus attacks bone marrow cells, causing leukopenia (low WBC count), which increases risk of secondary bacterial infections."
+                    },
+                    {
+                        "text": "Positive fecal ELISA test for viral antigen",
+                        "image": null,
+                        "explanation": "The fecal SNAP test detects parvovirus antigen in stool samples, providing rapid confirmation of infection in clinical settings."
+                    }
+                ],
+                "answers": [
+                    "parvovirus",
+                    "parvo",
+                    "canine parvovirus",
+                    "cpv"
+                ]
+            },
+            {
+                "id": "cushings-disease",
+                "title": "Veterinary Diagnosis: Senior Dog Symptoms",
+                "hint": "An endocrine disorder common in older dogs",
+                "maxScore": 1200,
+                "clues": [
+                    {
+                        "text": "Excessive thirst and urination (polydipsia and polyuria)",
+                        "image": null,
+                        "explanation": "Elevated cortisol levels interfere with the kidneys' ability to concentrate urine, leading to increased water consumption and urination."
+                    },
+                    {
+                        "text": "Pendulous pot-bellied appearance",
+                        "image": null,
+                        "explanation": "Chronic cortisol excess causes redistribution of fat to the abdomen and weakening of abdominal muscles, creating a characteristic sagging belly."
+                    },
+                    {
+                        "text": "Bilateral symmetrical hair loss and thin skin",
+                        "image": null,
+                        "explanation": "Excess cortisol inhibits hair follicle growth and causes skin atrophy, resulting in thinning fur on both sides of the body and paper-thin skin."
+                    },
+                    {
+                        "text": "Excessive panting even at rest",
+                        "image": null,
+                        "explanation": "High cortisol levels affect respiratory control and muscle weakness in the diaphragm, causing persistent panting."
+                    },
+                    {
+                        "text": "Elevated alkaline phosphatase on chemistry panel",
+                        "image": null,
+                        "explanation": "Cortisol induces a specific liver enzyme (steroid-induced ALP), which dramatically elevates on blood chemistry tests."
+                    },
+                    {
+                        "text": "Enlarged adrenal glands visible on ultrasound",
+                        "image": null,
+                        "explanation": "The disease causes either pituitary-dependent bilateral adrenal enlargement or a unilateral adrenal tumor, both visible on abdominal ultrasound."
+                    }
+                ],
+                "answers": [
+                    "cushing's disease",
+                    "cushings disease",
+                    "cushing's",
+                    "cushings",
+                    "hyperadrenocorticism"
+                ]
+            },
+            {
+                "id": "heartworm-disease",
+                "title": "Veterinary Diagnosis: Cardiac Parasite",
+                "hint": "A parasitic disease transmitted by mosquitoes",
+                "maxScore": 1200,
+                "clues": [
+                    {
+                        "text": "Persistent dry cough, especially after exercise",
+                        "image": null,
+                        "explanation": "Adult heartworms living in the pulmonary arteries cause inflammation and irritation, triggering chronic coughing particularly during activity."
+                    },
+                    {
+                        "text": "Exercise intolerance and fatigue",
+                        "image": null,
+                        "explanation": "Heartworms obstruct blood flow through the heart and lungs, reducing oxygen delivery to tissues and causing rapid exhaustion."
+                    },
+                    {
+                        "text": "Difficulty breathing and increased respiratory rate",
+                        "image": null,
+                        "explanation": "Pulmonary arterial damage and inflammation from heartworms impair gas exchange, leading to labored breathing."
+                    },
+                    {
+                        "text": "Weight loss despite normal appetite",
+                        "image": null,
+                        "explanation": "The metabolic burden of parasitic infection and reduced cardiac output cause progressive weight loss even with adequate food intake."
+                    },
+                    {
+                        "text": "Heartworm antigen detected in blood test",
+                        "image": null,
+                        "explanation": "The 4DX SNAP test or ELISA detects adult female heartworm antigen in the bloodstream, confirming active infection."
+                    },
+                    {
+                        "text": "Enlarged heart and pulmonary vessels on X-ray",
+                        "image": null,
+                        "explanation": "Radiographs show characteristic changes including right-sided heart enlargement and prominent, tortuous pulmonary arteries."
+                    }
+                ],
+                "answers": [
+                    "heartworm",
+                    "heartworms",
+                    "heartworm disease",
+                    "dirofilaria immitis"
+                ]
+            },
+            {
+                "id": "bloat-gdv",
+                "title": "Veterinary Diagnosis: Emergency Surgery",
+                "hint": "A life-threatening emergency requiring immediate surgery",
+                "maxScore": 1500,
+                "clues": [
+                    {
+                        "text": "Sudden onset of severe abdominal distension",
+                        "image": null,
+                        "explanation": "The stomach rapidly fills with gas and fluid, expanding dramatically within minutes to hours, creating visible abdominal swelling."
+                    },
+                    {
+                        "text": "Unproductive retching - trying to vomit but nothing comes up",
+                        "image": null,
+                        "explanation": "When the stomach twists (volvulus), the esophageal opening is blocked, preventing the dog from vomiting or belching despite severe nausea."
+                    },
+                    {
+                        "text": "Restlessness, pacing, and obvious distress",
+                        "image": null,
+                        "explanation": "The condition causes severe pain and anxiety, with affected dogs unable to find a comfortable position."
+                    },
+                    {
+                        "text": "Weak pulse and pale gums indicating shock",
+                        "image": null,
+                        "explanation": "Gastric torsion compresses major blood vessels, causing circulatory shock with weak peripheral pulses and poor tissue perfusion."
+                    },
+                    {
+                        "text": "Most common in large, deep-chested breeds like Great Danes",
+                        "image": null,
+                        "explanation": "Deep-chested dogs have greater space for stomach movement. Breeds like Great Danes, German Shepherds, and Standard Poodles are at highest risk."
+                    },
+                    {
+                        "text": "X-ray shows 'double bubble' or compartmentalized stomach",
+                        "image": null,
+                        "explanation": "Radiographs reveal a classic appearance of a gas-filled, twisted stomach with the pylorus displaced, creating distinct compartments."
+                    }
+                ],
+                "answers": [
+                    "bloat",
+                    "gdv",
+                    "gastric dilatation volvulus",
+                    "gastric torsion",
+                    "stomach torsion"
+                ]
+            },
+            {
+                "id": "addisons-disease",
+                "title": "Veterinary Diagnosis: The Great Pretender",
+                "hint": "A hormonal disease known as 'the great pretender' due to vague symptoms",
+                "maxScore": 1200,
+                "clues": [
+                    {
+                        "text": "Episodic weakness and lethargy that comes and goes",
+                        "image": null,
+                        "explanation": "Cortisol and aldosterone deficiency causes periodic episodes of weakness, often triggered by stress, with apparent recovery between episodes."
+                    },
+                    {
+                        "text": "Poor appetite with weight loss and vomiting",
+                        "image": null,
+                        "explanation": "Low cortisol levels affect metabolism and GI function, causing chronic nausea, decreased appetite, and intermittent vomiting."
+                    },
+                    {
+                        "text": "Symptoms worsen during stressful situations",
+                        "image": null,
+                        "explanation": "Without adequate cortisol production, dogs cannot mount appropriate stress responses, leading to severe decompensation during illness or anxiety."
+                    },
+                    {
+                        "text": "Low sodium and high potassium on bloodwork",
+                        "image": null,
+                        "explanation": "Aldosterone deficiency causes loss of sodium in urine and retention of potassium, creating characteristic electrolyte abnormalities (low Na:K ratio)."
+                    },
+                    {
+                        "text": "History of responding well to IV fluids but then relapsing",
+                        "image": null,
+                        "explanation": "Fluid therapy temporarily corrects dehydration and electrolyte imbalances, providing dramatic improvement, but underlying hormone deficiency causes relapse."
+                    },
+                    {
+                        "text": "Low cortisol levels on ACTH stimulation test",
+                        "image": null,
+                        "explanation": "The ACTH stimulation test shows inadequate cortisol response to hormonal stimulation, confirming adrenal insufficiency (Addison's disease)."
+                    }
+                ],
+                "answers": [
+                    "addison's disease",
+                    "addisons disease",
+                    "addison's",
+                    "addisons",
+                    "hypoadrenocorticism"
+                ]
+            }
+        ];
+
+        let GAME_DATA = null;
+        let selectedGameId = null;
+
+        // Game state
+        let timeRemaining = 60;
+        let currentScore = 0;
+        let cluesRevealed = 0;
+        let gameActive = false;
+        let timerInterval = null;
+        let clueInterval = null;
+        let startTime = null;
+        let currentClueElement = null;
+
+        // DOM elements
+        const startScreenEl = document.getElementById('startScreen');
+        const gamesListEl = document.getElementById('gamesList');
+        const gameContainerEl = document.getElementById('gameContainer');
+        const timerEl = document.getElementById('timer');
+        const scoreEl = document.getElementById('score');
+        const gameHintEl = document.getElementById('gameHint');
+        const currentClueSectionEl = document.getElementById('currentClueSection');
+        const previousCluesSectionEl = document.getElementById('previousCluesSection');
+        const previousCluesGridEl = document.getElementById('previousCluesGrid');
+        const guessInputEl = document.getElementById('guessInput');
+        const submitBtnEl = document.getElementById('submitBtn');
+        const demoBtnEl = document.getElementById('demoBtn');
+        const gameOverOverlayEl = document.getElementById('gameOverOverlay');
+        const gameOverTitleEl = document.getElementById('gameOverTitle');
+        const finalScoreEl = document.getElementById('finalScore');
+        const answerTextEl = document.getElementById('answerText');
+        const timeElapsedEl = document.getElementById('timeElapsed');
+        const cluesRevealedEl = document.getElementById('cluesRevealed');
+        const finalGuessEl = document.getElementById('finalGuess');
+        const guessCountItemEl = document.getElementById('guessCountItem');
+        const explanationsListEl = document.getElementById('explanationsList');
+        const restartBtnEl = document.getElementById('restartBtn');
+
+        // Calculate current score based on time remaining
+        function calculateScore() {
+            const maxScore = GAME_DATA.maxScore || 1000;
+            currentScore = Math.round(maxScore * (timeRemaining / 60));
+            scoreEl.textContent = currentScore;
+        }
+
+        // Render start screen with available games
+        function renderStartScreen() {
+            gamesListEl.innerHTML = '';
+            
+            ALL_GAMES.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.innerHTML = `
+                    <div class="game-card-title">${game.title}</div>
+                    <div class="game-card-score">Max: ${game.maxScore}</div>
+                `;
+                gameCard.addEventListener('click', () => selectGame(game.id));
+                gamesListEl.appendChild(gameCard);
+            });
+        }
+
+        // Select a game and start it
+        function selectGame(gameId) {
+            selectedGameId = gameId;
+            GAME_DATA = ALL_GAMES.find(g => g.id === gameId);
+            
+            if (!GAME_DATA) {
+                console.error('Game not found:', gameId);
+                return;
+            }
+
+            // Hide start screen, show game
+            startScreenEl.classList.add('hidden');
+            gameContainerEl.style.display = 'flex';
+            
+            // Initialize the selected game
+            initGame();
+        }
+
+        // Initialize game
+        function initGame() {
+            // Reset state
+            timeRemaining = 60;
+            cluesRevealed = 0;
+            gameActive = true;
+            startTime = Date.now();
+            currentClueElement = null;
+
+            // Calculate and display initial score
+            calculateScore();
+
+            // Reset UI
+            timerEl.textContent = timeRemaining;
+            timerEl.className = 'timer-value';
+            gameHintEl.textContent = GAME_DATA.hint;
+            currentClueSectionEl.innerHTML = '';
+            previousCluesGridEl.innerHTML = '';
+            previousCluesSectionEl.style.display = 'none';
+            guessInputEl.value = '';
+            guessInputEl.disabled = false;
+            submitBtnEl.disabled = false;
+            gameOverOverlayEl.classList.remove('active');
+
+            // Reveal first clue immediately
+            revealClue();
+
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+
+            // Start clue reveal interval (every 10 seconds)
+            clueInterval = setInterval(revealClue, 10000);
+
+            // Focus input
+            guessInputEl.focus();
+        }
+
+        // Update timer
+        function updateTimer() {
+            timeRemaining--;
+            timerEl.textContent = timeRemaining;
+            
+            // Update score
+            calculateScore();
+
+            // Update timer styling based on time remaining
+            if (timeRemaining <= 10) {
+                timerEl.className = 'timer-value danger';
+            } else if (timeRemaining <= 20) {
+                timerEl.className = 'timer-value warning';
+            }
+
+            // Check if time's up
+            if (timeRemaining <= 0) {
+                endGame(false);
+            }
+        }
+
+        // Reveal next clue
+        function revealClue() {
+            if (cluesRevealed >= GAME_DATA.clues.length || !gameActive) {
+                clearInterval(clueInterval);
+                return;
+            }
+
+            const clueData = GAME_DATA.clues[cluesRevealed];
+            
+            // Move current clue to previous clues if it exists
+            if (currentClueElement) {
+                // Clone the current clue and add to previous clues
+                const previousClue = document.createElement('div');
+                previousClue.className = 'previous-clue-card';
+                
+                const currentText = currentClueElement.querySelector('.current-clue-text').textContent;
+                const currentNumber = currentClueElement.querySelector('.clue-number').textContent;
+                const currentImage = currentClueElement.querySelector('.clue-image');
+                
+                let imageHTML = '';
+                if (currentImage) {
+                    imageHTML = `<img src="${currentImage.src}" alt="Clue image" class="previous-clue-image">`;
+                }
+                
+                previousClue.innerHTML = `
+                    <div class="previous-clue-number">${currentNumber}</div>
+                    <div class="previous-clue-text">${currentText}</div>
+                    ${imageHTML}
+                `;
+                previousCluesGridEl.appendChild(previousClue);
+                
+                // Show previous clues section
+                previousCluesSectionEl.style.display = 'block';
+            }
+            
+            // Create new current clue
+            const clueCard = document.createElement('div');
+            clueCard.className = 'current-clue-card';
+            
+            let imageHTML = '';
+            if (clueData.image) {
+                imageHTML = `<img src="${clueData.image}" alt="Clue image" class="clue-image">`;
+            }
+            
+            clueCard.innerHTML = `
+                <div class="clue-number">Clue ${cluesRevealed + 1}</div>
+                <div class="current-clue-text">${clueData.text || ''}</div>
+                ${imageHTML}
+            `;
+            
+            // Replace current clue section content
+            currentClueSectionEl.innerHTML = '';
+            currentClueSectionEl.appendChild(clueCard);
+            currentClueElement = clueCard;
+            
+            cluesRevealed++;
+        }
+
+        // Check guess
+        function checkGuess() {
+            if (!gameActive) return;
+
+            const guess = guessInputEl.value.trim().toLowerCase();
+            if (!guess) return;
+
+            // Check if guess matches any of the accepted answers
+            const isCorrect = GAME_DATA.answers.some(answer => 
+                answer.toLowerCase() === guess
+            );
+
+            if (isCorrect) {
+                endGame(true, guess);
+            } else {
+                // Visual feedback for incorrect guess
+                guessInputEl.style.borderColor = 'var(--danger)';
+                guessInputEl.style.boxShadow = '0 0 20px rgba(255, 0, 85, 0.4)';
+                setTimeout(() => {
+                    guessInputEl.style.borderColor = 'var(--neon-cyan)';
+                    guessInputEl.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+                }, 500);
+            }
+        }
+
+        // End game
+        function endGame(won, userGuess = '') {
+            gameActive = false;
+            clearInterval(timerInterval);
+            clearInterval(clueInterval);
+
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            
+            guessInputEl.disabled = true;
+            submitBtnEl.disabled = true;
+
+            // Update game over screen
+            if (won) {
+                gameOverTitleEl.textContent = 'VICTORY!';
+                gameOverTitleEl.className = 'game-over-title win';
+            } else {
+                gameOverTitleEl.textContent = 'TIME\'S UP!';
+                gameOverTitleEl.className = 'game-over-title lose';
+            }
+
+            finalScoreEl.textContent = currentScore.toLocaleString();
+            answerTextEl.textContent = GAME_DATA.answers[0].toUpperCase();
+            timeElapsedEl.textContent = `${elapsedTime}s`;
+            cluesRevealedEl.textContent = `${cluesRevealed} / ${GAME_DATA.clues.length}`;
+
+            if (userGuess) {
+                guessCountItemEl.style.display = 'flex';
+                finalGuessEl.textContent = userGuess;
+            } else {
+                guessCountItemEl.style.display = 'none';
+            }
+
+            // Display explanations for ALL clues (not just revealed ones)
+            explanationsListEl.innerHTML = '';
+            for (let i = 0; i < GAME_DATA.clues.length; i++) {
+                const clueData = GAME_DATA.clues[i];
+                const explanationItem = document.createElement('div');
+                explanationItem.className = 'explanation-item';
+                
+                // Add visual indicator if clue was not revealed
+                const revealedIndicator = i < cluesRevealed ? '' : '<span style="color: var(--neon-yellow); font-weight: bold;">[Not Revealed] </span>';
+                
+                // Convert URLs in explanation text to links
+                let explanationHTML = clueData.explanation || 'No explanation available.';
+                explanationHTML = explanationHTML.replace(
+                    /(https?:\/\/[^\s]+)/g,
+                    '<a href="$1" target="_blank">$1</a>'
+                );
+                
+                explanationItem.innerHTML = `
+                    <div class="explanation-clue">${revealedIndicator}Clue ${i + 1}: ${clueData.text || 'Image clue'}</div>
+                    <div class="explanation-text">${explanationHTML}</div>
+                `;
+                explanationsListEl.appendChild(explanationItem);
+            }
+
+            // Show overlay
+            setTimeout(() => {
+                gameOverOverlayEl.classList.add('active');
+            }, 500);
+        }
+
+        // Demo reveal - immediately show answer as if won
+        function demoReveal() {
+            if (!gameActive) return;
+            
+            // Set a high score for demo
+            currentScore = Math.round(GAME_DATA.maxScore * 0.8);
+            
+            // End game as victory with the first answer
+            endGame(true, GAME_DATA.answers[0]);
+        }
+
+        // Return to start screen
+        function returnToStart() {
+            gameContainerEl.style.display = 'none';
+            startScreenEl.classList.remove('hidden');
+            gameOverOverlayEl.classList.remove('active');
+            GAME_DATA = null;
+            selectedGameId = null;
+        }
+
+        // Event listeners
+        submitBtnEl.addEventListener('click', checkGuess);
+        demoBtnEl.addEventListener('click', demoReveal);
+        guessInputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+        restartBtnEl.addEventListener('click', returnToStart);
+
+        // Initialize - show start screen
+        renderStartScreen();
+    </script>
+</body>
+</html>

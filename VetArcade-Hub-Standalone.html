@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VetArcade — Game Hub</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #16161a;
+        --surface2: #1e1e24;
+        --border: rgba(255, 255, 255, 0.08);
+        --lime: #278dc1;
+        --lime-dim: #1a6e99;
+        --white: #f0f0f0;
+        --muted: #6b6b7a;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--white);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ── HEADER ── */
+      .hub-header {
+        padding: 0 56px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 80px;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        background: var(--lime);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 14px;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        flex-shrink: 0;
+      }
+
+      .logo-text {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--white);
+        letter-spacing: -0.01em;
+      }
+
+      .logo-text span {
+        color: var(--lime);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .header-tag {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 6px 14px;
+        border-radius: 100px;
+      }
+
+      .header-pill {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
+        background: var(--lime);
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-weight: 700;
+      }
+
+      /* ── HERO ── */
+      .hub-hero {
+        padding: 80px 56px 72px;
+        border-bottom: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 48px;
+      }
+
+      .hero-eyebrow {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--lime);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .hero-eyebrow::before {
+        content: "";
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: var(--lime);
+        flex-shrink: 0;
+      }
+
+      .hero-title {
+        font-size: clamp(52px, 7vw, 96px);
+        font-weight: 900;
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+        color: var(--white);
+      }
+
+      .hero-title em {
+        font-style: normal;
+        color: var(--lime);
+      }
+
+      .hero-sub {
+        margin-top: 28px;
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.65;
+        max-width: 460px;
+      }
+
+      .hero-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        align-self: end;
+      }
+
+      .stat-row {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 20px 32px;
+        text-align: right;
+        min-width: 160px;
+      }
+
+      .stat-row:first-child {
+        border-radius: 8px 8px 0 0;
+      }
+      .stat-row:last-child {
+        border-radius: 0 0 8px 8px;
+      }
+
+      .stat-num {
+        font-size: 32px;
+        font-weight: 900;
+        color: var(--lime);
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+
+      /* ── GAMES ── */
+      .games-section {
+        padding: 56px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 36px;
+      }
+
+      .section-eyebrow {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .section-eyebrow::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 1px;
+        background: var(--border);
+      }
+
+      .section-count {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+
+      /* ── GRID ── */
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2px;
+      }
+
+      .game-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition:
+          background 0.18s,
+          border-color 0.18s;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .game-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--lime);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.22s ease;
+      }
+
+      .game-card:hover {
+        background: var(--surface2);
+        border-color: rgba(39, 141, 193, 0.2);
+      }
+
+      .game-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .game-card-header {
+        padding: 28px 28px 18px;
+        position: relative;
+      }
+
+      .game-card-number {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        font-size: 52px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.04);
+        line-height: 1;
+        letter-spacing: -0.04em;
+        pointer-events: none;
+      }
+
+      .game-card-tag {
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 100px;
+        margin-bottom: 14px;
+        display: inline-block;
+      }
+
+      .tag-lime {
+        background: rgba(39, 141, 193, 0.1);
+        color: var(--lime);
+        border: 1px solid rgba(39, 141, 193, 0.22);
+      }
+      .tag-white {
+        background: rgba(255, 255, 255, 0.05);
+        color: #aaa;
+        border: 1px solid var(--border);
+      }
+
+      .game-card-title {
+        font-size: 21px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--white);
+        letter-spacing: -0.02em;
+        margin-bottom: 7px;
+      }
+
+      .game-card-author {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+      }
+
+      .game-card-body {
+        padding: 0 28px 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .game-card-desc {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .game-card-meta {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+
+      .meta-pill {
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 4px 9px;
+        border-radius: 100px;
+        letter-spacing: 0.05em;
+        border: 1px solid var(--border);
+      }
+
+      .play-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: calc(100% - 56px);
+        margin: 4px 28px 28px;
+        background: transparent;
+        color: var(--lime);
+        border: 1px solid rgba(39, 141, 193, 0.28);
+        padding: 13px 18px;
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 4px;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+
+      .game-card:hover .play-btn {
+        background: var(--lime);
+        color: #ffffff;
+        border-color: var(--lime);
+      }
+
+      .play-btn .arrow {
+        font-size: 15px;
+        transition: transform 0.15s;
+      }
+
+      .game-card:hover .play-btn .arrow {
+        transform: translateX(4px);
+      }
+
+      /* ── FOOTER ── */
+      .hub-footer {
+        padding: 28px 56px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+
+      .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .footer-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--lime);
+      }
+
+      /* ── MODAL ── */
+      #game-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        flex-direction: column;
+        background: var(--bg);
+      }
+
+      #game-modal.open {
+        display: flex;
+      }
+
+      .modal-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        height: 52px;
+        flex-shrink: 0;
+      }
+
+      .modal-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--white);
+        padding: 7px 16px;
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 4px;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+
+      .back-btn:hover {
+        background: var(--lime);
+        border-color: var(--lime);
+        color: #ffffff;
+      }
+
+      .modal-game-name {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .modal-bar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .hub-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--lime);
+        animation: blink 2s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      .modal-info {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      #game-frame {
+        flex: 1;
+        border: none;
+        width: 100%;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .hub-header {
+          padding: 0 24px;
+        }
+        .hub-hero {
+          padding: 48px 24px 40px;
+          grid-template-columns: 1fr;
+        }
+        .hero-stats {
+          flex-direction: row;
+        }
+        .stat-row {
+          flex: 1;
+          text-align: center;
+        }
+        .stat-row:first-child {
+          border-radius: 8px 0 0 8px;
+        }
+        .stat-row:last-child {
+          border-radius: 0 8px 8px 0;
+        }
+        .games-section {
+          padding: 32px 24px;
+        }
+        .hub-footer {
+          padding: 20px 24px;
+          flex-direction: column;
+          gap: 8px;
+          text-align: center;
+        }
+        .games-grid {
+          grid-template-columns: 1fr;
+          gap: 1px;
+        }
+        .hero-title {
+          font-size: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hub">
+      <header class="hub-header">
+        <div class="header-left">
+          <div class="logo-mark">VA</div>
+          <div class="logo-text">Vet<span>Arcade</span></div>
+        </div>
+        <div class="header-right">
+          <div class="header-tag">Claudeathon 2026</div>
+          <div class="header-pill">10 Games</div>
+        </div>
+      </header>
+
+      <section class="hub-hero">
+        <div>
+          <div class="hero-eyebrow">MJH Life Sciences · Vet Education</div>
+          <h1 class="hero-title">Vet<em>Arcade</em><br />Hub</h1>
+          <p class="hero-sub">
+            Ten veterinary learning games built by our team. Pick a game, test
+            your clinical knowledge, and compete for the top score.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-row">
+            <div class="stat-num">10</div>
+            <div class="stat-label">Games</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-num">4</div>
+            <div class="stat-label">Teams</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-num">∞</div>
+            <div class="stat-label">Replays</div>
+          </div>
+        </div>
+      </section>
+
+      <main class="games-section">
+        <div class="section-header">
+          <div class="section-eyebrow">Browse all games</div>
+          <div class="section-count">10 games available</div>
+        </div>
+
+        <div class="games-grid">
+          <div class="game-card" onclick="openGame('alex')">
+            <div class="game-card-header">
+              <div class="game-card-number">01</div>
+              <span class="game-card-tag tag-lime">Diagnosis · Quiz</span>
+              <h2 class="game-card-title">Diagnosis Detective</h2>
+              <p class="game-card-author">By Alex's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Solve veterinary cases using patient history, symptoms, and lab
+                results. Each case reveals clues progressively — diagnose before
+                time runs out.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🔍 Case-Based</span>
+                <span class="meta-pill">Timed</span>
+                <span class="meta-pill">Scoring</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('brad')">
+            <div class="game-card-header">
+              <div class="game-card-number">02</div>
+              <span class="game-card-tag tag-white"
+                >Trivia · Animal Health</span
+              >
+              <h2 class="game-card-title">Animal Health Pro</h2>
+              <p class="game-card-author">By Brad's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Multiple-choice veterinary trivia across species, pharmacology,
+                anatomy, and clinical practice. Progressive difficulty with
+                educational feedback.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">📋 Multiple Choice</span>
+                <span class="meta-pill">Multi-Species</span>
+                <span class="meta-pill">Leaderboard</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('cody')">
+            <div class="game-card-header">
+              <div class="game-card-number">03</div>
+              <span class="game-card-tag tag-lime">Word Guess · Cyberpunk</span>
+              <h2 class="game-card-title">ClueChaser</h2>
+              <p class="game-card-author">By Cody's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Cyberpunk-themed veterinary word guessing. Clues reveal
+                progressively every 10 seconds — the faster you guess, the
+                higher your score.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">⚡ Timed Clues</span>
+                <span class="meta-pill">5 Cases</span>
+                <span class="meta-pill">Score Attack</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('david')">
+            <div class="game-card-header">
+              <div class="game-card-number">04</div>
+              <span class="game-card-tag tag-white"
+                >Word · Wheel of Fortune</span
+              >
+              <h2 class="game-card-title">Vet Wheel</h2>
+              <p class="game-card-author">By David's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Wheel of Fortune format with cancer diagnosis terms. Guess
+                letters, use hints, and earn early-solve bonuses. Persistent
+                leaderboard tracks top scores.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🎡 Letter Guess</span>
+                <span class="meta-pill">Cancer Terms</span>
+                <span class="meta-pill">Leaderboard</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('steve')">
+            <div class="game-card-header">
+              <div class="game-card-number">05</div>
+              <span class="game-card-tag tag-lime">Word Guess · Tiers</span>
+              <h2 class="game-card-title">Medical Word Game</h2>
+              <p class="game-card-author">By Steve's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Three difficulty tiers with progressive hints and detailed
+                medical info after each answer. Full-word guessing earns massive
+                early-solve bonuses.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🎓 3 Difficulties</span>
+                <span class="meta-pill">5 Hints/Word</span>
+                <span class="meta-pill">Medical Info</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('parker-wordsearch')">
+            <div class="game-card-header">
+              <div class="game-card-number">06</div>
+              <span class="game-card-tag tag-white"
+                >Word Search · Multi-Theme</span
+              >
+              <h2 class="game-card-title">Word Search Quiz</h2>
+              <p class="game-card-author">By Parker's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Find hidden answers in a letter grid. 4 visual themes, timed
+                gameplay, achievements, leaderboards, and a built-in quiz
+                creator to make your own.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🔍 Word Grid</span>
+                <span class="meta-pill">4 Themes</span>
+                <span class="meta-pill">Achievements</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('parker-chain')">
+            <div class="game-card-header">
+              <div class="game-card-number">07</div>
+              <span class="game-card-tag tag-lime">Trivia · Progressive</span>
+              <h2 class="game-card-title">Chain Reaction</h2>
+              <p class="game-card-author">By Parker's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Each correct answer unlocks the next challenge. Health-themed
+                trivia with escalating difficulty — how far can you go?
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">⛓️ Chain Format</span>
+                <span class="meta-pill">Health Ed</span>
+                <span class="meta-pill">Progressive</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('harun-cryptogram')">
+            <div class="game-card-header">
+              <div class="game-card-number">08</div>
+              <span class="game-card-tag tag-white">Puzzle · Cipher</span>
+              <h2 class="game-card-title">Veterinary Cryptogram</h2>
+              <p class="game-card-author">By Harun's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Decode encrypted veterinary terms and phrases. Each letter is
+                substituted — crack the cipher to reveal the hidden medical
+                message.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🔐 Cipher</span>
+                <span class="meta-pill">Vet Terms</span>
+                <span class="meta-pill">Puzzle</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('harun-vetguess')">
+            <div class="game-card-header">
+              <div class="game-card-number">09</div>
+              <span class="game-card-tag tag-lime">Daily · Brain Training</span>
+              <h2 class="game-card-title">VetGames</h2>
+              <p class="game-card-author">By Harun's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Daily veterinary brain training with multiple mini-game modes.
+                Bite-sized challenges to keep your clinical knowledge sharp
+                every day.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🧠 Daily</span>
+                <span class="meta-pill">Multi-Mode</span>
+                <span class="meta-pill">Brain Training</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="game-card" onclick="openGame('harun-predisposed')">
+            <div class="game-card-header">
+              <div class="game-card-number">10</div>
+              <span class="game-card-tag tag-white">Drag & Drop · Breeds</span>
+              <h2 class="game-card-title">Predisposed</h2>
+              <p class="game-card-author">By Harun's Team</p>
+            </div>
+            <div class="game-card-body">
+              <p class="game-card-desc">
+                Two mystery breeds — guess their names for bonus points, then
+                drag each malady to the more predisposed breed. 5 rounds, timed,
+                scored on accuracy and speed.
+              </p>
+              <div class="game-card-meta">
+                <span class="meta-pill">🧬 Breed vs Breed</span>
+                <span class="meta-pill">Drag & Drop</span>
+                <span class="meta-pill">5 Rounds</span>
+              </div>
+            </div>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="hub-footer">
+        <div class="footer-left">
+          <div class="footer-dot"></div>
+          <span>VetArcade · Claudeathon 2026 · MJH Life Sciences</span>
+        </div>
+        <span>Built with Claude · Anthropic</span>
+      </footer>
+    </div>
+
+    <!-- GAME MODAL -->
+    <div id="game-modal">
+      <div class="modal-bar">
+        <div class="modal-bar-left">
+          <button class="back-btn" onclick="closeGame()">← Back to Hub</button>
+          <span class="modal-game-name" id="modal-title"></span>
+        </div>
+        <div class="modal-bar-right">
+          <div class="hub-dot"></div>
+          <span class="modal-info">VetArcade Hub</span>
+        </div>
+      </div>
+      <iframe id="game-frame" src="" title="Game"></iframe>
+    </div>
+
+    <script>
+      const GAMES = {
+        alex: {
+          name: "Diagnosis Detective",
+          src: "Alex's Team/diagnosis-detective.html",
+        },
+        brad: {
+          name: "Animal Health Pro",
+          src: "Brad's Project/game-admin.html",
+        },
+        cody: {
+          name: "ClueChaser",
+          src: "Cody's Team/ClueChaser/cluechaser.html",
+        },
+        david: {
+          name: "Vet Wheel",
+          src: "David's Project/wheelGame2.html",
+        },
+        steve: {
+          name: "Medical Word Game",
+          src: "Steve's Project/medical-word-game.html",
+        },
+        "parker-wordsearch": {
+          name: "Word Search Quiz",
+          src: "Parker's Team/quiz-search/quiz-search/index.html",
+        },
+        "parker-chain": {
+          name: "Chain Reaction",
+          src: "Parker's Team/chain-reaction (2).html",
+        },
+        "harun-cryptogram": {
+          name: "Veterinary Cryptogram",
+          src: "Harun's Team/VeterinaryCryptogram/game.html",
+        },
+        "harun-vetguess": {
+          name: "VetGames",
+          src: "Harun's Team/VetGuess/vetgames.html",
+        },
+        "harun-predisposed": {
+          name: "Predisposed",
+          src: "Harun's Team/Predisposed/game.html",
+        },
+      };
+
+      function openGame(id) {
+        const game = GAMES[id];
+        if (!game) return;
+        document.getElementById("modal-title").textContent = game.name;
+        document.getElementById("game-frame").src = game.src;
+        document.getElementById("game-modal").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeGame() {
+        document.getElementById("game-modal").classList.remove("open");
+        document.getElementById("game-frame").src = "";
+        document.body.style.overflow = "";
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.data === "close-game") closeGame();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeGame();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+{
+    "id": "bloat-gdv",
+    "title": "Veterinary Diagnosis: Emergency Surgery",
+    "hint": "A life-threatening emergency requiring immediate surgery",
+    "maxScore": 1500,
+    "clues": [
+        {
+            "text": "Sudden onset of severe abdominal distension",
+            "image": null,
+            "explanation": "The stomach rapidly fills with gas and fluid, expanding dramatically within minutes to hours, creating visible abdominal swelling."
+        },
+        {
+            "text": "Unproductive retching - trying to vomit but nothing comes up",
+            "image": null,
+            "explanation": "When the stomach twists (volvulus), the esophageal opening is blocked, preventing the dog from vomiting or belching despite severe nausea."
+        },
+        {
+            "text": "Restlessness, pacing, and obvious distress",
+            "image": null,
+            "explanation": "The condition causes severe pain and anxiety, with affected dogs unable to find a comfortable position."
+        },
+        {
+            "text": "Weak pulse and pale gums indicating shock",
+            "image": null,
+            "explanation": "Gastric torsion compresses major blood vessels, causing circulatory shock with weak peripheral pulses and poor tissue perfusion."
+        },
+        {
+            "text": "Most common in large, deep-chested breeds like Great Danes",
+            "image": null,
+            "explanation": "Deep-chested dogs have greater space for stomach movement. Breeds like Great Danes, German Shepherds, and Standard Poodles are at highest risk."
+        },
+        {
+            "text": "X-ray shows 'double bubble' or compartmentalized stomach",
+            "image": null,
+            "explanation": "Radiographs reveal a classic appearance of a gas-filled, twisted stomach with the pylorus displaced, creating distinct compartments."
+        }
+    ],
+    "answers": [
+        "bloat",
+        "gdv",
+        "gastric dilatation volvulus",
+        "gastric torsion",
+        "stomach torsion"
+    ]
+}

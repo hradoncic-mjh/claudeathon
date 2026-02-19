@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chain Reaction - Health Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .chain-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 120px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chain-word {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        .chain-word .link-letter {
+            color: #ffd700;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            position: relative;
+        }
+
+        .chain-word .link-letter::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ffd700;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .definition-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 3px solid #667eea;
+        }
+
+        .definition-label {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .definition-text {
+            font-size: 1.3em;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .must-start-with {
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .must-start-with strong {
+            color: #e94560;
+            font-size: 1.3em;
+        }
+
+        .answer-input-box {
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.5em;
+            border: 3px solid #667eea;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .answer-input.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .answer-input.incorrect {
+            border-color: #e94560;
+            background: #ffebee;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .letter-blanks {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .letter-blank {
+            width: 45px;
+            height: 55px;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            background: white;
+            cursor: text;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 0;
+        }
+
+        .letter-blank:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        .letter-blank.revealed {
+            background: #e3f2fd;
+            color: #1976d2;
+            cursor: default;
+        }
+
+        .letter-blank.correct {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .letter-blank.incorrect {
+            background: #ffebee;
+            border-color: #e94560;
+            color: #e94560;
+            animation: shake 0.5s ease;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hints-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hints-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .hint-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hint-btn {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hint-btn:hover:not(:disabled) {
+            background: #ffc107;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .hint-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .hint-cost {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .hint-display {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .hint-display.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .hint-display strong {
+            color: #856404;
+        }
+
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 2000;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: none;
+            border: 3px solid #667eea;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .final-stats {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .leaderboard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .leaderboard-modal.show {
+            display: flex;
+        }
+
+        .leaderboard-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-header h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #667eea;
+        }
+
+        .leaderboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .leaderboard-list {
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .leaderboard-entry:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .leaderboard-entry.current-player {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border: 2px solid #ffc107;
+        }
+
+        .entry-rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            width: 50px;
+            text-align: center;
+        }
+
+        .entry-rank.gold {
+            color: #ffd700;
+        }
+
+        .entry-rank.silver {
+            color: #c0c0c0;
+        }
+
+        .entry-rank.bronze {
+            color: #cd7f32;
+        }
+
+        .entry-name {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .entry-score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .no-entries {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .save-score-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .save-score-form h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .save-score-form input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .save-score-form button {
+            width: 100%;
+        }
+
+        .save-progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .save-progress-modal.show {
+            display: flex;
+        }
+
+        .save-progress-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .save-progress-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .progress-stats {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .progress-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .progress-stat:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-stat-label {
+            color: #666;
+        }
+
+        .progress-stat-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .name-input-section {
+            margin-bottom: 20px;
+        }
+
+        .name-input-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .name-input-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        .cancel-btn {
+            background: #999;
+        }
+
+        .cancel-btn:hover {
+            background: #777;
+        }
+
+        .existing-entry-warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        .existing-entry-warning strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .main-menu {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .main-menu.hide {
+            display: none;
+        }
+
+        .main-menu h1 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-menu .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 50px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .menu-btn.tertiary {
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        }
+
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .instructions-modal.show {
+            display: flex;
+        }
+
+        .instructions-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .instructions-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .instructions-content h3 {
+            color: #667eea;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .instructions-content p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .instructions-content ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            padding-left: 25px;
+        }
+
+        .instructions-content li {
+            margin-bottom: 8px;
+        }
+
+        .game-content {
+            display: none;
+        }
+
+        .game-content.show {
+            display: block;
+        }
+
+        .previous-answer {
+            background: #f0f7ff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .previous-answer.show {
+            display: block;
+        }
+
+        .previous-answer.correct {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .previous-answer.incorrect {
+            background: #ffebee;
+            border-color: #e94560;
+        }
+
+        .previous-answer-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .previous-answer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .previous-question-text {
+            flex: 1;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .previous-answer-word {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            white-space: nowrap;
+        }
+
+        .previous-answer.correct .previous-answer-word {
+            color: #4caf50;
+        }
+
+        .previous-answer.incorrect .previous-answer-word {
+            color: #e94560;
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            padding: 10px 20px;
+            border-top: 2px solid #00ff00;
+            z-index: 3000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .debug-panel h4 {
+            color: #00ff00;
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            text-transform: uppercase;
+        }
+
+        .debug-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+        }
+
+        .debug-item {
+            display: flex;
+            gap: 8px;
+        }
+
+        .debug-label {
+            color: #ffff00;
+            font-weight: bold;
+        }
+
+        .debug-value {
+            color: #00ff00;
+        }
+
+        .debug-value.highlight {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+
+        .debug-available {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+        }
+
+        .debug-available-list {
+            color: #00ffff;
+            margin-top: 5px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .hint-buttons {
+                flex-direction: column;
+            }
+            
+            .hint-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-menu" id="mainMenu">
+            <h1>🔗 Chain Reaction</h1>
+            <p class="subtitle">Link health terms by matching ending and starting letters!</p>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="game.startNewGame()">
+                    🎮 New Game
+                </button>
+                <button class="menu-btn secondary" onclick="game.showLeaderboard()">
+                    🏆 Leaderboard
+                </button>
+                <button class="menu-btn tertiary" onclick="game.showInstructions()">
+                    📖 How to Play
+                </button>
+            </div>
+        </div>
+
+        <div class="game-content" id="gameContent">
+        <h1>🔗 Chain Reaction</h1>
+        <p class="subtitle">Link health terms by matching ending and starting letters!</p>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="btn" onclick="game.showLeaderboard()" style="padding: 10px 30px; font-size: 1em;">
+                🏆 Leaderboard
+            </button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Chain Length</div>
+                <div class="stat-value" id="chainLength">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Time Left</div>
+                <div class="stat-value" id="timer">60s</div>
+            </div>
+        </div>
+
+        <div class="chain-display" id="chainDisplay">
+            <div style="color: #999; font-style: italic;">Start building your chain...</div>
+        </div>
+
+        <div class="definition-box">
+            <div class="definition-label">Definition</div>
+            <div class="definition-text" id="definition">Muscular organ that pumps blood through the body</div>
+        </div>
+
+        <div class="answer-input-box">
+            <div class="letter-blanks" id="letterBlanks"></div>
+        </div>
+
+        <div class="hints-section">
+            <div class="hints-title">💡 Need Help?</div>
+            <div class="hint-buttons">
+                <button class="hint-btn" id="hint1Btn" onclick="game.useHint(1)">
+                    Hint 1: Alternative Definition <span class="hint-cost">(-5 pts)</span>
+                </button>
+                <button class="hint-btn" id="hint2Btn" onclick="game.useHint(2)">
+                    Hint 2: Reveal Letters <span class="hint-cost">(-10 pts)</span>
+                </button>
+                <button class="hint-btn" id="hint3Btn" onclick="game.useHint(3)">
+                    Hint 3: Reveal Answer <span class="hint-cost">(-20 pts)</span>
+                </button>
+            </div>
+            <div class="hint-display" id="hintDisplay"></div>
+        </div>
+
+        <div class="previous-answer" id="previousAnswer">
+            <div class="previous-answer-label" id="previousAnswerLabel">Previous Answer</div>
+            <div class="previous-answer-content">
+                <div class="previous-question-text" id="previousQuestionText"></div>
+                <div class="previous-answer-word" id="previousAnswerWord"></div>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="game-over" id="gameOver">
+            <div style="text-align: center;">
+            <h2>⏰ Time's Up!</h2>
+            <div class="final-stats" id="finalStats">
+                <p style="font-size: 1.5em; margin-bottom: 20px;">
+                    <strong>Final Score: <span id="finalScore">0</span></strong>
+                </p>
+                <p style="margin-bottom: 10px;">
+                    Longest Chain: <strong id="finalChainLength">0</strong> words
+                </p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <strong style="display: block; margin-bottom: 10px; color: #667eea;">Your Longest Chain:</strong>
+                    <div id="finalChainDisplay" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <div class="name-input-section">
+                    <label for="leaderboardName">Post to Leaderboard:</label>
+                    <input 
+                        type="text" 
+                        id="leaderboardName" 
+                        placeholder="Enter your name"
+                        maxlength="20"
+                    />
+                </div>
+                <div class="button-group">
+                    <button class="btn" onclick="game.restart()">Main Menu</button>
+                    <button class="btn" onclick="game.postToLeaderboard()" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);">
+                        Post to Leaderboard
+                    </button>
+                </div>
+            </div>
+            </div><!-- end text-align center -->
+        </div>
+        </div><!-- end game-content -->
+    </div>
+
+    <div class="instructions-modal" id="instructionsModal">
+        <div class="instructions-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📖 How to Play</h2>
+                <button class="close-btn" onclick="game.closeInstructions()">×</button>
+            </div>
+
+            <h3>🎯 Objective</h3>
+            <p>Build the longest chain of health-related terms in 60 seconds! Each word must start with the ending letter(s) of the previous word.</p>
+
+            <h3>⚡ Gameplay</h3>
+            <ul>
+                <li><strong>Read the definition</strong> at the top of the screen</li>
+                <li><strong>Type your answer</strong> in the letter boxes (starting letters are pre-filled)</li>
+                <li><strong>Submit</strong> to add the word to your chain</li>
+                <li><strong>Repeat</strong> as fast as you can for 60 seconds!</li>
+            </ul>
+
+            <h3>💡 Hints</h3>
+            <ul>
+                <li><strong>Hint 1:</strong> Alternative Definition (-5 pts)</li>
+                <li><strong>Hint 2:</strong> Reveal Some Letters (-10 pts)</li>
+                <li><strong>Hint 3:</strong> Reveal Full Answer (-20 pts, then start new chain)</li>
+            </ul>
+
+            <h3>🎮 Controls</h3>
+            <ul>
+                <li><strong>Type</strong> directly in the letter boxes</li>
+                <li><strong>Tab/Auto-advance</strong> moves to next box automatically</li>
+                <li><strong>Enter</strong> submits your answer</li>
+                <li><strong>Backspace</strong> moves to previous box</li>
+            </ul>
+
+            <h3>🏆 Scoring</h3>
+            <ul>
+                <li>Points = <strong>10 × Chain Length</strong> per correct word</li>
+                <li><strong>+20 bonus</strong> for not using any hints</li>
+                <li>Longer chains = more points per word!</li>
+            </ul>
+
+            <h3>📊 Leaderboards</h3>
+            <p>Two categories: <strong>Highest Score</strong> and <strong>Longest Chain</strong>. After each game, you can post your results to compete with others!</p>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="game.closeInstructions()">Got It!</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="leaderboard-modal" id="leaderboardModal">
+        <div class="leaderboard-content">
+            <div class="leaderboard-header">
+                <h2>🏆 Leaderboard</h2>
+                <button class="close-btn" onclick="game.closeLeaderboard()">×</button>
+            </div>
+
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" id="scoreTab" onclick="game.switchTab('score')">
+                    Highest Score
+                </button>
+                <button class="tab-btn" id="chainTab" onclick="game.switchTab('chain')">
+                    Longest Chain
+                </button>
+            </div>
+
+            <div id="scoreLeaderboard" class="leaderboard-list">
+                <!-- Score entries will be inserted here -->
+            </div>
+
+            <div id="chainLeaderboard" class="leaderboard-list" style="display: none;">
+                <!-- Chain entries will be inserted here -->
+            </div>
+
+            <div class="save-score-form" id="saveScoreForm" style="display: none;">
+                <h3>🎉 New High Score!</h3>
+                <p id="achievementText"></p>
+                <input 
+                    type="text" 
+                    id="playerName" 
+                    placeholder="Enter your name"
+                    maxlength="20"
+                />
+                <button class="btn" onclick="game.saveScore()">Save to Leaderboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-panel" id="debugPanel">
+        <h4>🐛 Debug Panel</h4>
+        <div class="debug-row">
+            <div class="debug-item">
+                <span class="debug-label">Correct Answer:</span>
+                <span class="debug-value highlight" id="debugAnswer">---</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">Ending Pattern:</span>
+                <span class="debug-value" id="debugEnding">---</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">Current Word:</span>
+                <span class="debug-value" id="debugCurrentWord">---</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">Chain Length:</span>
+                <span class="debug-value" id="debugChainLen">0</span>
+            </div>
+        </div>
+        <div class="debug-row">
+            <div class="debug-item">
+                <span class="debug-label">Words in Chain:</span>
+                <span class="debug-value" id="debugChainWords">[]</span>
+            </div>
+        </div>
+        <div class="debug-available">
+            <div class="debug-item">
+                <span class="debug-label">Available Next Words:</span>
+                <span class="debug-value" id="debugAvailableCount">0</span>
+            </div>
+            <div class="debug-available-list" id="debugAvailableWords"></div>
+        </div>
+    </div>
+
+    <script>
+        const healthTerms = {
+            'HEART': {
+                def1: 'Muscular organ that pumps blood through the body',
+                def2: 'Symbol often used to represent love and emotion'
+            },
+            'TISSUE': {
+                def1: 'Group of similar cells that perform a specific function',
+                def2: 'What you use to wipe your nose'
+            },
+            'ENZYME': {
+                def1: 'Protein that speeds up chemical reactions in the body',
+                def2: 'Biological catalyst found in digestive juices'
+            },
+            'ERYTHROCYTE': {
+                def1: 'Red blood cell that carries oxygen',
+                def2: 'Most common type of blood cell, contains hemoglobin'
+            },
+            'EPIDERMIS': {
+                def1: 'Outermost layer of skin',
+                def2: 'Protective barrier that covers your entire body surface'
+            },
+            'SKELETAL': {
+                def1: 'Relating to the bones or framework of the body',
+                def2: 'Type of muscle attached to bones for movement'
+            },
+            'LYMPH': {
+                def1: 'Clear fluid that circulates through the lymphatic system',
+                def2: 'Fluid containing white blood cells that fights infection'
+            },
+            'HORMONE': {
+                def1: 'Chemical messenger produced by glands',
+                def2: 'Substance like insulin or adrenaline that regulates body functions'
+            },
+            'NEURON': {
+                def1: 'Nerve cell that transmits electrical signals',
+                def2: 'Basic functional unit of the nervous system'
+            },
+            'NUCLEUS': {
+                def1: 'Control center of a cell containing DNA',
+                def2: 'Part of the cell that stores genetic information'
+            },
+            'SYNAPSE': {
+                def1: 'Junction between two nerve cells',
+                def2: 'Gap where neurotransmitters pass between neurons'
+            },
+            'ENAMEL': {
+                def1: 'Hard outer layer of a tooth',
+                def2: 'Hardest substance in the human body, protects teeth'
+            },
+            'LIGAMENT': {
+                def1: 'Tissue that connects bone to bone',
+                def2: 'Fibrous band that stabilizes joints'
+            },
+            'TENDON': {
+                def1: 'Tissue that connects muscle to bone',
+                def2: 'Cord-like structure that enables muscle movement'
+            },
+            'NEPHRON': {
+                def1: 'Functional unit of the kidney that filters blood',
+                def2: 'Microscopic structure that produces urine'
+            },
+            'NODULE': {
+                def1: 'Small rounded mass of tissue',
+                def2: 'Lump or swelling, often benign'
+            },
+            'ENDOCRINE': {
+                def1: 'System of glands that produce hormones',
+                def2: 'Relating to glands that secrete directly into the bloodstream'
+            },
+            'EDEMA': {
+                def1: 'Swelling caused by excess fluid in tissues',
+                def2: 'Medical term for water retention or puffiness'
+            },
+            'ARTERY': {
+                def1: 'Blood vessel that carries blood away from the heart',
+                def2: 'Thick-walled vessel that transports oxygenated blood'
+            },
+            'YEAST': {
+                def1: 'Single-celled fungus, some types cause infections',
+                def2: 'Microorganism that can cause candidiasis or thrush'
+            },
+            'THORAX': {
+                def1: 'The chest region between neck and abdomen',
+                def2: 'Part of the body containing the heart and lungs'
+            },
+            'XRAY': {
+                def1: 'Imaging technique using electromagnetic radiation',
+                def2: 'Medical scan that shows bones and internal structures'
+            },
+            'THYROID': {
+                def1: 'Gland in the neck that regulates metabolism',
+                def2: 'Butterfly-shaped endocrine gland'
+            },
+            'DENTAL': {
+                def1: 'Relating to teeth or dentistry',
+                def2: 'Concerning oral health and tooth care'
+            },
+            'LATERAL': {
+                def1: 'Situated at or extending to the side',
+                def2: 'Anatomical term meaning away from the midline'
+            },
+            'LUMBAR': {
+                def1: 'Relating to the lower back region',
+                def2: 'Area of the spine between ribs and pelvis'
+            },
+            'RETINA': {
+                def1: 'Light-sensitive layer at the back of the eye',
+                def2: 'Part of the eye that converts light into neural signals'
+            },
+            'LESION': {
+                def1: 'Area of tissue damage or abnormality',
+                def2: 'Medical term for a wound, injury, or diseased patch'
+            },
+            'NASAL': {
+                def1: 'Relating to the nose',
+                def2: 'Pertaining to breathing passages in the nose'
+            },
+            'SPINAL': {
+                def1: 'Relating to the spine or spinal cord',
+                def2: 'Concerning the backbone and central nervous system'
+            },
+            'LACTIC': {
+                def1: 'Relating to milk or produced during anaerobic exercise',
+                def2: 'Type of acid that builds up in muscles during intense activity'
+            },
+            'CARDIAC': {
+                def1: 'Relating to the heart',
+                def2: 'Concerning heart function and heart health'
+            },
+            'STERNUM': {
+                def1: 'Breastbone in the center of the chest',
+                def2: 'Flat bone that connects to ribs in front of chest'
+            },
+            'MUCUS': {
+                def1: 'Slimy secretion that protects and moistens membranes',
+                def2: 'Thick fluid produced by nose and respiratory system'
+            },
+            'SERUM': {
+                def1: 'Clear liquid that separates from blood when it clots',
+                def2: 'Blood plasma without clotting factors'
+            },
+            'MANDIBLE': {
+                def1: 'Lower jawbone',
+                def2: 'The only movable bone of the skull'
+            },
+            'EMBRYO': {
+                def1: 'Early stage of development before birth',
+                def2: 'Developing organism in first 8 weeks after conception'
+            },
+            'OPTIC': {
+                def1: 'Relating to the eye or vision',
+                def2: 'Concerning sight and visual perception'
+            },
+            'CRANIUM': {
+                def1: 'The skull, especially the part enclosing the brain',
+                def2: 'Bony structure that protects the brain'
+            },
+            'MITOSIS': {
+                def1: 'Process of cell division that produces two identical cells',
+                def2: 'Type of cell reproduction for growth and repair'
+            },
+            'STERILE': {
+                def1: 'Free from bacteria or other living microorganisms',
+                def2: 'Unable to produce offspring or completely clean'
+            },
+            'ENTERIC': {
+                def1: 'Relating to the intestines',
+                def2: 'Pertaining to the digestive tract'
+            },
+            'CYTOPLASM': {
+                def1: 'Gel-like substance inside cells surrounding the nucleus',
+                def2: 'Material between cell membrane and nucleus'
+            },
+            'MEMBRANE': {
+                def1: 'Thin layer of tissue that covers or lines an organ',
+                def2: 'Selective barrier that surrounds cells'
+            },
+            'ESOPHAGUS': {
+                def1: 'Muscular tube connecting throat to stomach',
+                def2: 'Passage through which food travels from mouth to stomach'
+            },
+            'SYSTEMIC': {
+                def1: 'Affecting the entire body rather than a specific part',
+                def2: 'Relating to or affecting the body as a whole'
+            },
+            'METABOLISM': {
+                def1: 'Chemical processes that occur within living organisms',
+                def2: 'The rate at which your body burns calories'
+            },
+            'ALLERGEN': {
+                def1: 'Substance that causes an allergic reaction',
+                def2: 'Foreign substance like pollen that triggers immune response'
+            },
+            'ENTERAL': {
+                def1: 'Within or by way of the intestines',
+                def2: 'Relating to feeding through the digestive tract'
+            },
+            'ALVEOLI': {
+                def1: 'Tiny air sacs in the lungs where gas exchange occurs',
+                def2: 'Microscopic structures in lungs that absorb oxygen'
+            },
+            'INSULIN': {
+                def1: 'Hormone that regulates blood sugar levels',
+                def2: 'Substance produced by pancreas to control glucose'
+            },
+            'INCISOR': {
+                def1: 'Sharp front tooth used for cutting food',
+                def2: 'One of the eight flat teeth at the front of the mouth'
+            },
+            'ORGAN': {
+                def1: 'Collection of tissues performing a specific function',
+                def2: 'Body part like heart, liver, or kidney'
+            },
+            'ANTIBODY': {
+                def1: 'Protein produced to fight infection',
+                def2: 'Immune system molecule that neutralizes pathogens'
+            },
+            'ANATOMY': {
+                def1: 'The study of body structure',
+                def2: 'Science of the physical structure of organisms'
+            },
+            'THERAPY': {
+                def1: 'Treatment intended to relieve or heal a disorder',
+                def2: 'Medical care or counseling for physical or mental conditions'
+            }
+        };
+
+        class ChainReaction {
+            constructor() {
+                this.chain = [];
+                this.currentWord = '';
+                this.correctAnswer = '';
+                this.score = 0;
+                this.usedWords = [];
+                this.hintsUsed = [false, false, false];
+                this.revealedLetters = [];
+                this.longestChain = 0;
+                this.longestChainWords = [];
+                this.highestScore = 0;
+                this.currentTab = 'score';
+                this.timeLeft = 60;
+                this.gameTimer = null;
+                this.gameActive = false;
+                
+                // Don't auto-start, wait for menu selection
+            }
+
+            init() {
+                this.gameActive = true;
+                this.startNewChain();
+                this.startGameTimer();
+            }
+
+            startNewGame() {
+                // Hide menu, show game
+                document.getElementById('mainMenu').classList.add('hide');
+                document.getElementById('gameContent').classList.add('show');
+                
+                // Clear any lingering messages
+                document.getElementById('message').classList.remove('show');
+                document.getElementById('hintDisplay').classList.remove('show');
+                
+                // Initialize game
+                this.init();
+            }
+
+            showInstructions() {
+                document.getElementById('instructionsModal').classList.add('show');
+            }
+
+            closeInstructions() {
+                document.getElementById('instructionsModal').classList.remove('show');
+            }
+
+            startGameTimer() {
+                this.timeLeft = 60;
+                document.getElementById('timer').textContent = this.timeLeft + 's';
+                
+                this.gameTimer = setInterval(() => {
+                    this.timeLeft--;
+                    document.getElementById('timer').textContent = this.timeLeft + 's';
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            }
+
+            startNewChain() {
+                const availableWords = Object.keys(healthTerms).filter(w => !this.usedWords.includes(w));
+                
+                if (availableWords.length === 0) {
+                    this.usedWords = [];
+                }
+
+                // Start with empty chain
+                this.chain = [];
+                this.currentWord = '';
+                
+                // Pick a random word as the first question
+                const startWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+                this.correctAnswer = startWord;
+                
+                document.getElementById('definition').textContent = healthTerms[startWord].def1;
+                
+                this.createLetterBlanksForFirstWord();
+                this.resetHints();
+                this.updateDisplay();
+                this.updateDebugPanel();
+            }
+
+            getEndingLetters(word) {
+                if (word.length >= 2) {
+                    const last2 = word.slice(-2);
+                    const last1 = word.slice(-1);
+                    
+                    if (['TH', 'ER', 'IC', 'EN', 'ON', 'IN', 'AN', 'AL', 'AR', 'SE', 'TE'].includes(last2)) {
+                        return last2;
+                    }
+                    return last1;
+                }
+                return word.slice(-1);
+            }
+
+            findNextWord() {
+                const ending = this.getEndingLetters(this.currentWord);
+                const availableWords = Object.keys(healthTerms).filter(word => 
+                    !this.chain.includes(word) && 
+                    word.startsWith(ending)
+                );
+
+                if (availableWords.length === 0) {
+                    return null;
+                }
+
+                return availableWords[Math.floor(Math.random() * availableWords.length)];
+            }
+
+            loadQuestion() {
+                const nextWord = this.findNextWord();
+                
+                if (!nextWord) {
+                    // Chain ended, start new one immediately
+                    this.startNewChain();
+                    return;
+                }
+
+                this.correctAnswer = nextWord;
+                const ending = this.getEndingLetters(this.currentWord);
+                
+                document.getElementById('definition').textContent = healthTerms[nextWord].def1;
+                
+                this.createLetterBlanks();
+                this.resetHints();
+                this.updateDisplay();
+                this.updateDebugPanel();
+            }
+
+            createLetterBlanks() {
+                const blanksContainer = document.getElementById('letterBlanks');
+                blanksContainer.innerHTML = '';
+                this.revealedLetters = [];
+
+                const ending = this.getEndingLetters(this.currentWord);
+                
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    const blank = document.createElement('input');
+                    blank.type = 'text';
+                    blank.maxLength = 1;
+                    blank.className = 'letter-blank';
+                    blank.id = `blank-${i}`;
+                    
+                    // Pre-fill and lock the starting letters
+                    if (i < ending.length) {
+                        blank.value = ending[i];
+                        blank.classList.add('revealed');
+                        blank.disabled = true;
+                        this.revealedLetters.push(true);
+                    } else {
+                        this.revealedLetters.push(false);
+                        
+                        // Add input handler
+                        blank.addEventListener('input', (e) => {
+                            e.target.value = e.target.value.toUpperCase();
+                            
+                            // Auto-check if all filled
+                            this.autoCheckAnswer();
+                            
+                            // Auto-focus next available (non-disabled) blank
+                            if (e.target.value) {
+                                for (let j = i + 1; j < this.correctAnswer.length; j++) {
+                                    const nextBlank = document.getElementById(`blank-${j}`);
+                                    if (nextBlank && !nextBlank.disabled) {
+                                        nextBlank.focus();
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Add keydown handler for backspace
+                        blank.addEventListener('keydown', (e) => {
+                            if (e.key === 'Backspace' && !e.target.value) {
+                                // Find previous non-disabled blank
+                                for (let j = i - 1; j >= 0; j--) {
+                                    const prevBlank = document.getElementById(`blank-${j}`);
+                                    if (prevBlank && !prevBlank.disabled) {
+                                        prevBlank.focus();
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    blanksContainer.appendChild(blank);
+                }
+                
+                // Focus first editable blank
+                setTimeout(() => {
+                    for (let i = 0; i < this.correctAnswer.length; i++) {
+                        const blank = document.getElementById(`blank-${i}`);
+                        if (blank && !blank.disabled) {
+                            blank.focus();
+                            break;
+                        }
+                    }
+                }, 100);
+            }
+
+            createLetterBlanksForFirstWord() {
+                const blanksContainer = document.getElementById('letterBlanks');
+                blanksContainer.innerHTML = '';
+                this.revealedLetters = [];
+                
+                // No pre-filled letters for first word
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    const blank = document.createElement('input');
+                    blank.type = 'text';
+                    blank.maxLength = 1;
+                    blank.className = 'letter-blank';
+                    blank.id = `blank-${i}`;
+                    this.revealedLetters.push(false);
+                    
+                    // Add input handler
+                    blank.addEventListener('input', (e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                        
+                        // Auto-check if all filled
+                        this.autoCheckAnswer();
+                        
+                        // Auto-focus next blank
+                        if (e.target.value && i < this.correctAnswer.length - 1) {
+                            const nextBlank = document.getElementById(`blank-${i + 1}`);
+                            if (nextBlank && !nextBlank.disabled) {
+                                nextBlank.focus();
+                            }
+                        }
+                    });
+                    
+                    // Add keydown handler for backspace
+                    blank.addEventListener('keydown', (e) => {
+                        if (e.key === 'Backspace' && !e.target.value && i > 0) {
+                            const prevBlank = document.getElementById(`blank-${i - 1}`);
+                            if (prevBlank && !prevBlank.disabled) {
+                                prevBlank.focus();
+                            }
+                        }
+                    });
+                    
+                    blanksContainer.appendChild(blank);
+                }
+                
+                // Focus first blank
+                setTimeout(() => {
+                    document.getElementById('blank-0').focus();
+                }, 100);
+            }
+
+            autoCheckAnswer() {
+                // Check if all boxes are filled
+                let userAnswer = '';
+                let allFilled = true;
+                
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    const blank = document.getElementById(`blank-${i}`);
+                    const value = blank.value || '';
+                    userAnswer += value;
+                    if (!value) {
+                        allFilled = false;
+                    }
+                }
+                
+                // Only check when all are filled
+                if (allFilled) {
+                    userAnswer = userAnswer.trim().toUpperCase();
+                    
+                    // Disable all blanks
+                    for (let i = 0; i < this.correctAnswer.length; i++) {
+                        document.getElementById(`blank-${i}`).disabled = true;
+                    }
+                    
+                    if (userAnswer === this.correctAnswer) {
+                        // Mark as correct
+                        for (let i = 0; i < this.correctAnswer.length; i++) {
+                            document.getElementById(`blank-${i}`).classList.add('correct');
+                        }
+                        this.correctAnswerHandler();
+                    } else {
+                        // Mark as incorrect
+                        for (let i = 0; i < this.correctAnswer.length; i++) {
+                            document.getElementById(`blank-${i}`).classList.add('incorrect');
+                        }
+                        this.wrongAnswerHandler();
+                    }
+                }
+            }
+
+            showPreviousAnswer(definition, word, isCorrect) {
+                const previousAnswer = document.getElementById('previousAnswer');
+                const label = document.getElementById('previousAnswerLabel');
+                const questionText = document.getElementById('previousQuestionText');
+                const answerWord = document.getElementById('previousAnswerWord');
+                
+                label.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+                questionText.textContent = definition;
+                answerWord.textContent = word;
+                
+                previousAnswer.className = 'previous-answer show';
+                if (isCorrect) {
+                    previousAnswer.classList.add('correct');
+                } else {
+                    previousAnswer.classList.add('incorrect');
+                }
+            }
+
+            updateDebugPanel() {
+                if (!this.correctAnswer) return;
+                
+                document.getElementById('debugAnswer').textContent = this.correctAnswer;
+                document.getElementById('debugCurrentWord').textContent = this.currentWord || '(First word)';
+                document.getElementById('debugChainLen').textContent = this.chain.length;
+                document.getElementById('debugChainWords').textContent = this.chain.length > 0 ? JSON.stringify(this.chain) : '[]';
+                
+                if (this.currentWord) {
+                    const ending = this.getEndingLetters(this.currentWord);
+                    document.getElementById('debugEnding').textContent = ending;
+                    
+                    // Show available next words
+                    const availableWords = Object.keys(healthTerms).filter(word => 
+                        !this.chain.includes(word) && 
+                        word.startsWith(ending)
+                    );
+                    
+                    document.getElementById('debugAvailableCount').textContent = availableWords.length;
+                    document.getElementById('debugAvailableWords').textContent = 
+                        availableWords.length > 0 ? availableWords.join(', ') : 'None available - chain will reset!';
+                } else {
+                    document.getElementById('debugEnding').textContent = 'N/A (first word)';
+                    document.getElementById('debugAvailableCount').textContent = 'N/A';
+                    document.getElementById('debugAvailableWords').textContent = 'Starting new chain - answer this to begin!';
+                }
+            }
+
+            resetHints() {
+                this.hintsUsed = [false, false, false];
+                document.getElementById('hint1Btn').disabled = false;
+                document.getElementById('hint2Btn').disabled = false;
+                document.getElementById('hint3Btn').disabled = false;
+                document.getElementById('hintDisplay').classList.remove('show');
+                document.getElementById('hintDisplay').innerHTML = '';
+            }
+
+            resetInput() {
+                // Letter blanks are recreated in createLetterBlanks, so nothing to reset here
+                document.getElementById('submitBtn').disabled = false;
+            }
+
+            useHint(hintNumber) {
+                if (this.hintsUsed[hintNumber - 1]) return;
+
+                this.hintsUsed[hintNumber - 1] = true;
+                document.getElementById(`hint${hintNumber}Btn`).disabled = true;
+
+                const hintDisplay = document.getElementById('hintDisplay');
+                hintDisplay.classList.add('show');
+
+                if (hintNumber === 1) {
+                    this.score = Math.max(0, this.score - 5);
+                    hintDisplay.innerHTML = `<strong>Alternative Definition:</strong> ${healthTerms[this.correctAnswer].def2}`;
+                } else if (hintNumber === 2) {
+                    this.score = Math.max(0, this.score - 10);
+                    this.revealSomeLetters();
+                    hintDisplay.innerHTML = `<strong>Some letters revealed above!</strong>`;
+                } else if (hintNumber === 3) {
+                    this.score = Math.max(0, this.score - 20);
+                    
+                    const previousDefinition = healthTerms[this.correctAnswer].def1;
+                    const revealedWord = this.correctAnswer;
+                    
+                    // Show what the answer was
+                    this.showPreviousAnswer(previousDefinition, revealedWord, false);
+                    
+                    hintDisplay.innerHTML = `<strong>Answer revealed!</strong>`;
+                    
+                    // Immediately start new chain
+                    this.startNewChain();
+                }
+
+                this.updateDisplay();
+            }
+
+            revealSomeLetters() {
+                const numToReveal = Math.ceil(this.correctAnswer.length / 2);
+                const indices = [];
+                
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    if (!this.revealedLetters[i]) {
+                        indices.push(i);
+                    }
+                }
+
+                for (let i = 0; i < numToReveal && indices.length > 0; i++) {
+                    const randomIndex = Math.floor(Math.random() * indices.length);
+                    const letterIndex = indices[randomIndex];
+                    indices.splice(randomIndex, 1);
+
+                    this.revealedLetters[letterIndex] = true;
+                    const blank = document.getElementById(`blank-${letterIndex}`);
+                    blank.value = this.correctAnswer[letterIndex];
+                    blank.classList.add('revealed');
+                    blank.disabled = true;
+                }
+                
+                // Focus on first empty input
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    if (!this.revealedLetters[i]) {
+                        const blank = document.getElementById(`blank-${i}`);
+                        if (blank && !blank.disabled) {
+                            setTimeout(() => blank.focus(), 100);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            revealAllLetters() {
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    this.revealedLetters[i] = true;
+                    const blank = document.getElementById(`blank-${i}`);
+                    blank.value = this.correctAnswer[i];
+                    blank.classList.add('revealed');
+                    blank.disabled = true;
+                }
+            }
+
+            revealAllLetters() {
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    this.revealedLetters[i] = true;
+                    const blank = document.getElementById(`blank-${i}`);
+                    blank.textContent = this.correctAnswer[i];
+                    blank.classList.add('revealed');
+                }
+            }
+
+            checkAnswer() {
+                // Get answer from letter blanks
+                let userAnswer = '';
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    const blank = document.getElementById(`blank-${i}`);
+                    userAnswer += blank.value || '';
+                }
+                
+                userAnswer = userAnswer.trim().toUpperCase();
+
+                if (!userAnswer || userAnswer.length !== this.correctAnswer.length) {
+                    return;
+                }
+
+                // Disable all blanks and submit button
+                for (let i = 0; i < this.correctAnswer.length; i++) {
+                    const blank = document.getElementById(`blank-${i}`);
+                    blank.disabled = true;
+                }
+                document.getElementById('submitBtn').disabled = true;
+
+                if (userAnswer === this.correctAnswer) {
+                    // Mark as correct
+                    for (let i = 0; i < this.correctAnswer.length; i++) {
+                        document.getElementById(`blank-${i}`).classList.add('correct');
+                    }
+                    this.correctAnswerHandler();
+                } else {
+                    // Mark as incorrect
+                    for (let i = 0; i < this.correctAnswer.length; i++) {
+                        document.getElementById(`blank-${i}`).classList.add('incorrect');
+                    }
+                    this.wrongAnswerHandler();
+                }
+            }
+
+            correctAnswerHandler() {
+                const previousWord = this.correctAnswer;
+                const previousDefinition = healthTerms[this.correctAnswer].def1;
+                
+                this.currentWord = this.correctAnswer;
+                this.chain.push(this.correctAnswer);
+                this.usedWords.push(this.correctAnswer);
+                
+                const basePoints = 10 * this.chain.length;
+                let bonus = 0;
+                if (!this.hintsUsed[0] && !this.hintsUsed[1] && !this.hintsUsed[2]) {
+                    bonus = 20;
+                }
+                
+                this.score += basePoints + bonus;
+                
+                // Show previous answer at bottom
+                this.showPreviousAnswer(previousDefinition, previousWord, true);
+                
+                this.updateDisplay();
+                
+                // Immediately load next question
+                this.loadQuestion();
+            }
+
+            wrongAnswerHandler() {
+                const previousDefinition = healthTerms[this.correctAnswer].def1;
+                const correctWord = this.correctAnswer;
+                
+                // Show previous answer at bottom
+                this.showPreviousAnswer(previousDefinition, correctWord, false);
+                
+                this.updateDisplay();
+                
+                // Immediately start new chain
+                this.startNewChain();
+            }
+
+            endRound() {
+                this.showMessage(`Chain ended at ${this.chain.length} words! Starting new chain...`, 'success');
+                setTimeout(() => {
+                    this.startNewChain();
+                }, 2000);
+            }
+
+            showMessage(text, type) {
+                const message = document.getElementById('message');
+                message.textContent = text;
+                message.className = `message show ${type}`;
+                setTimeout(() => {
+                    message.classList.remove('show');
+                }, 2000);
+            }
+
+            updateDisplay() {
+                const chainDisplay = document.getElementById('chainDisplay');
+                chainDisplay.innerHTML = '';
+                
+                if (this.chain.length === 0) {
+                    chainDisplay.innerHTML = '<div style="color: #999; font-style: italic;">Start building your chain...</div>';
+                } else {
+                    this.chain.forEach((word, index) => {
+                        const wordDiv = document.createElement('div');
+                        wordDiv.className = 'chain-word';
+                        
+                        // Highlight the linking letters
+                        let displayWord = word;
+                        if (index > 0) {
+                            // Highlight the starting letters that link to previous word
+                            const prevWord = this.chain[index - 1];
+                            const ending = this.getEndingLetters(prevWord);
+                            const startPart = word.substring(0, ending.length);
+                            const restPart = word.substring(ending.length);
+                            displayWord = `<span class="link-letter">${startPart}</span>${restPart}`;
+                        }
+                        if (index < this.chain.length - 1) {
+                            // Highlight the ending letters that link to next word
+                            const ending = this.getEndingLetters(word);
+                            const endStart = word.length - ending.length;
+                            const mainPart = word.substring(ending.length > 1 && index > 0 ? this.getEndingLetters(this.chain[index - 1]).length : 0, endStart);
+                            const endPart = word.substring(endStart);
+                            
+                            if (index === 0) {
+                                displayWord = `${word.substring(0, endStart)}<span class="link-letter">${endPart}</span>`;
+                            } else {
+                                const prevEnding = this.getEndingLetters(this.chain[index - 1]);
+                                const startHighlight = word.substring(0, prevEnding.length);
+                                const middle = word.substring(prevEnding.length, endStart);
+                                displayWord = `<span class="link-letter">${startHighlight}</span>${middle}<span class="link-letter">${endPart}</span>`;
+                            }
+                        }
+                        
+                        wordDiv.innerHTML = displayWord;
+                        chainDisplay.appendChild(wordDiv);
+                        
+                        if (index < this.chain.length - 1) {
+                            const arrow = document.createElement('div');
+                            arrow.className = 'arrow';
+                            arrow.textContent = '→';
+                            chainDisplay.appendChild(arrow);
+                        }
+                    });
+                }
+                
+                document.getElementById('chainLength').textContent = this.chain.length;
+                document.getElementById('score').textContent = this.score;
+                
+                // Track personal bests
+                if (this.chain.length > this.longestChain) {
+                    this.longestChain = this.chain.length;
+                    this.longestChainWords = [...this.chain];
+                }
+                if (this.score > this.highestScore) {
+                    this.highestScore = this.score;
+                }
+            }
+
+            getLeaderboard(type) {
+                const key = type === 'score' ? 'chainReactionScores' : 'chainReactionChains';
+                const stored = localStorage.getItem(key);
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            saveLeaderboard(type, entries) {
+                const key = type === 'score' ? 'chainReactionScores' : 'chainReactionChains';
+                localStorage.setItem(key, JSON.stringify(entries));
+            }
+
+            checkForHighScore() {
+                const scoreBoard = this.getLeaderboard('score');
+                const chainBoard = this.getLeaderboard('chain');
+                
+                const isTopScore = scoreBoard.length < 10 || this.highestScore > scoreBoard[scoreBoard.length - 1].value;
+                const isTopChain = chainBoard.length < 10 || this.longestChain > chainBoard[chainBoard.length - 1].value;
+                
+                if (isTopScore || isTopChain) {
+                    const achievements = [];
+                    if (isTopScore) achievements.push(`Score: ${this.highestScore}`);
+                    if (isTopChain) achievements.push(`Chain: ${this.longestChain} words`);
+                    
+                    document.getElementById('achievementText').textContent = achievements.join(' | ');
+                    document.getElementById('saveScoreForm').style.display = 'block';
+                    document.getElementById('playerName').value = '';
+                    document.getElementById('playerName').focus();
+                }
+            }
+
+            saveScore() {
+                const name = document.getElementById('playerName').value.trim();
+                if (!name) {
+                    alert('Please enter your name!');
+                    return;
+                }
+
+                // Save to score leaderboard
+                const scoreBoard = this.getLeaderboard('score');
+                scoreBoard.push({
+                    name: name,
+                    value: this.highestScore,
+                    date: new Date().toLocaleDateString()
+                });
+                scoreBoard.sort((a, b) => b.value - a.value);
+                if (scoreBoard.length > 10) scoreBoard.length = 10;
+                this.saveLeaderboard('score', scoreBoard);
+
+                // Save to chain leaderboard
+                const chainBoard = this.getLeaderboard('chain');
+                chainBoard.push({
+                    name: name,
+                    value: this.longestChain,
+                    date: new Date().toLocaleDateString()
+                });
+                chainBoard.sort((a, b) => b.value - a.value);
+                if (chainBoard.length > 10) chainBoard.length = 10;
+                this.saveLeaderboard('chain', chainBoard);
+
+                document.getElementById('saveScoreForm').style.display = 'none';
+                this.renderLeaderboard();
+            }
+
+            showLeaderboard() {
+                this.renderLeaderboard();
+                document.getElementById('leaderboardModal').classList.add('show');
+            }
+
+            closeLeaderboard() {
+                document.getElementById('leaderboardModal').classList.remove('show');
+                document.getElementById('saveScoreForm').style.display = 'none';
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                
+                document.getElementById('scoreTab').classList.remove('active');
+                document.getElementById('chainTab').classList.remove('active');
+                
+                if (tab === 'score') {
+                    document.getElementById('scoreTab').classList.add('active');
+                    document.getElementById('scoreLeaderboard').style.display = 'block';
+                    document.getElementById('chainLeaderboard').style.display = 'none';
+                } else {
+                    document.getElementById('chainTab').classList.add('active');
+                    document.getElementById('scoreLeaderboard').style.display = 'none';
+                    document.getElementById('chainLeaderboard').style.display = 'block';
+                }
+            }
+
+            renderLeaderboard() {
+                this.renderLeaderboardList('score');
+                this.renderLeaderboardList('chain');
+            }
+
+            renderLeaderboardList(type) {
+                const entries = this.getLeaderboard(type);
+                const containerId = type === 'score' ? 'scoreLeaderboard' : 'chainLeaderboard';
+                const container = document.getElementById(containerId);
+                
+                if (entries.length === 0) {
+                    container.innerHTML = '<div class="no-entries">No entries yet. Be the first!</div>';
+                    return;
+                }
+
+                container.innerHTML = entries.map((entry, index) => {
+                    const rank = index + 1;
+                    let rankClass = '';
+                    if (rank === 1) rankClass = 'gold';
+                    else if (rank === 2) rankClass = 'silver';
+                    else if (rank === 3) rankClass = 'bronze';
+                    
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                    
+                    return `
+                        <div class="leaderboard-entry">
+                            <div class="entry-rank ${rankClass}">${medal}</div>
+                            <div class="entry-name">${entry.name}</div>
+                            <div class="entry-score">${entry.value}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            endGame() {
+                clearInterval(this.gameTimer);
+                this.gameActive = false;
+                
+                // Show game elements again for the game over screen context
+                document.querySelector('.stats').style.display = 'flex';
+                document.querySelector('.chain-display').style.display = 'flex';
+                document.querySelector('.definition-box').style.display = 'none';
+                document.querySelector('.answer-input-box').style.display = 'none';
+                document.querySelector('.hints-section').style.display = 'none';
+                document.getElementById('message').style.display = 'none';
+                
+                // Display results
+                document.getElementById('finalScore').textContent = this.highestScore;
+                document.getElementById('finalChainLength').textContent = this.longestChain;
+                
+                // Display longest chain
+                const chainDisplay = document.getElementById('finalChainDisplay');
+                chainDisplay.innerHTML = '';
+                this.longestChainWords.forEach((word, index) => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600;';
+                    wordDiv.textContent = word;
+                    chainDisplay.appendChild(wordDiv);
+                    
+                    if (index < this.longestChainWords.length - 1) {
+                        const arrow = document.createElement('div');
+                        arrow.textContent = '→';
+                        arrow.style.color = '#667eea';
+                        arrow.style.fontSize = '1.5em';
+                        chainDisplay.appendChild(arrow);
+                    }
+                });
+                
+                document.getElementById('gameOver').classList.add('show');
+            }
+
+            postToLeaderboard() {
+                const name = document.getElementById('leaderboardName').value.trim();
+                if (!name) {
+                    alert('Please enter your name!');
+                    return;
+                }
+
+                // Save to score leaderboard
+                const scoreBoard = this.getLeaderboard('score');
+                scoreBoard.push({
+                    name: name,
+                    value: this.highestScore,
+                    date: new Date().toLocaleDateString()
+                });
+                scoreBoard.sort((a, b) => b.value - a.value);
+                if (scoreBoard.length > 10) scoreBoard.length = 10;
+                this.saveLeaderboard('score', scoreBoard);
+
+                // Save to chain leaderboard
+                const chainBoard = this.getLeaderboard('chain');
+                chainBoard.push({
+                    name: name,
+                    value: this.longestChain,
+                    date: new Date().toLocaleDateString()
+                });
+                chainBoard.sort((a, b) => b.value - a.value);
+                if (chainBoard.length > 10) chainBoard.length = 10;
+                this.saveLeaderboard('chain', chainBoard);
+
+                document.getElementById('leaderboardName').value = '';
+                
+                // Show leaderboard immediately
+                this.showLeaderboard();
+            }
+
+            restart() {
+                clearInterval(this.gameTimer);
+                
+                this.chain = [];
+                this.score = 0;
+                this.usedWords = [];
+                this.longestChain = 0;
+                this.longestChainWords = [];
+                this.highestScore = 0;
+                this.gameActive = false;
+                
+                // Reset all displays
+                document.querySelector('.stats').style.display = 'flex';
+                document.querySelector('.chain-display').style.display = 'flex';
+                document.querySelector('.definition-box').style.display = 'block';
+                document.querySelector('.answer-input-box').style.display = 'block';
+                document.querySelector('.hints-section').style.display = 'block';
+                document.getElementById('message').style.display = 'block';
+                
+                // Clear any lingering messages
+                document.getElementById('message').classList.remove('show');
+                document.getElementById('hintDisplay').classList.remove('show');
+                document.getElementById('previousAnswer').classList.remove('show');
+                
+                // Hide game over and game content, show menu
+                document.getElementById('gameOver').classList.remove('show');
+                document.getElementById('gameContent').classList.remove('show');
+                document.getElementById('mainMenu').classList.remove('hide');
+            }
+        }
+
+        const game = new ChainReaction();
+    </script>
+</body>
+</html>

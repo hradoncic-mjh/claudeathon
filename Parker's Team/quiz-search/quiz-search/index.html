@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Search Quiz</title>
+<link rel="stylesheet" href="./modern-polished.css" id="theme-stylesheet"></link>
+<!-- Themes available: modern-polished.css, clean-light.css, sunset-warm.css, forest-green.css -->
+
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ START SCREEN ═══ -->
+  <div id="start-screen" class="screen active">
+    <h1>Word Search Quiz</h1>
+    <p class="subtitle">Find the answers hidden in the grid</p>
+    
+    <!-- Theme Selector -->
+    <div style="text-align:center;margin-bottom:32px">
+      <label style="font-size:.85rem;color:#8899a6;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Select Theme</label>
+      <select id="theme-selector" onchange="App.changeTheme(this.value)" style="padding:10px 16px;border:2px solid rgba(255,255,255,.1);border-radius:6px;background:#1e2d3d;color:#e8edf2;font-size:.95rem;cursor:pointer;min-width:200px">
+        <option value="modern-polished">Modern Polished</option>
+        <option value="clean-light">Clean Light</option>
+        <option value="sunset-warm">Sunset Warm</option>
+        <option value="forest-green">Forest Green</option>
+      </select>
+    </div>
+
+    <!-- Debug Mode Toggle -->
+    <div style="text-align:center;margin-bottom:32px">
+      <label style="font-size:.85rem;color:#8899a6;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.5px;font-weight:600">
+        <input type="checkbox" id="global-debug-toggle" onchange="App.toggleGlobalDebug(this.checked)" style="margin-right:8px">
+        Global Debug Mode
+      </label>
+      <p style="font-size:.75rem;color:#8899a6;margin-top:4px">When enabled, shows answers for all quizzes</p>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="App.playSample()">Play Sample Game</button>
+      <button class="btn btn-secondary" onclick="App.showCreator()">Create New Game</button>
+      <button class="btn btn-secondary" onclick="App.loadGame()">Load Single Quiz</button>
+      <button class="btn btn-secondary" onclick="App.loadCollection()">Load Quiz Collection</button>
+      <button class="btn btn-secondary" id="resume-btn" onclick="App.resumeSaved()" style="display:none">Resume Game</button>
+      <button class="btn btn-secondary" onclick="App.showLeaderboards()">View Leaderboards</button>
+      <button class="btn btn-secondary" onclick="App.showAchievements()">
+        Achievements <span id="achievement-badge" style="margin-left:8px"></span>
+      </button>
+    </div>
+    <input type="file" id="file-input" accept=".json" style="display:none" onchange="App.handleFileLoad(event)">
+    <input type="file" id="collection-input" accept=".json" style="display:none" onchange="App.handleCollectionLoad(event)">
+  </div>
+
+  <!-- ═══ QUIZ COLLECTION SCREEN ═══ -->
+  <div id="collection-screen" class="screen">
+    <h2>Select Quiz Category</h2>
+    <p style="text-align:center;color:#8899a6;margin-bottom:32px" id="collection-title"></p>
+    
+    <div id="categories-container" class="quiz-selection-grid"></div>
+    
+    <div style="margin-top:32px" class="btn-group">
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Back to Menu</button>
+    </div>
+  </div>
+
+  <!-- ═══ QUIZ LIST SCREEN ═══ -->
+  <div id="quiz-list-screen" class="screen">
+    <h2 id="category-name">Quizzes</h2>
+    <p style="text-align:center;color:#8899a6;margin-bottom:32px" id="quiz-list-subtitle"></p>
+    
+    <div id="quizzes-container" class="quiz-selection-grid"></div>
+    
+    <div style="margin-top:32px" class="btn-group">
+      <button class="btn btn-secondary" onclick="App.showCollection()">Back to Categories</button>
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Main Menu</button>
+    </div>
+  </div>
+
+  <!-- ═══ CREATOR SCREEN ═══ -->
+  <div id="creator-screen" class="screen">
+    <h2>Create New Game</h2>
+
+    <!-- Collection Mode Toggle -->
+    <div style="text-align:center;margin-bottom:24px">
+      <label style="font-size:.85rem;color:#8899a6;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Creation Mode</label>
+      <div style="display:inline-flex;gap:12px">
+        <button class="btn btn-small btn-primary" id="mode-single" onclick="Creator.setMode('single')">Single Quiz</button>
+        <button class="btn btn-small btn-secondary" id="mode-collection" onclick="Creator.setMode('collection')">Quiz Collection</button>
+      </div>
+    </div>
+
+    <!-- Collection Management (shown in collection mode) -->
+    <div id="collection-management" style="display:none;margin-bottom:24px">
+      <div class="form-section">
+        <h3>Collection Categories</h3>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;gap:12px;align-items:flex-end">
+            <div class="form-field" style="flex:1">
+              <label>Category Name</label>
+              <input type="text" id="new-category-name" placeholder="e.g. Science & Nature">
+            </div>
+            <button class="btn btn-secondary btn-small" onclick="Creator.addCategory()">Add Category</button>
+          </div>
+        </div>
+        <div id="categories-list"></div>
+      </div>
+    </div>
+
+    <!-- Current Category Display (shown in collection mode) -->
+    <div id="current-category-display" style="display:none;margin-bottom:16px;text-align:center">
+      <div style="display:inline-block;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;padding:12px 24px">
+        <span style="color:#8899a6;font-size:.85rem;margin-right:8px">Editing Category:</span>
+        <span style="color:#00d4ff;font-weight:700;font-size:1.1rem" id="current-category-name"></span>
+        <button class="btn btn-danger btn-small" style="margin-left:16px" onclick="Creator.exitCategoryEdit()">Back to Categories</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Game Settings</h3>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Title</label>
+          <input type="text" id="cr-title" value="My Word Search Quiz" placeholder="Game title">
+        </div>
+        <div class="form-field">
+          <label>Category</label>
+          <input type="text" id="cr-category" value="" placeholder="e.g. Veterinary Science">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Grid Size</label>
+          <input type="number" id="cr-gridsize" value="15" min="10" max="30">
+        </div>
+        <div class="form-field">
+          <label>Global Timer (sec, 0=off)</label>
+          <input type="number" id="cr-global-timer" value="0" min="0">
+        </div>
+        <div class="form-field">
+          <label>Per-Question Timer (sec, 0=off)</label>
+          <input type="number" id="cr-question-timer" value="0" min="0">
+        </div>
+        <div class="form-field">
+          <label>Streak Bonus (pts, 0=off)</label>
+          <input type="number" id="cr-streak-bonus" value="25" min="0">
+        </div>
+        <div class="form-field">
+          <label>Debug Mode</label>
+          <select id="cr-debug"><option value="0">Off</option><option value="1">On</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Questions &amp; Answers</h3>
+      <div id="cr-questions"></div>
+      <button class="btn btn-small btn-secondary" style="margin-top:12px" onclick="Creator.addRow()">+ Add Question</button>
+    </div>
+
+    <div class="creator-actions">
+      <button class="btn btn-primary" onclick="Creator.playGame()" id="creator-play-btn">Play This Quiz</button>
+      <button class="btn btn-success" onclick="Creator.saveToCollection()" id="creator-save-collection-btn" style="display:none">Save to Collection</button>
+      <button class="btn btn-secondary" onclick="Creator.saveLocal()">Save to Browser</button>
+      <button class="btn btn-secondary" onclick="Creator.downloadJSON()" id="creator-download-btn">Download JSON</button>
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Back</button>
+    </div>
+  </div>
+
+  <!-- ═══ LEADERBOARDS SCREEN ═══ -->
+  <div id="leaderboards-screen" class="screen">
+    <h2>All Leaderboards</h2>
+    <div id="all-leaderboards-container"></div>
+    <div style="margin-top:32px" class="btn-group">
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Back to Menu</button>
+    </div>
+  </div>
+
+  <!-- ═══ ACHIEVEMENTS SCREEN ═══ -->
+  <div id="achievements-screen" class="screen">
+    <h2>Achievements</h2>
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:2.5rem;font-weight:800;color:#00d4ff;margin-bottom:8px" id="achievement-progress-text">0/0</div>
+      <div style="color:#8899a6;font-size:1rem" id="achievement-progress-subtitle">Achievements Unlocked</div>
+      <div style="width:100%;max-width:500px;margin:20px auto;height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden">
+        <div id="achievement-progress-bar" style="height:100%;background:linear-gradient(90deg,#00d4ff,#00e676);width:0%;transition:width .5s ease"></div>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div style="text-align:center;margin-bottom:24px">
+      <button class="btn btn-small btn-secondary" onclick="App.filterAchievements('all')" id="filter-all">All</button>
+      <button class="btn btn-small btn-secondary" onclick="App.filterAchievements('unlocked')" id="filter-unlocked">Unlocked</button>
+      <button class="btn btn-small btn-secondary" onclick="App.filterAchievements('locked')" id="filter-locked">Locked</button>
+    </div>
+
+    <div id="achievements-container"></div>
+    
+    <div style="margin-top:32px" class="btn-group">
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Back to Menu</button>
+      <button class="btn btn-danger btn-small" onclick="App.resetAchievements()">Reset All Achievements</button>
+    </div>
+  </div>
+
+  <!-- ═══ GAME SCREEN ═══ -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <div class="game-title" id="game-title">Word Search Quiz</div>
+      <div class="game-stats">
+        <div class="stat" id="stat-global-timer" style="display:none">
+          <div class="stat-label">Game Timer</div>
+          <div class="stat-value timer-value" id="global-timer-display">--:--</div>
+        </div>
+        <div class="stat" id="stat-q-timer" style="display:none">
+          <div class="stat-label">Question Timer</div>
+          <div class="stat-value timer-value" id="q-timer-display">--:--</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score-display">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Question</div>
+          <div class="stat-value" id="question-counter">1/5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+
+    <div class="question-panel">
+      <div class="question-number" id="question-number">Question 1</div>
+      <div class="question-text" id="question-text"></div>
+      <div class="answer-info" id="answer-info"></div>
+      <div class="game-controls">
+        <button class="btn btn-primary btn-small" id="next-btn" onclick="QuestionManager.next()" disabled>Next Question</button>
+
+        <button class="btn btn-danger btn-small" onclick="App.endGame()">End Game</button>
+      </div>
+      <div class="debug-panel" id="debug-panel" style="display:none">
+        <strong>DEBUG MODE</strong>
+        <span id="debug-answer"></span>
+      </div>
+    </div>
+
+    <div class="game-body">
+      <div class="grid-container">
+        <div class="word-grid" id="word-grid"></div>
+      </div>
+
+      <div class="side-panel">
+        <div class="panel-card instructions-card">
+          <h4 class="collapsible" onclick="this.parentElement.classList.toggle('collapsed'); if(!this.parentElement.classList.contains('collapsed')) AchievementsManager.trackInstructionsRead();">How to Play <span class="collapse-icon"></span></h4>
+          <div class="instructions-body">
+            <p>Read the question and find the answer word hidden in the grid.</p>
+            <p><strong>Drag</strong> from the first letter to the last, or <strong>click</strong> the first letter then click the last.</p>
+            <p>Words can go in any direction: horizontal, vertical, or diagonal.</p>
+            <p>Use hints if you're stuck (costs points). Finish quickly for a higher score multiplier!</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h4>Hints</h4>
+          <div class="hint-buttons" id="hint-buttons">
+            <button class="hint-btn" id="hint-btn-1" onclick="HintManager.useHint(1)">
+              Hint 1: First letter &amp; length <span class="hint-cost">-10 pts</span>
+            </button>
+            <button class="hint-btn" id="hint-btn-2" onclick="HintManager.useHint(2)" disabled>
+              Hint 2: First &amp; last letters <span class="hint-cost">-25 pts</span>
+            </button>
+            <button class="hint-btn" id="hint-btn-3" onclick="HintManager.useHint(3)" disabled>
+              Hint 3: Highlight in grid <span class="hint-cost">-50 pts</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h4>Words</h4>
+          <div class="found-words-list" id="found-words-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ END SCREEN ═══ -->
+  <div id="end-screen" class="screen">
+    <h2>Game Over!</h2>
+    <div class="final-score" id="final-score">0</div>
+    <p style="color:#8899a6;margin-bottom:8px">Total Score</p>
+    <div class="results-grid" id="results-grid"></div>
+    <table class="breakdown-table" id="breakdown-table">
+      <thead><tr><th>Question</th><th>Answer</th><th>Hints</th><th>Streak</th><th>Points</th></tr></thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+
+    <!-- Leaderboard Section -->
+    <div id="leaderboard-section" style="margin-top:40px;display:none">
+      <h3 style="text-align:center;color:#8899a6;margin-bottom:20px">🏆 Leaderboard: <span id="leaderboard-quiz-title"></span></h3>
+      
+      <!-- Name Entry (shown only for top 5 scores) -->
+      <div id="name-entry-section" style="text-align:center;margin-bottom:24px;display:none">
+        <p style="color:#00e676;font-weight:600;margin-bottom:12px">🎉 Congratulations! You made the Top 5!</p>
+        <div style="display:inline-flex;gap:10px;align-items:center">
+          <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" 
+                 style="padding:10px 16px;border:2px solid #00d4ff;border-radius:6px;background:#1e2d3d;color:#e8edf2;font-size:.95rem"
+                 onkeypress="if(event.key==='Enter') EndScreen.submitScore()">
+          <button class="btn btn-success btn-small" onclick="EndScreen.submitScore()">Submit Score</button>
+        </div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <table class="breakdown-table" style="max-width:800px">
+        <thead>
+          <tr>
+            <th style="width:60px">Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Accuracy</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+
+      <div style="text-align:center;margin-top:16px">
+        <button class="btn btn-secondary btn-small" id="view-all-btn" onclick="EndScreen.viewFullLeaderboard()">View All Scores</button>
+      </div>
+    </div>
+
+    <div style="margin-top:32px" class="btn-group">
+      <button class="btn btn-primary" onclick="App.replayGame()">Play Again</button>
+      <button class="btn btn-secondary" onclick="App.showScreen('start-screen')">Main Menu</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./sample-quiz-collection.js"></script>
+<script src="./word-search-quiz.js"></script>
+</body>
+</html>
