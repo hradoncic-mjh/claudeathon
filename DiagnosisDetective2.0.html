@@ -1,0 +1,3596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Detective</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0b0b1a;
+            color: #e0d8c0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            image-rendering: pixelated;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 960px;
+            height: 640px;
+            border: 4px solid #3a2f1f;
+            display: flex;
+            flex-direction: column;
+            background: #0e0e24;
+            box-shadow:
+                0 0 0 2px #1a1a2e,
+                0 0 0 6px #5a4a2a,
+                0 0 30px rgba(90, 74, 42, 0.3);
+            position: relative;
+        }
+
+        /* ── Scene Viewport ── */
+        #scene {
+            flex: 1;
+            background: #a8baa8;
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+            border-bottom: 3px solid #3a2f1f;
+        }
+
+        /* ── Room Structure ── */
+        #wall {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 65%;
+            background: linear-gradient(180deg, #9ab09e 0%, #8da494 100%);
+        }
+        #wall-trim {
+            position: absolute;
+            top: 65%; left: 0; right: 0;
+            height: 6px;
+            background: #6a7a6a;
+            z-index: 2;
+        }
+        #wainscoting {
+            position: absolute;
+            top: calc(65% + 6px); left: 0; right: 0;
+            height: calc(35% - 6px);
+            background: linear-gradient(180deg, #7a9a80, #6a8a70);
+            border-top: 2px solid #5a7a60;
+        }
+        #floor {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 28%;
+            background:
+                linear-gradient(45deg, #c8c0b0 25%, transparent 25%, transparent 75%, #c8c0b0 75%),
+                linear-gradient(45deg, #c8c0b0 25%, transparent 25%, transparent 75%, #c8c0b0 75%);
+            background-color: #d8d4c8;
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            border-top: 3px solid #5a5040;
+        }
+        #baseboard {
+            position: absolute;
+            bottom: 28%; left: 0; right: 0;
+            height: 8px;
+            background: #5a4a3a;
+            z-index: 2;
+        }
+
+        /* ── Fluorescent Light ── */
+        #ceiling-light {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 14px;
+            background: linear-gradient(180deg, #f8f8f0, #e8e8d8);
+            border: 2px solid #aaa;
+            border-radius: 2px;
+            box-shadow: 0 4px 30px rgba(255, 255, 240, 0.25), 0 2px 10px rgba(255, 255, 220, 0.15);
+            z-index: 1;
+        }
+        #ceiling-light::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 300px;
+            background: radial-gradient(ellipse at top, rgba(255,255,240,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── Wall Clock ── */
+        #wall-clock {
+            position: absolute;
+            top: 28px;
+            right: 160px;
+            width: 36px;
+            height: 36px;
+            background: #f0e8d8;
+            border: 3px solid #5a4a3a;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        #wall-clock::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 2px; height: 10px;
+            background: #333;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(30deg);
+        }
+        #wall-clock::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 2px; height: 7px;
+            background: #333;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(160deg);
+        }
+
+        /* ── Wall Cabinet (decorative) ── */
+        #wall-cabinet {
+            position: absolute;
+            top: 30px; right: 40px;
+            width: 100px; height: 80px;
+            background: linear-gradient(180deg, #e0d8c0, #d0c8b0);
+            border: 3px solid #8a7a60;
+            z-index: 1;
+        }
+        #wall-cabinet::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px;
+            width: calc(50% - 7px); height: calc(100% - 8px);
+            background: #c8c0a8;
+            border: 2px solid #9a8a70;
+        }
+        #wall-cabinet::after {
+            content: '';
+            position: absolute;
+            top: 4px; right: 4px;
+            width: calc(50% - 7px); height: calc(100% - 8px);
+            background: #c8c0a8;
+            border: 2px solid #9a8a70;
+        }
+
+        /* ── Medical Poster (decorative) ── */
+        #med-poster {
+            position: absolute;
+            top: 40px; left: 260px;
+            width: 50px; height: 65px;
+            background: #f0ece0;
+            border: 2px solid #aaa090;
+            z-index: 1;
+        }
+        #med-poster::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px;
+            height: 20px;
+            background: #cc6644;
+            border-radius: 2px;
+        }
+        #med-poster::after {
+            content: '';
+            position: absolute;
+            bottom: 6px; left: 6px; right: 6px;
+            height: 25px;
+            background: repeating-linear-gradient(
+                0deg, #ccc4b0 0px, #ccc4b0 3px, transparent 3px, transparent 7px
+            );
+        }
+
+        /* ── Sink (decorative) ── */
+        #sink-area {
+            position: absolute;
+            right: 30px;
+            bottom: 28%;
+            width: 110px;
+            height: 80px;
+            z-index: 3;
+        }
+        #sink-counter {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, #b8b0a0, #a8a090);
+            border: 2px solid #8a8070;
+        }
+        #sink-basin {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 20px;
+            background: #d8d0c0;
+            border: 2px solid #9a9080;
+            border-radius: 0 0 8px 8px;
+        }
+        #sink-faucet {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px; height: 18px;
+            background: #c0c0c0;
+            border: 1px solid #888;
+            border-radius: 2px;
+        }
+        #sink-faucet::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -5px;
+            width: 16px; height: 5px;
+            background: #c0c0c0;
+            border: 1px solid #888;
+            border-radius: 2px;
+        }
+
+        /* ── Owner in Scene (interactive) ── */
+        #owner-scene-area {
+            bottom: 28%;
+            left: 110px;
+            width: 100px;
+            height: 130px;
+        }
+        #scene-owner-sprite {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 200px;
+            height: 380px;
+            transform: translateX(-50%) scale(0.3);
+            transform-origin: bottom center;
+            filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.4));
+        }
+
+        /* ══════════════════════════════════════
+           INTERACTIVE SCENE OBJECTS
+           ══════════════════════════════════════ */
+
+        .scene-object {
+            position: absolute;
+            cursor: pointer;
+            transition: filter 0.15s;
+            z-index: 5;
+        }
+        .scene-object:hover {
+            filter: brightness(1.15) drop-shadow(0 0 8px #ffcc44aa);
+        }
+        .scene-object .label {
+            display: none;
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000c;
+            color: #ffcc44;
+            font-size: 8px;
+            font-family: 'Press Start 2P', monospace;
+            padding: 4px 10px;
+            white-space: nowrap;
+            border: 1px solid #ffcc44;
+            pointer-events: none;
+            z-index: 30;
+        }
+        .scene-object:hover .label {
+            display: block;
+        }
+
+        /* ── Exam Table + Patient ── */
+        #patient-area {
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 200px;
+        }
+
+        /* Table structure */
+        #exam-table-surface {
+            position: absolute;
+            bottom: 40px;
+            left: 0; right: 0;
+            height: 14px;
+            background: linear-gradient(180deg, #c8d0d8, #a8b0b8);
+            border: 2px solid #8890a0;
+        }
+        #exam-table-pad {
+            position: absolute;
+            bottom: 54px;
+            left: 30px; right: 30px;
+            height: 8px;
+            background: #5a9a7a;
+            border-radius: 2px 2px 0 0;
+            border: 1px solid #4a8a6a;
+            border-bottom: none;
+        }
+        .table-leg {
+            position: absolute;
+            bottom: 0;
+            width: 10px;
+            height: 40px;
+            background: linear-gradient(90deg, #a8b0b8, #909aa0);
+            border: 1px solid #7880a0;
+        }
+        .table-leg.left { left: 24px; }
+        .table-leg.right { right: 24px; }
+        .table-leg-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 34px;
+            right: 34px;
+            height: 4px;
+            background: #909aa0;
+            border: 1px solid #7880a0;
+        }
+
+        /* ── Animal (CSS art - swappable via JS) ── */
+        #animal {
+            position: absolute;
+            bottom: 58px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 90px;
+        }
+        /* Body */
+        .animal-body {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 130px;
+            height: 50px;
+            background: var(--body-color, #e8c84a);
+            border-radius: 30px 45px 22px 18px;
+            border: 2px solid var(--outline-color, #baa030);
+        }
+        /* Head */
+        .animal-head {
+            position: absolute;
+            bottom: 22px;
+            right: 5px;
+            width: 52px;
+            height: 48px;
+            background: var(--body-color, #e8c84a);
+            border-radius: 50% 55% 45% 42%;
+            border: 2px solid var(--outline-color, #baa030);
+            z-index: 2;
+        }
+        /* Ear */
+        .animal-ear {
+            position: absolute;
+            top: -4px;
+            right: 6px;
+            width: 18px;
+            height: 24px;
+            background: var(--ear-color, #c49a2a);
+            border-radius: 50% 50% 40% 60%;
+            border: 2px solid var(--outline-color, #baa030);
+            transform: rotate(10deg);
+        }
+        /* Eye */
+        .animal-eye {
+            position: absolute;
+            top: 14px;
+            right: 10px;
+            width: 7px;
+            height: 7px;
+            background: #2a2218;
+            border-radius: 50%;
+        }
+        .animal-eye::after {
+            content: '';
+            position: absolute;
+            top: 1px; right: 1px;
+            width: 2px; height: 2px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        /* Snout */
+        .animal-snout {
+            position: absolute;
+            bottom: 8px;
+            right: -6px;
+            width: 26px;
+            height: 16px;
+            background: var(--snout-color, #d4b43a);
+            border-radius: 40% 50% 50% 40%;
+            border: 2px solid var(--outline-color, #baa030);
+        }
+        /* Nose */
+        .animal-nose {
+            position: absolute;
+            top: 0px;
+            right: 1px;
+            width: 10px;
+            height: 7px;
+            background: #2a2218;
+            border-radius: 50%;
+        }
+        /* Tongue */
+        .animal-tongue {
+            position: absolute;
+            bottom: -4px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: #e06060;
+            border-radius: 0 0 50% 50%;
+            display: var(--tongue-display, block);
+        }
+        /* Front paw */
+        .animal-paw-front {
+            position: absolute;
+            bottom: -6px;
+            right: 40px;
+            width: 16px;
+            height: 12px;
+            background: var(--body-color, #e8c84a);
+            border-radius: 0 0 6px 6px;
+            border: 2px solid var(--outline-color, #baa030);
+            border-top: none;
+        }
+        /* Back paw */
+        .animal-paw-back {
+            position: absolute;
+            bottom: -6px;
+            left: 20px;
+            width: 18px;
+            height: 10px;
+            background: var(--body-color, #e8c84a);
+            border-radius: 0 0 6px 6px;
+            border: 2px solid var(--outline-color, #baa030);
+            border-top: none;
+        }
+        /* Tail */
+        .animal-tail {
+            position: absolute;
+            bottom: 28px;
+            left: 6px;
+            width: 28px;
+            height: 12px;
+            background: var(--body-color, #e8c84a);
+            border-radius: 10px 4px 4px 10px;
+            border: 2px solid var(--outline-color, #baa030);
+            transform: rotate(-20deg);
+            animation: wag 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes wag {
+            from { transform: rotate(-20deg); }
+            to   { transform: rotate(-5deg); }
+        }
+
+        /* ── X-Ray Lightbox ── */
+        #xray-lightbox {
+            top: 40px;
+            left: 50px;
+            width: 150px;
+            height: 125px;
+        }
+        .xray-frame {
+            position: absolute;
+            inset: 0;
+            background: #555;
+            border: 3px solid #444;
+            border-radius: 3px;
+            box-shadow: 2px 3px 0 #3a3a3a;
+        }
+        .xray-screen {
+            position: absolute;
+            inset: 8px;
+            background: linear-gradient(145deg, #d0eaff, #b0d4f0, #c0e0ff);
+            box-shadow:
+                inset 0 0 25px rgba(255,255,255,0.5),
+                0 0 25px rgba(160,210,240,0.5),
+                0 0 50px rgba(160,210,240,0.2);
+        }
+        .xray-clip {
+            position: absolute;
+            top: -2px;
+            width: 14px; height: 8px;
+            background: #888;
+            border: 1px solid #666;
+            border-radius: 2px 2px 0 0;
+            z-index: 2;
+        }
+        .xray-clip.left { left: 20px; }
+        .xray-clip.right { right: 20px; }
+        /* Bone x-ray image */
+        .xray-bone {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            width: 65px; height: 12px;
+            background: rgba(0, 30, 60, 0.25);
+            border-radius: 3px;
+        }
+        .xray-bone::before, .xray-bone::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: rgba(0, 30, 60, 0.2);
+        }
+        .xray-bone::before { left: -7px; }
+        .xray-bone::after  { right: -7px; }
+        /* Ribcage silhouette */
+        .xray-ribs {
+            position: absolute;
+            top: 20px; left: 20px;
+            width: 40px; height: 45px;
+            border: 2px solid rgba(0,30,60,0.12);
+            border-radius: 8px;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px, transparent 5px,
+                rgba(0,30,60,0.1) 5px, rgba(0,30,60,0.1) 7px
+            );
+        }
+        /* Power indicator */
+        .xray-power {
+            position: absolute;
+            bottom: 4px; right: 4px;
+            width: 6px; height: 6px;
+            background: #44cc44;
+            border-radius: 50%;
+            box-shadow: 0 0 4px #44cc44;
+            animation: blink-power 3s infinite;
+        }
+        @keyframes blink-power {
+            0%, 90% { opacity: 1; }
+            95% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* ── Lab Station (Blood Draw Kit) ── */
+        #lab-station {
+            right: 180px;
+            bottom: 20%;
+            width: 140px;
+            height: 140px;
+        }
+        /* Counter/cart */
+        .lab-cart {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, #b8b0a0, #a8a090);
+            border: 2px solid #8a8070;
+        }
+        .lab-cart-shelf {
+            position: absolute;
+            top: 50%; left: 4px; right: 4px;
+            height: 2px;
+            background: #8a8070;
+        }
+        .lab-cart-wheel {
+            position: absolute;
+            bottom: -5px;
+            width: 10px; height: 10px;
+            background: #555;
+            border-radius: 50%;
+            border: 1px solid #444;
+        }
+        .lab-cart-wheel.left  { left: 8px; }
+        .lab-cart-wheel.right { right: 8px; }
+        /* Tray */
+        .lab-tray {
+            position: absolute;
+            bottom: 88px;
+            left: 12px;
+            width: 90px;
+            height: 10px;
+            background: #ccc;
+            border: 1px solid #999;
+            border-radius: 2px;
+        }
+        /* Test tubes */
+        .lab-tubes {
+            position: absolute;
+            bottom: 96px;
+            left: 18px;
+            display: flex;
+            gap: 5px;
+        }
+        .test-tube {
+            width: 8px;
+            height: 28px;
+            border-radius: 0 0 4px 4px;
+            border: 1px solid rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .test-tube::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -1px;
+            width: 10px; height: 5px;
+            background: #e0e0e0;
+            border-radius: 2px 2px 0 0;
+            border: 1px solid rgba(0,0,0,0.15);
+        }
+        .tube-red    { background: linear-gradient(180deg, #ff6b6b, #cc3333); }
+        .tube-purple { background: linear-gradient(180deg, #b366e0, #7733aa); }
+        .tube-green  { background: linear-gradient(180deg, #66cc88, #33aa55); }
+        .tube-gold   { background: linear-gradient(180deg, #eebb44, #cc9933); }
+        .tube-blue   { background: linear-gradient(180deg, #66aaee, #3388cc); }
+        /* Syringe */
+        .lab-syringe {
+            position: absolute;
+            bottom: 100px;
+            right: 14px;
+            width: 40px;
+            height: 8px;
+            background: linear-gradient(180deg, #e8e8e8, #d0d0d0);
+            border: 1px solid #aaa;
+            border-radius: 2px;
+            transform: rotate(-15deg);
+        }
+        .lab-syringe::before {
+            content: '';
+            position: absolute;
+            top: 1px; right: -12px;
+            width: 12px; height: 5px;
+            background: #ddd;
+            border: 1px solid #aaa;
+        }
+        .lab-syringe::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: -4px;
+            width: 6px; height: 3px;
+            background: #bbb;
+            border: 1px solid #999;
+            border-radius: 1px;
+        }
+
+        /* ── Hover Text ── */
+        #hover-text {
+            position: absolute;
+            top: 8px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #ffcc44;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+            text-align: center;
+            pointer-events: none;
+            min-height: 14px;
+            z-index: 10;
+        }
+
+        /* ── Score Display ── */
+        #score-display {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-family: 'Press Start 2P', monospace;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        #score-label {
+            font-size: 7px;
+            color: #88cc66;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+        }
+        #score-value {
+            font-size: 11px;
+            color: #ffcc44;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+        }
+        #score-cost-flash {
+            font-size: 8px;
+            color: #ff6644;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+            opacity: 0;
+            transition: opacity 0.8s ease-out;
+        }
+        #score-cost-flash.show {
+            opacity: 1;
+            transition: none;
+        }
+        .cost-badge {
+            margin-left: auto;
+            font-size: 7px;
+            color: #ff9966;
+            padding: 2px 6px;
+            background: rgba(255, 100, 50, 0.12);
+            border: 1px solid rgba(255, 153, 102, 0.25);
+            flex-shrink: 0;
+        }
+        .submenu-item:hover .cost-badge {
+            color: #ffcc44;
+            border-color: rgba(255, 204, 68, 0.25);
+            background: rgba(255, 204, 68, 0.12);
+        }
+        .cost-badge.done {
+            color: #66cc88;
+            border-color: rgba(102, 204, 136, 0.25);
+            background: rgba(102, 204, 136, 0.12);
+        }
+        .submenu-item:hover .cost-badge.done {
+            color: #88eebb;
+            border-color: rgba(136, 238, 187, 0.25);
+            background: rgba(136, 238, 187, 0.12);
+        }
+
+        /* ── Action Line ── */
+        #action-line {
+            background: #0a0a18;
+            border-bottom: 2px solid #3a2f1f;
+            padding: 6px 12px;
+            font-size: 10px;
+            color: #ffcc44;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* ── Bottom Panel ── */
+        #bottom-panel {
+            display: flex;
+            height: 160px;
+            background: #0e0a1e;
+            border-top: 2px solid #3a2f1f;
+        }
+
+        /* ── Command Grid ── */
+        #command-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 3px;
+            padding: 8px;
+            width: 360px;
+            border-right: 3px solid #3a2f1f;
+        }
+
+        .cmd-btn {
+            background: linear-gradient(180deg, #2a1f4e, #1a1238);
+            border: 2px solid #5a4a7a;
+            color: #c0b8e0;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            padding: 4px 6px;
+            text-align: center;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-transform: uppercase;
+            user-select: none;
+            line-height: 1.4;
+        }
+        .cmd-btn .btn-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .cmd-btn:hover {
+            background: linear-gradient(180deg, #4a3a8e, #2a1f5e);
+            border-color: #ffcc44;
+            color: #ffcc44;
+        }
+        .cmd-btn.active {
+            background: linear-gradient(180deg, #5a4a1e, #3a2f0e);
+            border-color: #ffcc44;
+            color: #ffcc44;
+            box-shadow: 0 0 8px #ffcc4466;
+        }
+
+        /* ── Inventory ── */
+        #inventory {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 3px;
+            padding: 8px;
+            position: relative;
+        }
+        #inventory-label {
+            position: absolute;
+            top: 2px; right: 8px;
+            font-size: 7px;
+            color: #5a4a7a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .inv-slot {
+            background: #12102a;
+            border: 2px solid #2a2548;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .inv-slot:hover {
+            border-color: #5a4a7a;
+            background: #1a1838;
+        }
+        .inv-slot.has-item:hover {
+            border-color: #ffcc44;
+        }
+        .inv-slot .inv-label {
+            display: none;
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000c;
+            color: #ffcc44;
+            font-size: 7px;
+            padding: 2px 6px;
+            white-space: nowrap;
+            border: 1px solid #ffcc44;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .inv-slot.has-item:hover .inv-label {
+            display: block;
+        }
+
+        /* ── Submenu Overlay ── */
+        #submenu-overlay {
+            display: none;
+            position: absolute;
+            bottom: 164px;
+            left: 0;
+            z-index: 50;
+        }
+        #submenu-overlay.visible {
+            display: block;
+        }
+
+        #submenu {
+            background: linear-gradient(180deg, #1e1838, #140f28);
+            border: 3px solid #5a4a7a;
+            box-shadow: 0 -4px 20px #0008, 0 0 0 1px #0005;
+            min-width: 260px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        #submenu-title {
+            font-size: 8px;
+            color: #ffcc44;
+            text-transform: uppercase;
+            padding: 8px 12px 6px;
+            border-bottom: 1px solid #3a2f5a;
+            letter-spacing: 1px;
+        }
+
+        .submenu-item {
+            padding: 8px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #c0b8e0;
+            cursor: pointer;
+            border-bottom: 1px solid #1a1530;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .submenu-item:last-child { border-bottom: none; }
+        .submenu-item:hover {
+            background: #2a1f4e;
+            color: #ffcc44;
+        }
+        .submenu-item .icon {
+            font-size: 14px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ── Scanline overlay ── */
+        #scanlines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.08) 2px,
+                rgba(0,0,0,0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* ── CRT vignette ── */
+        #vignette {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* ── Owner Dialog Overlay (Visual Novel style) ── */
+        #owner-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            bottom: 192px; /* above action line + bottom panel */
+            z-index: 60;
+        }
+        #owner-overlay.visible {
+            display: block;
+        }
+        #owner-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.45) 100%);
+        }
+
+        /* ── Layout ── */
+        #owner-dialog {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: flex-end;
+            z-index: 1;
+            pointer-events: none;
+        }
+        #owner-dialog > * { pointer-events: auto; }
+
+        /* ══════════════════════════════════════
+           ANIME / VN CHARACTER (CSS art)
+           ══════════════════════════════════════ */
+        #owner-character {
+            width: 260px;
+            height: 100%;
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            filter: drop-shadow(3px 4px 6px rgba(0,0,0,0.5));
+        }
+        #owner-sprite {
+            position: relative;
+            width: 200px;
+            height: 380px;
+            margin-bottom: -10px;
+        }
+
+        /* Head — large anime proportions */
+        .vn-head {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 110px; height: 120px;
+            background: #f5dcc0;
+            border-radius: 50% 50% 46% 46%;
+            border: 3px solid #d4b896;
+            z-index: 5;
+        }
+        /* Hair back layer */
+        .vn-hair-back {
+            position: absolute;
+            top: -6px; left: -18px; right: -18px;
+            height: 100px;
+            background: linear-gradient(180deg, #3a2210, #5a3818);
+            border-radius: 55% 55% 40% 40%;
+            z-index: 1;
+        }
+        .vn-hair-back::before {
+            content: '';
+            position: absolute;
+            bottom: -35px; left: -4px;
+            width: 30px; height: 60px;
+            background: linear-gradient(180deg, #4a2e14, #5a3818);
+            border-radius: 0 0 40% 50%;
+            transform: rotate(6deg);
+        }
+        .vn-hair-back::after {
+            content: '';
+            position: absolute;
+            bottom: -35px; right: -4px;
+            width: 30px; height: 60px;
+            background: linear-gradient(180deg, #4a2e14, #5a3818);
+            border-radius: 0 0 50% 40%;
+            transform: rotate(-6deg);
+        }
+        /* Hair bangs */
+        .vn-hair-bangs {
+            position: absolute;
+            top: -8px; left: -8px; right: -8px;
+            height: 55px;
+            background: linear-gradient(180deg, #3a2210, #5a3818);
+            border-radius: 50% 50% 30% 30%;
+            z-index: 10;
+            clip-path: polygon(
+                0% 0%, 100% 0%, 100% 70%,
+                85% 95%, 72% 70%, 60% 100%,
+                48% 72%, 35% 98%, 22% 68%,
+                12% 90%, 0% 70%
+            );
+        }
+        /* Eyes — large anime style */
+        .vn-eye {
+            position: absolute;
+            top: 48px;
+            width: 22px; height: 26px;
+            border-radius: 40% 40% 50% 50%;
+            background: #fff;
+            border: 2px solid #3a2a18;
+            overflow: hidden;
+            z-index: 6;
+        }
+        .vn-eye.left  { left: 18px; }
+        .vn-eye.right { right: 18px; }
+        .vn-iris {
+            position: absolute;
+            bottom: 2px; left: 50%;
+            transform: translateX(-50%);
+            width: 16px; height: 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, #6aaa55, #3a7a30 60%, #2a5a20);
+        }
+        .vn-pupil {
+            position: absolute;
+            top: 5px; left: 50%;
+            transform: translateX(-50%);
+            width: 8px; height: 10px;
+            background: #111;
+            border-radius: 50%;
+        }
+        .vn-eye-shine {
+            position: absolute;
+            top: 3px; right: 2px;
+            width: 6px; height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .vn-eye-shine.small {
+            top: 10px; right: 5px;
+            width: 3px; height: 3px;
+        }
+        /* Eyebrows */
+        .vn-eyebrow {
+            position: absolute;
+            top: 40px;
+            width: 24px; height: 4px;
+            background: #3a2210;
+            border-radius: 4px;
+            z-index: 11;
+        }
+        .vn-eyebrow.left  { left: 17px; transform: rotate(-3deg); }
+        .vn-eyebrow.right { right: 17px; transform: rotate(3deg); }
+        /* Nose */
+        .vn-nose {
+            position: absolute;
+            top: 74px; left: 50%;
+            transform: translateX(-50%);
+            width: 6px; height: 6px;
+            background: #e0b898;
+            border-radius: 50%;
+            z-index: 6;
+        }
+        /* Mouth */
+        .vn-mouth {
+            position: absolute;
+            top: 88px; left: 50%;
+            transform: translateX(-50%);
+            width: 18px; height: 6px;
+            border-bottom: 3px solid #c08068;
+            border-radius: 0 0 50% 50%;
+            z-index: 6;
+        }
+        /* Blush marks */
+        .vn-blush {
+            position: absolute;
+            top: 76px;
+            width: 16px; height: 8px;
+            background: rgba(220, 120, 120, 0.25);
+            border-radius: 50%;
+            z-index: 6;
+        }
+        .vn-blush.left  { left: 10px; }
+        .vn-blush.right { right: 10px; }
+
+        /* Neck */
+        .vn-neck {
+            position: absolute;
+            top: 112px; left: 50%;
+            transform: translateX(-50%);
+            width: 30px; height: 20px;
+            background: #f5dcc0;
+            border: 2px solid #d4b896;
+            border-top: none;
+            z-index: 3;
+        }
+        /* Body / Torso */
+        .vn-torso {
+            position: absolute;
+            top: 126px; left: 50%;
+            transform: translateX(-50%);
+            width: 100px; height: 120px;
+            background: linear-gradient(180deg, #5b8db8, #4a7aa5);
+            border-radius: 14px 14px 0 0;
+            border: 3px solid #3a6a8a;
+            z-index: 2;
+        }
+        /* Collar / neckline */
+        .vn-collar {
+            position: absolute;
+            top: -2px; left: 50%;
+            transform: translateX(-50%);
+            width: 40px; height: 16px;
+            background: #f5dcc0;
+            border-radius: 0 0 50% 50%;
+            border: 2px solid #d4b896;
+            border-top: none;
+            z-index: 3;
+        }
+        /* Arms */
+        .vn-arm {
+            position: absolute;
+            top: 134px;
+            width: 32px; height: 110px;
+            background: linear-gradient(180deg, #5b8db8, #4a7aa5);
+            border: 3px solid #3a6a8a;
+            z-index: 1;
+        }
+        .vn-arm.left {
+            left: 16px;
+            border-radius: 10px 0 12px 12px;
+            transform: rotate(4deg);
+        }
+        .vn-arm.right {
+            right: 16px;
+            border-radius: 0 10px 12px 12px;
+            transform: rotate(-4deg);
+        }
+        .vn-hand {
+            position: absolute;
+            bottom: -8px; left: 50%;
+            transform: translateX(-50%);
+            width: 24px; height: 20px;
+            background: #f5dcc0;
+            border-radius: 50%;
+            border: 2px solid #d4b896;
+        }
+        /* Legs (visible below torso) */
+        .vn-legs {
+            position: absolute;
+            top: 240px; left: 50%;
+            transform: translateX(-50%);
+            width: 90px; height: 130px;
+            display: flex;
+            gap: 4px;
+            z-index: 1;
+        }
+        .vn-leg {
+            flex: 1;
+            background: linear-gradient(180deg, #4a506a, #3a3a55);
+            border: 2px solid #2a2a40;
+            border-radius: 0 0 6px 6px;
+        }
+        .vn-shoe {
+            position: absolute;
+            bottom: 0; left: -2px; right: -2px;
+            height: 16px;
+            background: linear-gradient(180deg, #4a3a28, #3a2a18);
+            border-radius: 2px 2px 6px 6px;
+            border: 2px solid #2a1a0a;
+        }
+
+        /* ── Speech Bubble (owner response) ── */
+        #speech-bubble {
+            display: none;
+            position: absolute;
+            left: 210px;
+            top: 20px;
+            width: 340px;
+            background: #fff;
+            border: 3px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            z-index: 70;
+            box-shadow: 3px 4px 0 #2a2a2a;
+        }
+        #speech-bubble.visible {
+            display: block;
+        }
+        /* Tail/pointer on the bubble */
+        #speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -14px;
+            top: 30px;
+            width: 0; height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 14px solid #3a3a3a;
+        }
+        #speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 32px;
+            width: 0; height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 12px solid #fff;
+        }
+        #speech-bubble-speaker {
+            font-size: 8px;
+            font-family: 'Press Start 2P', monospace;
+            color: #5b8db8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #speech-bubble-text {
+            font-size: 8px;
+            font-family: 'Press Start 2P', monospace;
+            color: #2a2a2a;
+            line-height: 2;
+        }
+
+        /* ── Dialog Choice Panel (right side of scene) ── */
+        #dialog-panel {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 380px;
+            z-index: 65;
+        }
+        #dialog-box {
+            background: linear-gradient(180deg, #1e1838ee, #140f28f0);
+            border: 3px solid #5a4a7a;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 8px 0 0 0;
+            box-shadow: -4px -4px 20px #000a;
+            overflow-y: auto;
+            max-height: 360px;
+        }
+        #dialog-speaker {
+            font-size: 8px;
+            color: #ffcc44;
+            text-transform: uppercase;
+            padding: 10px 14px 8px;
+            border-bottom: 1px solid #3a2f5a;
+            letter-spacing: 1px;
+        }
+        .dialog-choice {
+            padding: 10px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #c0b8e0;
+            cursor: pointer;
+            border-bottom: 1px solid #1a1530;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.6;
+        }
+        .dialog-choice:last-child { border-bottom: none; }
+        .dialog-choice:hover {
+            background: #2a1f4e;
+            color: #ffcc44;
+            padding-left: 20px;
+        }
+        .dialog-choice.asked {
+            color: #4a4268;
+            cursor: default;
+        }
+        .dialog-choice.asked:hover {
+            background: transparent;
+            color: #4a4268;
+            padding-left: 14px;
+        }
+        .dialog-choice .icon {
+            font-size: 12px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .dialog-choice .arrow {
+            margin-left: auto;
+            color: #5a4a7a;
+            font-size: 10px;
+        }
+        .dialog-choice:hover .arrow {
+            color: #ffcc44;
+        }
+        .dialog-choice.asked .arrow {
+            display: none;
+        }
+        #dialog-close {
+            padding: 8px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #8a7a5a;
+            cursor: pointer;
+            text-align: right;
+            transition: color 0.1s;
+            border-top: 1px solid #2a2548;
+        }
+        #dialog-close:hover {
+            color: #ffcc44;
+        }
+
+        /* ── Scrollbar styling ── */
+        #submenu::-webkit-scrollbar, #dialog-box::-webkit-scrollbar { width: 8px; }
+        #submenu::-webkit-scrollbar-track, #dialog-box::-webkit-scrollbar-track { background: #140f28; }
+        #submenu::-webkit-scrollbar-thumb, #dialog-box::-webkit-scrollbar-thumb { background: #5a4a7a; border-radius: 0; }
+
+        /* ── Clipboard Overlay ── */
+        #clipboard-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            bottom: 0;
+            z-index: 80;
+            align-items: center;
+            justify-content: center;
+        }
+        #clipboard-overlay.visible {
+            display: flex;
+        }
+        #clipboard-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+        }
+        #clipboard {
+            position: relative;
+            width: 460px;
+            height: 520px;
+            z-index: 1;
+        }
+        #clipboard-board {
+            position: absolute;
+            top: 24px; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #c8a870, #b89860, #a88850);
+            border: 3px solid #8a6a3a;
+            border-radius: 4px 4px 8px 8px;
+            box-shadow: 4px 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        #clipboard-clip {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 90px; height: 32px;
+            background: linear-gradient(180deg, #d8d8d8, #a8a8a8);
+            border: 2px solid #888;
+            border-radius: 6px 6px 0 0;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        #clipboard-clip::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 50%;
+            transform: translateX(-50%);
+            width: 70px; height: 8px;
+            background: linear-gradient(180deg, #b0b0b0, #909090);
+            border: 1px solid #777;
+            border-radius: 0 0 3px 3px;
+        }
+        #clipboard-close {
+            position: absolute;
+            top: 28px; right: 8px;
+            width: 26px; height: 26px;
+            background: #c06030;
+            border: 2px solid #904020;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            z-index: 3;
+            transition: background 0.1s;
+        }
+        #clipboard-close:hover {
+            background: #e07040;
+        }
+        #clipboard-paper {
+            position: absolute;
+            top: 36px; left: 14px; right: 14px; bottom: 14px;
+            background: #faf8f0;
+            border: 1px solid #d0c8b0;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #clipboard-tabs {
+            display: flex;
+            border-bottom: 2px solid #c8b890;
+            flex-shrink: 0;
+        }
+        .clipboard-tab {
+            flex: 1;
+            padding: 10px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #8a7a5a;
+            background: #e8e0d0;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .clipboard-tab:first-child {
+            border-right: 1px solid #c8b890;
+        }
+        .clipboard-tab:hover {
+            background: #f0ece0;
+            color: #5a4a2a;
+        }
+        .clipboard-tab.active {
+            background: #faf8f0;
+            color: #3a2a1a;
+            border-bottom-color: #c06030;
+        }
+        .clipboard-page {
+            display: none;
+            padding: 14px 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .clipboard-page.active {
+            display: block;
+        }
+        .clipboard-page h3 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #3a2a1a;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px dashed #c0b8a0;
+        }
+        .report-field {
+            margin-bottom: 10px;
+        }
+        .report-field-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #8a7a5a;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+        .report-field-value {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #2a2218;
+            line-height: 2;
+            padding: 5px 8px;
+            background: #f0ece0;
+            border-left: 3px solid #c8a870;
+        }
+        .finding-entry {
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            background: #f0ece0;
+            border-left: 3px solid #5a9a5a;
+        }
+        .finding-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #4a7a3a;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+        .finding-value {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #2a2218;
+            line-height: 2;
+        }
+        .finding-entry.unhelpful {
+            border-left-color: #aaa090;
+            background: #eae6da;
+            opacity: 0.7;
+        }
+        .finding-entry.unhelpful .finding-label {
+            color: #8a7a5a;
+        }
+        .findings-empty {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #aaa090;
+            text-align: center;
+            margin-top: 50px;
+            line-height: 2.4;
+        }
+        .clipboard-page::-webkit-scrollbar { width: 6px; }
+        .clipboard-page::-webkit-scrollbar-track { background: #f0ece0; }
+        .clipboard-page::-webkit-scrollbar-thumb { background: #c8b890; border-radius: 3px; }
+
+        /* ── Diagnosis Overlay ── */
+        #diagnosis-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            bottom: 192px;
+            z-index: 70;
+            align-items: center;
+            justify-content: center;
+        }
+        #diagnosis-overlay.visible {
+            display: flex;
+        }
+        #diagnosis-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+        }
+        #diagnosis-form {
+            position: relative;
+            width: 540px;
+            max-height: 100%;
+            background: linear-gradient(180deg, #1e1838, #140f28);
+            border: 3px solid #5a4a7a;
+            box-shadow: 0 0 30px #000a, 0 0 0 1px #0005;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #diagnosis-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ffcc44;
+            text-transform: uppercase;
+            padding: 12px 16px 10px;
+            border-bottom: 2px solid #3a2f5a;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        #diagnosis-title .icon {
+            font-size: 16px;
+        }
+        #diagnosis-search-wrap {
+            padding: 10px 14px;
+            border-bottom: 1px solid #2a2548;
+            flex-shrink: 0;
+        }
+        #diagnosis-search {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ffcc44;
+            background: #0a0818;
+            border: 2px solid #3a2f5a;
+            outline: none;
+            caret-color: #ffcc44;
+        }
+        #diagnosis-search::placeholder {
+            color: #4a4268;
+        }
+        #diagnosis-search:focus {
+            border-color: #ffcc44;
+            box-shadow: 0 0 8px #ffcc4433;
+        }
+        #diagnosis-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .diagnosis-item {
+            padding: 8px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #c0b8e0;
+            cursor: pointer;
+            border-bottom: 1px solid #1a1530;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            line-height: 1.6;
+        }
+        .diagnosis-item:last-child { border-bottom: none; }
+        .diagnosis-item:hover {
+            background: #2a1f4e;
+            color: #ffcc44;
+            padding-left: 20px;
+        }
+        .diagnosis-item .arrow {
+            margin-left: auto;
+            color: #5a4a7a;
+            font-size: 10px;
+            flex-shrink: 0;
+            padding-left: 8px;
+        }
+        .diagnosis-item:hover .arrow {
+            color: #ffcc44;
+        }
+        .diagnosis-empty {
+            padding: 30px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #4a4268;
+            text-align: center;
+            line-height: 2;
+        }
+        #diagnosis-close {
+            padding: 8px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #8a7a5a;
+            cursor: pointer;
+            text-align: right;
+            transition: color 0.1s;
+            border-top: 2px solid #2a2548;
+            flex-shrink: 0;
+        }
+        #diagnosis-close:hover {
+            color: #ffcc44;
+        }
+        #diagnosis-list::-webkit-scrollbar { width: 8px; }
+        #diagnosis-list::-webkit-scrollbar-track { background: #140f28; }
+        #diagnosis-list::-webkit-scrollbar-thumb { background: #5a4a7a; }
+        .finding-entry.diagnosis {
+            border-left-color: #c06030;
+            background: #f8f0e0;
+        }
+        .finding-entry.diagnosis .finding-label {
+            color: #c06030;
+        }
+
+        /* ── Correct Action Flash ── */
+        #action-line.correct {
+            animation: flash-correct 1.2s ease-out;
+        }
+        @keyframes flash-correct {
+            0% { background: #1a3a1a; color: #88eebb; }
+            100% { background: #0a0a18; color: #ffcc44; }
+        }
+
+        /* ── Action Text Colors ── */
+        #action-text.text-correct {
+            color: #88eebb;
+        }
+        #action-text.text-incorrect {
+            color: #ff6644;
+        }
+
+        /* ── Incorrect Diagnosis Flash ── */
+        #action-line.incorrect {
+            animation: flash-incorrect 0.8s ease-out;
+        }
+        @keyframes flash-incorrect {
+            0% { background: #4a1818; color: #ff6644; }
+            100% { background: #0a0a18; color: #ffcc44; }
+        }
+
+        /* ── Unread Clipboard Notification ── */
+        #med-poster.has-unread {
+            animation: clipboard-glow 1.2s ease-in-out infinite alternate;
+            z-index: 6;
+        }
+        @keyframes clipboard-glow {
+            0% { box-shadow: 0 0 6px rgba(136,238,187,0.3); border-color: #aaa090; }
+            100% { box-shadow: 0 0 18px rgba(136,238,187,0.7), 0 0 30px rgba(136,238,187,0.25); border-color: #88eebb; }
+        }
+        #med-poster .unread-badge {
+            display: none;
+            position: absolute;
+            top: -6px; right: -6px;
+            width: 14px; height: 14px;
+            background: #44cc66;
+            border: 2px solid #228844;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 6px rgba(68,204,102,0.6);
+            animation: badge-pulse 1s ease-in-out infinite alternate;
+        }
+        #med-poster.has-unread .unread-badge {
+            display: block;
+        }
+        @keyframes badge-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.25); }
+        }
+
+        /* ── Victory Overlay ── */
+        #victory-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 90;
+            align-items: center;
+            justify-content: center;
+        }
+        #victory-overlay.visible {
+            display: flex;
+        }
+        #victory-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+        }
+        #victory-panel {
+            position: relative;
+            width: 600px;
+            max-height: 560px;
+            background: linear-gradient(180deg, #1e1838, #140f28);
+            border: 3px solid #ffcc44;
+            box-shadow: 0 0 40px rgba(255, 204, 68, 0.3), 0 0 0 1px #0005;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #victory-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: #ffcc44;
+            text-align: center;
+            padding: 18px 16px;
+            border-bottom: 2px solid #3a2f5a;
+            text-shadow: 0 0 10px rgba(255, 204, 68, 0.5);
+            flex-shrink: 0;
+        }
+        #victory-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        #victory-body::-webkit-scrollbar { width: 8px; }
+        #victory-body::-webkit-scrollbar-track { background: #140f28; }
+        #victory-body::-webkit-scrollbar-thumb { background: #5a4a7a; }
+        .victory-patient {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #8a8aaa;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .victory-diagnosis {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #88eebb;
+            text-align: center;
+            margin-bottom: 6px;
+            line-height: 1.8;
+        }
+        .victory-score {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: #ffcc44;
+            text-align: center;
+            margin-bottom: 4px;
+            text-shadow: 0 0 8px rgba(255, 204, 68, 0.3);
+        }
+        .victory-rating {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #88cc66;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .victory-section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #ffcc44;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #3a2f5a;
+            letter-spacing: 1px;
+        }
+        .victory-action {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #c0b8e0;
+            padding: 4px 8px;
+            margin-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+            line-height: 1.6;
+        }
+        .victory-action .cost {
+            color: #ff9966;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .victory-finding {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            margin-bottom: 6px;
+            padding: 5px 8px;
+            background: rgba(255,255,255,0.04);
+            border-left: 3px solid #5a4a7a;
+            line-height: 1.8;
+        }
+        .victory-finding-label {
+            color: #88cc66;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .victory-finding-value {
+            color: #c0b8e0;
+        }
+        #victory-footer {
+            padding: 14px 20px;
+            border-top: 2px solid #3a2f5a;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        #victory-play-again {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ffcc44;
+            background: linear-gradient(180deg, #2a1f4e, #1a1238);
+            border: 2px solid #ffcc44;
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        #victory-play-again:hover {
+            background: linear-gradient(180deg, #4a3a8e, #2a1f5e);
+            box-shadow: 0 0 12px rgba(255, 204, 68, 0.4);
+        }
+
+        /* ── Start Screen ── */
+        #start-overlay {
+            display: flex;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 95;
+            align-items: center;
+            justify-content: center;
+        }
+        #start-overlay.hidden {
+            display: none;
+        }
+        #start-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(90,74,122,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(90,74,122,0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #08061a 0%, #12102e 35%, #1a1440 65%, #0e0c22 100%);
+        }
+        #start-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 60px;
+        }
+        #start-badge {
+            font-size: 40px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 12px rgba(255,204,68,0.3));
+            animation: badge-float 3s ease-in-out infinite;
+        }
+        @keyframes badge-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        #start-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 22px;
+            color: #ffcc44;
+            text-align: center;
+            line-height: 2.2;
+            animation: title-glow 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes title-glow {
+            from { text-shadow: 2px 2px 0 #3a2f1f, 0 0 10px rgba(255,204,68,0.2); }
+            to   { text-shadow: 2px 2px 0 #3a2f1f, 0 0 30px rgba(255,204,68,0.5), 0 0 60px rgba(255,204,68,0.15); }
+        }
+        #start-divider {
+            width: 300px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #5a4a7a, transparent);
+            margin: 12px 0;
+        }
+        #start-subtitle {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #8a8aaa;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        #start-icons {
+            display: flex;
+            gap: 18px;
+            font-size: 20px;
+            margin: 16px 0 28px;
+            opacity: 0.6;
+        }
+        #start-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            color: #ffcc44;
+            background: linear-gradient(180deg, #2a1f4e, #1a1238);
+            border: 3px solid #5a4a7a;
+            padding: 14px 36px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #start-btn:hover {
+            background: linear-gradient(180deg, #4a3a8e, #2a1f5e);
+            border-color: #ffcc44;
+            box-shadow: 0 0 20px rgba(255,204,68,0.3);
+        }
+        #start-btn-arrow {
+            display: inline-block;
+            margin-left: 8px;
+            animation: blink-arrow 1s step-end infinite;
+        }
+        @keyframes blink-arrow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        #start-footer {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 6px;
+            color: #3a3858;
+            text-align: center;
+            margin-top: 30px;
+            letter-spacing: 1px;
+            line-height: 2.4;
+        }
+
+        /* ── Tutorial Overlay ── */
+        #tutorial-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 92;
+            align-items: center;
+            justify-content: center;
+        }
+        #tutorial-overlay.visible {
+            display: flex;
+        }
+        #tutorial-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+        }
+        #tutorial-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 860px;
+            padding: 24px;
+        }
+        #tutorial-heading {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: #ffcc44;
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 0 0 10px rgba(255, 204, 68, 0.4);
+        }
+        #tutorial-subheading {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #8a8aaa;
+            text-align: center;
+            margin-bottom: 22px;
+            letter-spacing: 2px;
+        }
+        #tutorial-panels {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .tutorial-panel {
+            width: 250px;
+            background: linear-gradient(180deg, #1e1838, #140f28);
+            border: 3px solid #5a4a7a;
+            border-radius: 6px;
+            padding: 18px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .tutorial-panel-number {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #5a4a7a;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        .tutorial-panel-icon {
+            width: 80px;
+            height: 80px;
+            background: #0a0818;
+            border: 2px solid #3a2f5a;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tutorial-panel-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ffcc44;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .tutorial-panel-desc {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #a0a0c0;
+            line-height: 2;
+        }
+        .tutorial-panel-desc .warn {
+            color: #ff9966;
+        }
+        /* Panel 1: chat bubble art */
+        .tut-bubble {
+            width: 50px;
+            height: 32px;
+            background: #fff;
+            border: 2px solid #3a3a3a;
+            border-radius: 10px;
+            position: relative;
+        }
+        .tut-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 10px;
+            width: 0; height: 0;
+            border-left: 8px solid #3a3a3a;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #fff;
+            border-bottom: 0;
+        }
+        .tut-bubble-lines {
+            position: absolute;
+            top: 8px; left: 8px; right: 8px;
+            height: 3px;
+            background: #ccc;
+            border-radius: 1px;
+        }
+        .tut-bubble-lines::after {
+            content: '';
+            position: absolute;
+            top: 7px; left: 0;
+            width: 70%;
+            height: 3px;
+            background: #ddd;
+            border-radius: 1px;
+        }
+        /* Panel 1: mini person */
+        .tut-person {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            width: 14px;
+            height: 26px;
+        }
+        .tut-person-head {
+            width: 10px; height: 10px;
+            background: #f5dcc0;
+            border: 1px solid #d4b896;
+            border-radius: 50%;
+            margin: 0 auto 2px;
+        }
+        .tut-person-body {
+            width: 14px; height: 14px;
+            background: #5b8db8;
+            border: 1px solid #3a6a8a;
+            border-radius: 3px 3px 0 0;
+            margin: 0 auto;
+        }
+        /* Panel 2: mini table + magnifier */
+        .tut-table {
+            width: 56px;
+            height: 10px;
+            background: linear-gradient(180deg, #c8d0d8, #a8b0b8);
+            border: 2px solid #8890a0;
+            position: relative;
+            margin-top: 20px;
+        }
+        .tut-table-leg {
+            position: absolute;
+            bottom: -14px;
+            width: 4px; height: 14px;
+            background: #a8b0b8;
+            border: 1px solid #7880a0;
+        }
+        .tut-table-leg.l { left: 4px; }
+        .tut-table-leg.r { right: 4px; }
+        .tut-pad {
+            position: absolute;
+            top: -6px; left: 8px; right: 8px;
+            height: 5px;
+            background: #5a9a7a;
+            border-radius: 2px 2px 0 0;
+            border: 1px solid #4a8a6a;
+            border-bottom: none;
+        }
+        .tut-cursor {
+            position: absolute;
+            top: -20px;
+            right: -6px;
+            font-size: 18px;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
+            animation: tut-click 2s ease-in-out infinite;
+        }
+        @keyframes tut-click {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2px, 2px) scale(0.9); }
+        }
+        /* Panel 3: mini diagnosis list */
+        .tut-dx-list {
+            width: 60px;
+            background: linear-gradient(180deg, #1e1838, #140f28);
+            border: 2px solid #5a4a7a;
+            border-radius: 3px;
+            padding: 4px;
+        }
+        .tut-dx-item {
+            height: 4px;
+            margin-bottom: 3px;
+            border-radius: 1px;
+        }
+        .tut-dx-item:last-child { margin-bottom: 0; }
+        .tut-dx-item.a { width: 80%; background: #3a2f5a; }
+        .tut-dx-item.b { width: 65%; background: #3a2f5a; }
+        .tut-dx-item.c { width: 90%; background: #ffcc44; }
+        .tut-dx-item.d { width: 70%; background: #3a2f5a; }
+        .tut-dx-check {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            font-size: 20px;
+            animation: tut-pop 1.5s ease-in-out infinite;
+        }
+        @keyframes tut-pop {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        #tutorial-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            color: #ffcc44;
+            background: linear-gradient(180deg, #2a1f4e, #1a1238);
+            border: 3px solid #5a4a7a;
+            padding: 14px 36px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #tutorial-btn:hover {
+            background: linear-gradient(180deg, #4a3a8e, #2a1f5e);
+            border-color: #ffcc44;
+            box-shadow: 0 0 20px rgba(255,204,68,0.3);
+        }
+
+        /* ── Game Over Overlay ── */
+        #gameover-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 91;
+            align-items: center;
+            justify-content: center;
+        }
+        #gameover-overlay.visible {
+            display: flex;
+        }
+        #gameover-overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+        }
+        #gameover-panel {
+            position: relative;
+            width: 620px;
+            max-height: 560px;
+            background: linear-gradient(180deg, #1e1218, #140a10);
+            border: 3px solid #cc4444;
+            box-shadow: 0 0 40px rgba(204, 68, 68, 0.3), 0 0 0 1px #0005;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #gameover-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            color: #ff4444;
+            text-align: center;
+            padding: 18px 16px;
+            border-bottom: 2px solid #3a1520;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            flex-shrink: 0;
+        }
+        #gameover-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        #gameover-body::-webkit-scrollbar { width: 8px; }
+        #gameover-body::-webkit-scrollbar-track { background: #140a10; }
+        #gameover-body::-webkit-scrollbar-thumb { background: #5a2a3a; }
+        .gameover-subtitle {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #aa6666;
+            text-align: center;
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+        .gameover-answer-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #aa6666;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        .gameover-answer {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            color: #88eebb;
+            text-align: center;
+            margin-bottom: 18px;
+            line-height: 1.8;
+        }
+        .gameover-section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #cc6666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #3a1520;
+            letter-spacing: 1px;
+        }
+        .gameover-finding {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            margin-bottom: 6px;
+            padding: 5px 8px;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid #5a3040;
+            line-height: 1.8;
+        }
+        .gameover-finding-label {
+            color: #cc8866;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .gameover-finding-value {
+            color: #c0b8d0;
+        }
+        .gameover-explanation {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #c0b8d0;
+            line-height: 2.2;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #3a1520;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+        .gameover-explanation .highlight {
+            color: #ffcc44;
+        }
+        #gameover-footer {
+            padding: 14px 20px;
+            border-top: 2px solid #3a1520;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        #gameover-play-again {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ff6666;
+            background: linear-gradient(180deg, #2a1218, #1a0a10);
+            border: 2px solid #cc4444;
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        #gameover-play-again:hover {
+            background: linear-gradient(180deg, #4a2028, #2a1218);
+            box-shadow: 0 0 12px rgba(204, 68, 68, 0.4);
+            color: #ffcc44;
+            border-color: #ffcc44;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- CRT Effects -->
+    <div id="scanlines"></div>
+    <div id="vignette"></div>
+
+    <!-- Start Screen -->
+    <div id="start-overlay">
+        <div id="start-overlay-bg"></div>
+        <div id="start-content">
+            <div id="start-badge">🩺</div>
+            <div id="start-title">DIAGNOSIS<br>DETECTIVE</div>
+            <div id="start-divider"></div>
+            <div id="start-subtitle">A VETERINARY MYSTERY ADVENTURE</div>
+            <div id="start-icons"><span>🐕</span><span>🐈</span><span>🔬</span><span>💊</span><span>📋</span></div>
+            <button id="start-btn">START GAME <span id="start-btn-arrow">▶</span></button>
+            <div id="start-footer">A POINT & CLICK ADVENTURE</div>
+        </div>
+    </div>
+
+    <!-- Scene Viewport -->
+    <div id="scene">
+        <div id="hover-text"></div>
+        <div id="score-display">
+            <span id="score-label">SCORE:</span>
+            <span id="score-value">1000</span>
+            <span id="score-cost-flash"></span>
+        </div>
+
+        <!-- Room Structure -->
+        <div id="wall"></div>
+        <div id="wall-trim"></div>
+        <div id="wainscoting"></div>
+        <div id="baseboard"></div>
+        <div id="floor"></div>
+
+        <!-- Decorative Elements -->
+        <div id="ceiling-light"></div>
+        <div id="wall-clock"></div>
+        <div id="wall-cabinet"></div>
+        <div id="med-poster" class="scene-object" data-name="Clipboard" data-cmd="clipboard"><span class="label">Clipboard</span><span class="unread-badge"></span></div>
+        <div id="sink-area">
+            <div id="sink-counter"></div>
+            <div id="sink-basin"></div>
+            <div id="sink-faucet"></div>
+        </div>
+        <div id="owner-scene-area" class="scene-object" data-name="Mrs. Patterson" data-cmd="ask">
+            <span class="label" id="owner-scene-label">Mrs. Patterson</span>
+            <div id="scene-owner-sprite">
+                <div class="vn-hair-back"></div>
+                <div class="vn-head">
+                    <div class="vn-hair-bangs"></div>
+                    <div class="vn-eyebrow left"></div>
+                    <div class="vn-eyebrow right"></div>
+                    <div class="vn-eye left">
+                        <div class="vn-iris"><div class="vn-pupil"></div></div>
+                        <div class="vn-eye-shine"></div>
+                        <div class="vn-eye-shine small"></div>
+                    </div>
+                    <div class="vn-eye right">
+                        <div class="vn-iris"><div class="vn-pupil"></div></div>
+                        <div class="vn-eye-shine"></div>
+                        <div class="vn-eye-shine small"></div>
+                    </div>
+                    <div class="vn-blush left"></div>
+                    <div class="vn-blush right"></div>
+                    <div class="vn-nose"></div>
+                    <div class="vn-mouth"></div>
+                </div>
+                <div class="vn-neck"></div>
+                <div class="vn-torso">
+                    <div class="vn-collar"></div>
+                </div>
+                <div class="vn-arm left"><div class="vn-hand"></div></div>
+                <div class="vn-arm right"><div class="vn-hand"></div></div>
+                <div class="vn-legs">
+                    <div class="vn-leg"><div class="vn-shoe"></div></div>
+                    <div class="vn-leg"><div class="vn-shoe"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive: Exam Table + Patient -->
+        <div id="patient-area" class="scene-object" data-name="Buddy (Yellow Labrador)" data-cmd="examine">
+            <span class="label" id="patient-label">Buddy (Yellow Labrador)</span>
+            <!-- Table -->
+            <div id="exam-table-pad"></div>
+            <div id="exam-table-surface"></div>
+            <div class="table-leg left"></div>
+            <div class="table-leg right"></div>
+            <div class="table-leg-bar"></div>
+            <!-- Animal -->
+            <div id="animal">
+                <div class="animal-body"></div>
+                <div class="animal-head">
+                    <div class="animal-ear"></div>
+                    <div class="animal-eye"></div>
+                    <div class="animal-snout">
+                        <div class="animal-nose"></div>
+                        <div class="animal-tongue"></div>
+                    </div>
+                </div>
+                <div class="animal-tail"></div>
+                <div class="animal-paw-front"></div>
+                <div class="animal-paw-back"></div>
+            </div>
+        </div>
+
+        <!-- Interactive: X-Ray Lightbox -->
+        <div id="xray-lightbox" class="scene-object" data-name="Imaging" data-cmd="imaging">
+            <span class="label">Imaging</span>
+            <div class="xray-frame">
+                <div class="xray-screen">
+                    <div class="xray-ribs"></div>
+                    <div class="xray-bone"></div>
+                </div>
+                <div class="xray-power"></div>
+            </div>
+            <div class="xray-clip left"></div>
+            <div class="xray-clip right"></div>
+        </div>
+
+        <!-- Interactive: Lab Station -->
+        <div id="lab-station" class="scene-object" data-name="Labs" data-cmd="labs">
+            <span class="label">Labs</span>
+            <div class="lab-cart">
+                <div class="lab-cart-shelf"></div>
+                <div class="lab-cart-wheel left"></div>
+                <div class="lab-cart-wheel right"></div>
+            </div>
+            <div class="lab-tray"></div>
+            <div class="lab-tubes">
+                <div class="test-tube tube-red"></div>
+                <div class="test-tube tube-purple"></div>
+                <div class="test-tube tube-green"></div>
+                <div class="test-tube tube-gold"></div>
+                <div class="test-tube tube-blue"></div>
+            </div>
+            <div class="lab-syringe"></div>
+        </div>
+    </div>
+
+    <!-- Action Line -->
+    <div id="action-line">
+        <span id="action-text"></span>
+    </div>
+
+    <!-- Bottom Panel -->
+    <div id="bottom-panel">
+        <!-- Command Buttons -->
+        <div id="command-grid">
+            <button class="cmd-btn" data-cmd="clipboard">
+                <span class="btn-icon">📋</span> Clipboard
+            </button>
+            <button class="cmd-btn" data-cmd="examine">
+                <span class="btn-icon">🩺</span> Examine
+            </button>
+            <button class="cmd-btn" data-cmd="imaging">
+                <span class="btn-icon">📷</span> Imaging
+            </button>
+            <button class="cmd-btn" data-cmd="labs">
+                <span class="btn-icon">🧪</span> Labs
+            </button>
+            <button class="cmd-btn" data-cmd="ask">
+                <span class="btn-icon">💬</span> Ask
+            </button>
+            <button class="cmd-btn" data-cmd="diagnosis">
+                <span class="btn-icon">🏥</span> Make Diagnosis
+            </button>
+        </div>
+
+        <!-- Inventory -->
+        <div id="inventory">
+            <span id="inventory-label">Inventory</span>
+            <div class="inv-slot has-item" data-item="pet-treat">🦴<span class="inv-label">Pet Treat</span></div>
+            <div class="inv-slot has-item" data-item="stethoscope">🩺<span class="inv-label">Stethoscope</span></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+        </div>
+    </div>
+
+    <!-- Submenu Overlay -->
+    <div id="submenu-overlay">
+        <div id="submenu">
+            <div id="submenu-title"></div>
+            <div id="submenu-items"></div>
+        </div>
+    </div>
+
+    <!-- Owner Dialog Overlay (Visual Novel style) -->
+    <div id="owner-overlay">
+        <div id="owner-overlay-bg"></div>
+        <div id="owner-dialog">
+            <!-- Anime Character -->
+            <div id="owner-character">
+                <div id="owner-sprite">
+                    <div class="vn-hair-back"></div>
+                    <div class="vn-head">
+                        <div class="vn-hair-bangs"></div>
+                        <div class="vn-eyebrow left"></div>
+                        <div class="vn-eyebrow right"></div>
+                        <div class="vn-eye left">
+                            <div class="vn-iris"><div class="vn-pupil"></div></div>
+                            <div class="vn-eye-shine"></div>
+                            <div class="vn-eye-shine small"></div>
+                        </div>
+                        <div class="vn-eye right">
+                            <div class="vn-iris"><div class="vn-pupil"></div></div>
+                            <div class="vn-eye-shine"></div>
+                            <div class="vn-eye-shine small"></div>
+                        </div>
+                        <div class="vn-blush left"></div>
+                        <div class="vn-blush right"></div>
+                        <div class="vn-nose"></div>
+                        <div class="vn-mouth"></div>
+                    </div>
+                    <div class="vn-neck"></div>
+                    <div class="vn-torso">
+                        <div class="vn-collar"></div>
+                    </div>
+                    <div class="vn-arm left"><div class="vn-hand"></div></div>
+                    <div class="vn-arm right"><div class="vn-hand"></div></div>
+                    <div class="vn-legs">
+                        <div class="vn-leg"><div class="vn-shoe"></div></div>
+                        <div class="vn-leg"><div class="vn-shoe"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speech Bubble -->
+            <div id="speech-bubble">
+                <div id="speech-bubble-speaker"></div>
+                <div id="speech-bubble-text"></div>
+            </div>
+
+            <!-- Dialog Choice Panel -->
+            <div id="dialog-panel">
+                <div id="dialog-box">
+                    <div id="dialog-speaker">Ask the owner...</div>
+                    <div id="dialog-choices"></div>
+                    <div id="dialog-close">▶ Done talking</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clipboard Overlay -->
+    <div id="clipboard-overlay">
+        <div id="clipboard-overlay-bg"></div>
+        <div id="clipboard">
+            <div id="clipboard-clip"></div>
+            <button id="clipboard-close">✕</button>
+            <div id="clipboard-board">
+                <div id="clipboard-paper">
+                    <div id="clipboard-tabs">
+                        <button class="clipboard-tab active" data-page="report">📄 Report</button>
+                        <button class="clipboard-tab" data-page="findings">🔬 Findings</button>
+                    </div>
+                    <div id="clipboard-page-report" class="clipboard-page active"></div>
+                    <div id="clipboard-page-findings" class="clipboard-page">
+                        <h3>🔬 Diagnostic Findings</h3>
+                        <div id="findings-list">
+                            <div class="findings-empty">No diagnostics performed yet.<br>Use Examine, Imaging, or Labs<br>commands first.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnosis Overlay -->
+    <div id="diagnosis-overlay">
+        <div id="diagnosis-overlay-bg"></div>
+        <div id="diagnosis-form">
+            <div id="diagnosis-title"><span class="icon">🏥</span> Make Diagnosis</div>
+            <div id="diagnosis-search-wrap">
+                <input type="text" id="diagnosis-search" placeholder="Type to search..." autocomplete="off" spellcheck="false">
+            </div>
+            <div id="diagnosis-list"></div>
+            <div id="diagnosis-close">▶ Cancel</div>
+        </div>
+    </div>
+
+    <!-- Victory Overlay -->
+    <div id="victory-overlay">
+        <div id="victory-overlay-bg"></div>
+        <div id="victory-panel">
+            <div id="victory-title">🏆 CASE SOLVED! 🏆</div>
+            <div id="victory-body"></div>
+            <div id="victory-footer">
+                <button id="victory-play-again">▶ Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay">
+        <div id="tutorial-overlay-bg"></div>
+        <div id="tutorial-content">
+            <div id="tutorial-heading">HOW TO PLAY</div>
+            <div id="tutorial-subheading">SOLVE THE CASE IN 3 STEPS</div>
+            <div id="tutorial-panels">
+                <div class="tutorial-panel">
+                    <div class="tutorial-panel-number">STEP 1</div>
+                    <div class="tutorial-panel-icon">
+                        <div class="tut-bubble">
+                            <div class="tut-bubble-lines"></div>
+                        </div>
+                        <div class="tut-person">
+                            <div class="tut-person-head"></div>
+                            <div class="tut-person-body"></div>
+                        </div>
+                    </div>
+                    <div class="tutorial-panel-title">Discuss Symptoms</div>
+                    <div class="tutorial-panel-desc">Click the owner in the scene or use the <span style="color:#ffcc44">Ask</span> button to learn about the patient's history and symptoms.</div>
+                </div>
+                <div class="tutorial-panel">
+                    <div class="tutorial-panel-number">STEP 2</div>
+                    <div class="tutorial-panel-icon">
+                        <div class="tut-table">
+                            <div class="tut-pad"></div>
+                            <div class="tut-table-leg l"></div>
+                            <div class="tut-table-leg r"></div>
+                        </div>
+                        <div class="tut-cursor">🖱️</div>
+                    </div>
+                    <div class="tutorial-panel-title">Run Diagnostics</div>
+                    <div class="tutorial-panel-desc">Click scene objects to examine, image, or run labs. <span class="warn">Every test costs points — choose wisely!</span></div>
+                </div>
+                <div class="tutorial-panel">
+                    <div class="tutorial-panel-number">STEP 3</div>
+                    <div class="tutorial-panel-icon">
+                        <div class="tut-dx-list">
+                            <div class="tut-dx-item a"></div>
+                            <div class="tut-dx-item b"></div>
+                            <div class="tut-dx-item c"></div>
+                            <div class="tut-dx-item d"></div>
+                        </div>
+                        <div class="tut-dx-check">✅</div>
+                    </div>
+                    <div class="tutorial-panel-title">Give Diagnosis</div>
+                    <div class="tutorial-panel-desc">Ready? Pick from the list. <span class="warn">A wrong diagnosis costs 200 points</span> — be confident before you commit!</div>
+                </div>
+            </div>
+            <button id="tutorial-btn">GOT IT! ▶</button>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameover-overlay">
+        <div id="gameover-overlay-bg"></div>
+        <div id="gameover-panel">
+            <div id="gameover-title">💀 GAME OVER 💀</div>
+            <div id="gameover-body"></div>
+            <div id="gameover-footer">
+                <button id="gameover-play-again">▶ Try Again</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+
+    /* ══════════════════════════════════════════════════
+       CASE CONFIG (JSON) — swap this to change the case.
+       Later this will be loaded from an API call.
+       Only diagnostics listed here return useful results;
+       all others will show "No significant findings."
+       ══════════════════════════════════════════════════ */
+    const caseConfig = {
+        animal: {
+            name: 'Buddy',
+            species: 'Yellow Labrador',
+            bodyColor:    '#e8c84a',
+            outlineColor: '#baa030',
+            earColor:     '#c49a2a',
+            snoutColor:   '#d4b43a',
+            tongueDisplay: 'block',
+        },
+        owner: {
+            name: 'Mrs. Patterson',
+            responses: {
+                symptoms: "It started about three days ago. He was fine on Monday, but by Tuesday evening he wasn't touching his food.",
+                behavior: "He's been really sluggish... just lying around all day. Usually he goes crazy for walks but now he barely lifts his head.",
+                extra: "Oh \u2014 he did get into the trash over the weekend. Could that be related? He ate some chicken bones I think.",
+            },
+        },
+        report: {
+            age: '4 years',
+            sex: 'Male (neutered)',
+            weight: '32 kg',
+            complaint: 'Not eating for 3 days, progressive lethargy',
+            history: 'Owner reports patient got into household trash over the weekend and may have ingested chicken bones. Appetite absent since Tuesday evening. Decreased activity level noted.',
+        },
+        correctDiagnosis: 'Bronchitis',
+        diagnostics: {
+            'Check vital signs':  { label: 'Vital Signs',    value: 'Temp: 103.8\u00b0F (\u2191) \u00b7 HR: 110 bpm \u00b7 RR: 28/min' },
+            'Feel around':        { label: 'Palpation',      value: 'Abdomen tense on palpation. Pain response in cranial abdomen. Possible foreign body.' },
+            'X-ray':              { label: 'Radiograph',     value: 'Radio-opaque foreign material visible in gastric lumen consistent with bone fragments.' },
+            'Blood':              { label: 'Blood Work',     value: 'WBC: 18,200/\u03bcL (\u2191) \u00b7 PCV: 48% \u00b7 BUN: 32 mg/dL (\u2191) \u00b7 Glucose: 95 mg/dL' },
+            'Stethoscope':        { label: 'Auscultation',   value: 'Heart: regular rhythm, no murmur. Lungs: clear bilaterally. Abdomen: decreased borborygmi.' },
+            'Thermometer':        { label: 'Temperature',    value: '103.8\u00b0F (elevated \u2014 normal range 101.0\u2013102.5\u00b0F)' },
+        },
+        gameOver: {
+            keyFindings: [
+                { test: 'Check vital signs', detail: 'Elevated respiratory rate (28/min) and fever (103.8\u00b0F) suggest an active inflammatory process in the airways.' },
+                { test: 'Stethoscope (Auscultation)', detail: 'Decreased borborygmi noted \u2014 but more critically, careful auscultation is needed to detect subtle wheezing or harsh lung sounds.' },
+                { test: 'Blood Work', detail: 'Elevated WBC (18,200/\u03bcL) confirms an active inflammatory or infectious response.' },
+                { test: 'X-ray', detail: 'While bone fragments are visible, a thoracic radiograph would also reveal bronchial wall thickening \u2014 the hallmark of bronchitis.' },
+            ],
+            explanation: 'The <span class="highlight">elevated respiratory rate, fever, and inflammatory blood markers</span> all point to an active respiratory condition. Bronchitis \u2014 inflammation of the bronchial airways \u2014 presents with these systemic signs. The trash ingestion and bone fragments are a <span class="highlight">red herring</span>; the key is recognizing the respiratory pattern over the gastrointestinal distraction.',
+        },
+    };
+
+    // ── Label mapping for all possible diagnostic actions ──
+    const actionLabels = {
+        'Check vital signs': 'Vital Signs',
+        'Check blood pressure': 'Blood Pressure',
+        'Perform Ophthalmic exam': 'Ophthalmic Exam',
+        'Perform Otoscopic exam': 'Otoscopic Exam',
+        'Feel around': 'Palpation',
+        'X-ray': 'Radiograph',
+        'Ultrasound': 'Ultrasound',
+        'CT': 'CT Scan',
+        'MRI': 'MRI',
+        'Blood': 'Blood Work',
+        'Urine': 'Urinalysis',
+        'Fecal': 'Fecal Exam',
+        'Biopsy': 'Biopsy',
+        'Stethoscope': 'Auscultation',
+        'Thermometer': 'Temperature',
+        'Otoscope': 'Otoscopic Exam',
+        'Ophthalmoscope': 'Fundoscopy',
+        'Pet Treat': 'Pet Treat',
+    };
+
+    function loadCase() {
+        const cfg = caseConfig;
+
+        const el = document.getElementById('animal');
+        el.style.setProperty('--body-color',    cfg.animal.bodyColor);
+        el.style.setProperty('--outline-color',  cfg.animal.outlineColor);
+        el.style.setProperty('--ear-color',      cfg.animal.earColor);
+        el.style.setProperty('--snout-color',    cfg.animal.snoutColor);
+        el.style.setProperty('--tongue-display', cfg.animal.tongueDisplay);
+
+        const displayName = `${cfg.animal.name} (${cfg.animal.species})`;
+        const area = document.getElementById('patient-area');
+        area.dataset.name = displayName;
+        document.getElementById('patient-label').textContent = displayName;
+
+        const ownerArea = document.getElementById('owner-scene-area');
+        ownerArea.dataset.name = cfg.owner.name;
+        document.getElementById('owner-scene-label').textContent = cfg.owner.name;
+
+        commandMenus.examine.title = `Examine ${cfg.animal.name}...`;
+
+        performedDiagnostics = {};
+        score = 1000;
+        hasUnreadFindings = false;
+        document.getElementById('med-poster').classList.remove('has-unread');
+        updateScoreDisplay();
+        populateClipboardReport();
+        updateFindingsPage();
+    }
+
+    // ── Submenu definitions ──
+    const commandMenus = {
+        examine: {
+            title: 'Examine Buddy...',
+            items: [
+                { icon: '💓', label: 'Check vital signs' },
+                { icon: '🩸', label: 'Check blood pressure' },
+                { icon: '👁️', label: 'Perform Ophthalmic exam' },
+                { icon: '👂', label: 'Perform Otoscopic exam' },
+                { icon: '🤲', label: 'Feel around' },
+            ]
+        },
+        imaging: {
+            title: 'Imaging...',
+            items: [
+                { icon: '☢️', label: 'X-ray' },
+                { icon: '📡', label: 'Ultrasound' },
+                { icon: '🔬', label: 'CT' },
+                { icon: '🧲', label: 'MRI' },
+            ]
+        },
+        labs: {
+            title: 'Labs...',
+            items: [
+                { icon: '🩸', label: 'Blood' },
+                { icon: '🧫', label: 'Urine' },
+                { icon: '🔬', label: 'Fecal' },
+                { icon: '🧬', label: 'Biopsy' },
+            ]
+        },
+    };
+
+    // ── Dialog questions ──
+    const dialogQuestions = [
+        { key: 'symptoms', icon: '🕐', label: 'How long ago did you notice the symptoms?' },
+        { key: 'behavior', icon: '🐾', label: 'Has he been acting any differently?' },
+        { key: 'extra',    icon: '💬', label: 'Anything else you can tell me?' },
+    ];
+
+    // ── State ──
+    let activeCmd = null;
+    let askedQuestions = new Set();
+    let performedDiagnostics = {};
+    let score = 1000;
+    let hasUnreadFindings = false;
+
+    const actionCosts = {
+        'Check vital signs': 30,
+        'Check blood pressure': 45,
+        'Perform Ophthalmic exam': 60,
+        'Perform Otoscopic exam': 60,
+        'Feel around': 30,
+        'X-ray': 150,
+        'Ultrasound': 225,
+        'CT': 250,
+        'MRI': 3500,
+        'Blood': 120,
+        'Urine': 75,
+        'Fecal': 60,
+        'Biopsy': 200,
+        'Stethoscope': 30,
+        'Thermometer': 15,
+        'Otoscope': 45,
+        'Ophthalmoscope': 45,
+    };
+
+    function updateScoreDisplay() {
+        document.getElementById('score-value').textContent = score;
+    }
+
+    function deductScore(amount) {
+        score = Math.max(0, score - amount);
+        updateScoreDisplay();
+        const flash = document.getElementById('score-cost-flash');
+        flash.textContent = '-' + amount;
+        flash.classList.remove('show');
+        void flash.offsetWidth;
+        flash.classList.add('show');
+        setTimeout(() => flash.classList.remove('show'), 80);
+
+        if (score <= 0) {
+            setTimeout(() => showGameOver(), 600);
+        }
+    }
+
+    function showGameOver() {
+        hideSubmenu();
+        hideOwnerDialog();
+        hideClipboard();
+        hideDiagnosis();
+
+        const correct = caseConfig.correctDiagnosis;
+        const info = caseConfig.gameOver;
+
+        let html = '';
+        html += '<div class="gameover-subtitle">Your score reached zero.</div>';
+        html += '<div class="gameover-answer-label">The correct diagnosis was</div>';
+        html += `<div class="gameover-answer">${correct}</div>`;
+
+        if (info) {
+            html += '<div class="gameover-section-title">🔑 Key Observations</div>';
+            info.keyFindings.forEach(f => {
+                html += `<div class="gameover-finding"><div class="gameover-finding-label">${f.test}</div><div class="gameover-finding-value">${f.detail}</div></div>`;
+            });
+            html += `<div class="gameover-explanation">${info.explanation}</div>`;
+        }
+
+        document.getElementById('gameover-body').innerHTML = html;
+        document.getElementById('gameover-overlay').classList.add('visible');
+    }
+
+    // ── DOM refs ──
+    const cmdBtns = document.querySelectorAll('.cmd-btn');
+    const submenuOverlay = document.getElementById('submenu-overlay');
+    const submenuTitle = document.getElementById('submenu-title');
+    const submenuItemsEl = document.getElementById('submenu-items');
+    const actionText = document.getElementById('action-text');
+    const hoverText = document.getElementById('hover-text');
+    const sceneObjects = document.querySelectorAll('.scene-object');
+    const invSlots = document.querySelectorAll('.inv-slot');
+    const ownerOverlay = document.getElementById('owner-overlay');
+    const dialogSpeaker = document.getElementById('dialog-speaker');
+    const dialogChoices = document.getElementById('dialog-choices');
+    const dialogClose = document.getElementById('dialog-close');
+    const speechBubble = document.getElementById('speech-bubble');
+    const speechBubbleSpeaker = document.getElementById('speech-bubble-speaker');
+    const speechBubbleText = document.getElementById('speech-bubble-text');
+    const clipboardOverlay = document.getElementById('clipboard-overlay');
+
+    // ── Show submenu ──
+    function showSubmenu(cmd, anchorEl) {
+        const menu = commandMenus[cmd];
+        if (!menu) return;
+
+        submenuTitle.textContent = menu.title;
+        submenuItemsEl.innerHTML = '';
+
+        menu.items.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'submenu-item';
+            const cost = actionCosts[item.label] || 0;
+            const done = !!performedDiagnostics[item.label];
+            const badge = done ? '<span class="cost-badge done">✓</span>' : (cost ? `<span class="cost-badge">-${cost}</span>` : '');
+            el.innerHTML = `<span class="icon">${item.icon}</span><span>${item.label}</span>${badge}`;
+            el.addEventListener('click', (e) => { e.stopPropagation(); selectAction(cmd, item.label); });
+            el.addEventListener('mouseenter', () => {
+                actionText.classList.remove('text-correct', 'text-incorrect');
+                actionText.textContent = `${menu.title.replace('...', '')} ${item.label}`;
+            });
+            submenuItemsEl.appendChild(el);
+        });
+
+        // Position submenu near the anchor
+        const containerRect = document.getElementById('game-container').getBoundingClientRect();
+        const anchorRect = anchorEl.getBoundingClientRect();
+        let left = anchorRect.left - containerRect.left;
+        // Keep submenu inside the game container
+        left = Math.max(0, Math.min(left, 960 - 260));
+        submenuOverlay.style.left = left + 'px';
+
+        submenuOverlay.classList.add('visible');
+    }
+
+    function hideSubmenu() {
+        submenuOverlay.classList.remove('visible');
+        cmdBtns.forEach(b => b.classList.remove('active'));
+        activeCmd = null;
+    }
+
+    // ── Show / hide owner dialog ──
+    function showOwnerDialog() {
+        const cfg = caseConfig;
+
+        dialogSpeaker.textContent = `Talk to ${cfg.owner.name}`;
+        dialogChoices.innerHTML = '';
+        askedQuestions.clear();
+        speechBubble.classList.remove('visible');
+
+        dialogQuestions.forEach(q => {
+            const el = document.createElement('div');
+            el.className = 'dialog-choice';
+            el.innerHTML = `<span class="icon">${q.icon}</span><span>${q.label}</span><span class="arrow">▶</span>`;
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (el.classList.contains('asked')) return;
+                el.classList.add('asked');
+                askedQuestions.add(q.key);
+
+                const response = cfg.owner.responses[q.key] || '...';
+                speechBubbleSpeaker.textContent = cfg.owner.name;
+                speechBubbleText.textContent = response;
+                speechBubble.classList.add('visible');
+                actionText.classList.remove('text-correct', 'text-incorrect');
+                actionText.textContent = `${cfg.owner.name}: \"${response}\"`;
+            });
+            el.addEventListener('mouseenter', () => {
+                actionText.classList.remove('text-correct', 'text-incorrect');
+                actionText.textContent = q.label;
+            });
+            dialogChoices.appendChild(el);
+        });
+
+        hideSubmenu();
+        ownerOverlay.classList.add('visible');
+        actionText.classList.remove('text-correct', 'text-incorrect');
+        actionText.textContent = `${cfg.owner.name} is here with ${cfg.animal.name}.`;
+    }
+
+    function hideOwnerDialog() {
+        ownerOverlay.classList.remove('visible');
+        speechBubble.classList.remove('visible');
+        cmdBtns.forEach(b => b.classList.remove('active'));
+        activeCmd = null;
+    }
+
+    // ── Clipboard functions ──
+    function populateClipboardReport() {
+        const cfg = caseConfig;
+        const page = document.getElementById('clipboard-page-report');
+        page.innerHTML = `
+            <h3>\ud83d\udccb Initial Report</h3>
+            <div class="report-field">
+                <div class="report-field-label">Patient</div>
+                <div class="report-field-value">${cfg.animal.name} (${cfg.animal.species})</div>
+            </div>
+            <div class="report-field">
+                <div class="report-field-label">Age / Sex</div>
+                <div class="report-field-value">${cfg.report.age} \u2014 ${cfg.report.sex}</div>
+            </div>
+            <div class="report-field">
+                <div class="report-field-label">Weight</div>
+                <div class="report-field-value">${cfg.report.weight}</div>
+            </div>
+            <div class="report-field">
+                <div class="report-field-label">Presenting Complaint</div>
+                <div class="report-field-value">${cfg.report.complaint}</div>
+            </div>
+            <div class="report-field">
+                <div class="report-field-label">History</div>
+                <div class="report-field-value">${cfg.report.history}</div>
+            </div>
+        `;
+    }
+
+    function updateFindingsPage() {
+        const list = document.getElementById('findings-list');
+        const keys = Object.keys(performedDiagnostics);
+        if (keys.length === 0) {
+            list.innerHTML = '<div class="findings-empty">No diagnostics performed yet.<br>Use Examine, Imaging, or Labs<br>commands first.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        if (performedDiagnostics['__diagnosis__']) {
+            const entry = performedDiagnostics['__diagnosis__'];
+            const div = document.createElement('div');
+            div.className = 'finding-entry diagnosis';
+            div.innerHTML = `<div class="finding-label">${entry.label}</div><div class="finding-value">${entry.value}</div>`;
+            list.appendChild(div);
+        }
+        keys.forEach(key => {
+            if (key === '__diagnosis__') return;
+            const entry = performedDiagnostics[key];
+            const div = document.createElement('div');
+            div.className = 'finding-entry' + (entry.unhelpful ? ' unhelpful' : '');
+            div.innerHTML = `<div class="finding-label">${entry.label}</div><div class="finding-value">${entry.value}</div>`;
+            list.appendChild(div);
+        });
+    }
+
+    function showClipboard() {
+        hideSubmenu();
+        hideOwnerDialog();
+        if (hasUnreadFindings) {
+            hasUnreadFindings = false;
+            document.getElementById('med-poster').classList.remove('has-unread');
+            document.querySelectorAll('.clipboard-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.clipboard-page').forEach(p => p.classList.remove('active'));
+            document.querySelector('.clipboard-tab[data-page="findings"]').classList.add('active');
+            document.getElementById('clipboard-page-findings').classList.add('active');
+        }
+        clipboardOverlay.classList.add('visible');
+        actionText.classList.remove('text-correct', 'text-incorrect');
+        actionText.textContent = 'Reviewing clipboard...';
+    }
+
+    function hideClipboard() {
+        clipboardOverlay.classList.remove('visible');
+        cmdBtns.forEach(b => b.classList.remove('active'));
+        activeCmd = null;
+    }
+
+    // ── Diagnosis functions ──
+    const diagnosesList = [
+        'Canine Influenza (Dog Flu)',
+        'Canine Infectious Tracheobronchitis (Kennel Cough)',
+        'Canine Distemper (CDV)',
+        'Infectious Canine Hepatitis (Adenovirus-2)',
+        'Canine Parvovirus (Parvo)',
+        'Canine Coronavirus',
+        'Canine Parainfluenza',
+        'Pneumonia',
+        'Bronchitis',
+        'Rhinitis (Nasal inflammation)',
+        'Laryngeal Paralysis',
+        'Tracheal Collapse',
+        'Rabies',
+        'Otitis Externa (Outer ear infection)',
+        'Otitis Media (Middle ear infection)',
+        'Atopic Dermatitis (Environmental allergies)',
+        'Flea Allergy Dermatitis',
+        'Pyoderma (Bacterial skin infection)',
+        'Acute Moist Dermatitis (Hot spots)',
+        'Folliculitis',
+        'Demodectic or Sarcoptic Mange',
+        'Dermatophytosis (Ringworm)',
+        'Lipoma (Benign fatty tumor)',
+        'Gastroenteritis (Stomach/intestinal inflammation)',
+        'Acute Hemorrhagic Diarrhea Syndrome (AHDS/HGE)',
+        'Pancreatitis',
+        'Gastric Dilation-Volvulus (Bloat or twisted stomach)',
+        'Inflammatory Bowel Disease (IBD)',
+        'Exocrine Pancreatic Insufficiency (EPI)',
+        'Foreign Body Obstruction',
+        'Anal Sac Impaction (or Anal Sacculitis)',
+        'Colitis',
+        'Diabetes Mellitus',
+        'Hypothyroidism',
+        "Hyperadrenocorticism (Cushing's Disease)",
+        "Hypoadrenocorticism (Addison's Disease)",
+        'Obesity',
+        'Cystitis (Bladder infection/UTI)',
+        'Urolithiasis (Bladder stones)',
+        'Chronic Kidney Disease',
+        'Pyometra (Infection of the uterus)',
+        'Osteoarthritis (Degenerative joint disease)',
+        'Hip or Elbow Dysplasia',
+        'Patellar Luxation (Dislocated kneecap)',
+        'Intervertebral Disc Disease (IVDD)',
+        'Idiopathic Epilepsy',
+        'Dirofilariasis (Heartworm disease)',
+        'Lyme Disease (Borreliosis)',
+        'Ehrlichiosis',
+        'Anaplasmosis',
+        'Giardiasis (Giardia)',
+        'Leptospirosis',
+        'Periodontal Disease',
+        'Conjunctivitis (Pink eye)',
+        'Glaucoma',
+        'Keratoconjunctivitis Sicca (Dry eye)',
+    ];
+
+    function showDiagnosis() {
+        hideSubmenu();
+        hideOwnerDialog();
+        hideClipboard();
+        const overlay = document.getElementById('diagnosis-overlay');
+        const search = document.getElementById('diagnosis-search');
+        overlay.classList.add('visible');
+        search.value = '';
+        renderDiagnoses('');
+        setTimeout(() => search.focus(), 50);
+        actionText.classList.remove('text-correct', 'text-incorrect');
+        actionText.textContent = 'Select a diagnosis...';
+    }
+
+    function hideDiagnosis() {
+        document.getElementById('diagnosis-overlay').classList.remove('visible');
+        cmdBtns.forEach(b => b.classList.remove('active'));
+        activeCmd = null;
+    }
+
+    function renderDiagnoses(query) {
+        const list = document.getElementById('diagnosis-list');
+        const q = query.toLowerCase().trim();
+        const filtered = q ? diagnosesList.filter(d => d.toLowerCase().includes(q)) : diagnosesList;
+        if (filtered.length === 0) {
+            list.innerHTML = '<div class="diagnosis-empty">No matching diagnoses found.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        filtered.forEach(name => {
+            const el = document.createElement('div');
+            el.className = 'diagnosis-item';
+            el.innerHTML = `<span>${name}</span><span class="arrow">\u25b6</span>`;
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                makeDiagnosis(name);
+            });
+            el.addEventListener('mouseenter', () => {
+                actionText.classList.remove('text-correct', 'text-incorrect');
+                actionText.textContent = name;
+            });
+            list.appendChild(el);
+        });
+    }
+
+    function makeDiagnosis(name) {
+        const correct = caseConfig.correctDiagnosis;
+
+        if (name === correct) {
+            performedDiagnostics['__diagnosis__'] = { label: 'Diagnosis', value: name };
+            updateFindingsPage();
+            hideDiagnosis();
+            showVictory(name);
+        } else {
+            deductScore(600);
+            hideDiagnosis();
+            actionText.classList.remove('text-correct', 'text-incorrect');
+            actionText.textContent = `Incorrect diagnosis! -600 points. Keep investigating...`;
+            actionText.classList.add('text-incorrect');
+            const actionLine = document.getElementById('action-line');
+            actionLine.classList.remove('incorrect');
+            void actionLine.offsetWidth;
+            actionLine.classList.add('incorrect');
+        }
+    }
+
+    function showVictory(diagnosisName) {
+        const cfg = caseConfig;
+
+        let rating;
+        if (score >= 900) rating = 'Outstanding!';
+        else if (score >= 750) rating = 'Great work!';
+        else if (score >= 500) rating = 'Good job';
+        else if (score >= 250) rating = 'Satisfactory';
+        else rating = 'Needs improvement';
+
+        let html = '';
+
+        html += `<div class="victory-patient">${cfg.animal.name} (${cfg.animal.species})</div>`;
+        html += `<div class="victory-diagnosis">\u2705 ${diagnosisName}</div>`;
+        html += `<div class="victory-score">Score: ${score}</div>`;
+        html += `<div class="victory-rating">${rating}</div>`;
+
+        // Owner interview
+        if (askedQuestions.size > 0) {
+            html += `<div class="victory-section-title">\ud83d\udcac Owner Interview</div>`;
+            const qLabels = { symptoms: 'Symptom onset', behavior: 'Behavior changes', extra: 'Additional info' };
+            askedQuestions.forEach(key => {
+                const response = cfg.owner.responses[key];
+                if (response) {
+                    html += `<div class="victory-finding"><div class="victory-finding-label">${qLabels[key] || key}</div><div class="victory-finding-value">${response}</div></div>`;
+                }
+            });
+        }
+
+        // Actions taken
+        const actionKeys = Object.keys(performedDiagnostics).filter(k => k !== '__diagnosis__');
+        html += `<div class="victory-section-title" style="margin-top:14px">\ud83d\udccb Actions Taken</div>`;
+        if (actionKeys.length === 0) {
+            html += `<div class="victory-action"><span>No diagnostic actions performed</span></div>`;
+        } else {
+            let totalCost = 0;
+            actionKeys.forEach(key => {
+                const entry = performedDiagnostics[key];
+                const cost = entry.unhelpful ? (actionCosts[key] || 0) : 0;
+                totalCost += cost;
+                html += `<div class="victory-action"><span>${key}</span><span class="cost">${cost ? '-' + cost : 'FREE'}</span></div>`;
+            });
+            html += `<div class="victory-action" style="border-top:1px solid #3a2f5a;padding-top:6px;margin-top:4px"><span>Total spent</span><span class="cost">-${totalCost}</span></div>`;
+        }
+
+        // Clinical findings
+        html += `<div class="victory-section-title" style="margin-top:14px">\ud83d\udd2c Clinical Findings</div>`;
+        if (actionKeys.length === 0) {
+            html += `<div class="victory-finding"><div class="victory-finding-value">No findings recorded</div></div>`;
+        } else {
+            actionKeys.forEach(key => {
+                const entry = performedDiagnostics[key];
+                html += `<div class="victory-finding"><div class="victory-finding-label">${entry.label}</div><div class="victory-finding-value">${entry.value}</div></div>`;
+            });
+        }
+
+        document.getElementById('victory-body').innerHTML = html;
+
+        hideSubmenu();
+        hideOwnerDialog();
+        hideClipboard();
+        hideDiagnosis();
+        document.getElementById('victory-overlay').classList.add('visible');
+    }
+
+    function selectAction(cmd, target) {
+        const menu = commandMenus[cmd];
+        const verb = menu ? menu.title.replace('...', '').trim() : cmd;
+        actionText.classList.remove('text-correct', 'text-incorrect');
+        actionText.textContent = `${verb} ${target}`;
+        hoverText.textContent = `> ${verb} ${target}`;
+
+        hoverText.style.transition = 'none';
+        hoverText.style.color = '#fff';
+        requestAnimationFrame(() => {
+            hoverText.style.transition = 'color 2s';
+            hoverText.style.color = '#ffcc44';
+        });
+
+        // Record diagnostic finding (first use only)
+        if (!performedDiagnostics[target]) {
+            const helpfulResult = caseConfig.diagnostics[target];
+            if (helpfulResult) {
+                performedDiagnostics[target] = helpfulResult;
+                actionText.textContent = `\u2705 ${helpfulResult.label}: Significant findings detected!`;
+                actionText.classList.add('text-correct');
+                const actionLine = document.getElementById('action-line');
+                actionLine.classList.remove('correct');
+                void actionLine.offsetWidth;
+                actionLine.classList.add('correct');
+                hasUnreadFindings = true;
+                document.getElementById('med-poster').classList.add('has-unread');
+            } else {
+                if (actionCosts[target]) {
+                    deductScore(actionCosts[target]);
+                }
+                const label = actionLabels[target] || target;
+                performedDiagnostics[target] = { label: label, value: 'No significant abnormalities detected.', unhelpful: true };
+                actionText.textContent = `${verb} ${target} \u2014 No significant findings. -${actionCosts[target] || 0} points`;
+                actionText.classList.add('text-incorrect');
+            }
+            updateFindingsPage();
+        }
+
+        hideSubmenu();
+    }
+
+    // ── Command button clicks ──
+    cmdBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cmd = btn.dataset.cmd;
+
+            if (activeCmd === cmd) {
+                hideSubmenu();
+                hideOwnerDialog();
+                hideClipboard();
+                hideDiagnosis();
+                return;
+            }
+
+            cmdBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeCmd = cmd;
+
+            // "Ask" opens the owner dialog instead of a submenu
+            if (cmd === 'ask') {
+                hideSubmenu();
+                hideClipboard();
+                hideDiagnosis();
+                showOwnerDialog();
+                return;
+            }
+
+            // "Clipboard" opens the clipboard overlay
+            if (cmd === 'clipboard') {
+                hideSubmenu();
+                hideOwnerDialog();
+                hideDiagnosis();
+                showClipboard();
+                return;
+            }
+
+            // "Diagnosis" opens the diagnosis overlay
+            if (cmd === 'diagnosis') {
+                showDiagnosis();
+                return;
+            }
+
+            hideOwnerDialog();
+            hideClipboard();
+            hideDiagnosis();
+            const menu = commandMenus[cmd];
+            if (menu) actionText.textContent = menu.title;
+
+            showSubmenu(cmd, btn);
+        });
+    });
+
+    // ── Scene object interactions ──
+    sceneObjects.forEach(obj => {
+        obj.addEventListener('mouseenter', () => {
+            const name = obj.dataset.name;
+            if (name) hoverText.textContent = name;
+        });
+        obj.addEventListener('mouseleave', () => {
+            hoverText.textContent = '';
+        });
+        obj.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cmd = obj.dataset.cmd;
+            if (!cmd) return;
+
+            if (activeCmd === cmd) {
+                hideSubmenu();
+                hideOwnerDialog();
+                hideClipboard();
+                return;
+            }
+
+            // Highlight matching bottom button
+            cmdBtns.forEach(b => {
+                b.classList.toggle('active', b.dataset.cmd === cmd);
+            });
+            activeCmd = cmd;
+
+            // "Ask" opens the owner dialog instead of a submenu
+            if (cmd === 'ask') {
+                hideSubmenu();
+                hideClipboard();
+                hideDiagnosis();
+                showOwnerDialog();
+                return;
+            }
+
+            // "Clipboard" opens the clipboard overlay
+            if (cmd === 'clipboard') {
+                hideSubmenu();
+                hideOwnerDialog();
+                hideDiagnosis();
+                showClipboard();
+                return;
+            }
+
+            const menu = commandMenus[cmd];
+            if (menu) actionText.textContent = menu.title;
+
+            showSubmenu(cmd, obj);
+        });
+    });
+
+    // ── Inventory slot clicks ──
+    invSlots.forEach(slot => {
+        slot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!slot.classList.contains('has-item')) return;
+            const labelEl = slot.querySelector('.inv-label');
+            if (activeCmd && labelEl) {
+                selectAction(activeCmd, labelEl.textContent);
+            }
+        });
+    });
+
+    // ── Dialog close button ──
+    dialogClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideOwnerDialog();
+        actionText.textContent = '';
+    });
+
+    // ── Click overlay background to dismiss dialog ──
+    document.getElementById('owner-overlay-bg').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideOwnerDialog();
+        actionText.textContent = '';
+    });
+
+    // ── Clipboard tab switching ──
+    document.querySelectorAll('.clipboard-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.clipboard-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.clipboard-page').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('clipboard-page-' + tab.dataset.page).classList.add('active');
+        });
+    });
+
+    // ── Clipboard close ──
+    document.getElementById('clipboard-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideClipboard();
+        actionText.textContent = '';
+    });
+    document.getElementById('clipboard-overlay-bg').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideClipboard();
+        actionText.textContent = '';
+    });
+
+    // ── Diagnosis events ──
+    document.getElementById('diagnosis-form').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.getElementById('diagnosis-search').addEventListener('input', (e) => {
+        renderDiagnoses(e.target.value);
+    });
+    document.getElementById('diagnosis-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideDiagnosis();
+        actionText.textContent = '';
+    });
+    document.getElementById('diagnosis-overlay-bg').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideDiagnosis();
+        actionText.textContent = '';
+    });
+
+    // ── Victory events ──
+    document.getElementById('victory-overlay').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.getElementById('victory-play-again').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('victory-overlay').classList.remove('visible');
+        loadCase();
+        actionText.textContent = 'What would you like to do?';
+    });
+
+    // ── Game Over events ──
+    document.getElementById('gameover-overlay').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.getElementById('gameover-play-again').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('gameover-overlay').classList.remove('visible');
+        loadCase();
+        actionText.textContent = 'What would you like to do?';
+    });
+
+    // ── Click outside to dismiss ──
+    document.addEventListener('click', () => {
+        hideSubmenu();
+        hideOwnerDialog();
+        hideClipboard();
+        hideDiagnosis();
+        actionText.textContent = '';
+    });
+
+    document.getElementById('game-container').addEventListener('click', (e) => {
+        if (!e.target.closest('.cmd-btn') &&
+            !e.target.closest('#submenu-overlay') &&
+            !e.target.closest('.scene-object') &&
+            !e.target.closest('.inv-slot') &&
+            !e.target.closest('#owner-dialog') &&
+            !e.target.closest('#clipboard') &&
+            !e.target.closest('#diagnosis-form')) {
+            hideSubmenu();
+            hideOwnerDialog();
+            hideClipboard();
+            hideDiagnosis();
+        }
+    });
+
+    // ── Start screen ──
+    document.getElementById('start-overlay').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.getElementById('start-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('start-overlay').classList.add('hidden');
+        document.getElementById('tutorial-overlay').classList.add('visible');
+    });
+
+    // ── Tutorial ──
+    document.getElementById('tutorial-overlay').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    document.getElementById('tutorial-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('tutorial-overlay').classList.remove('visible');
+        showClipboard();
+    });
+
+    // ── Init ──
+    loadCase();
+})();
+</script>
+
+</body>
+</html>
