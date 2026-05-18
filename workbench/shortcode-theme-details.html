@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [element_theme_details]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:280px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.wb-toggle-label{font-size:.72rem;color:var(--wb-label)}
+.wb-toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.wb-toggle input{opacity:0;width:0;height:0}
+.wb-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:background .2s;border:1px solid var(--wb-border)}
+.wb-toggle input:checked+.wb-toggle-track{background:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-toggle-track::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.wb-toggle input:checked+.wb-toggle-track::after{left:19px}
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);container-type:inline-size}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-note{font-size:.65rem;color:var(--wb-muted);line-height:1.7;font-family:var(--wb-mono)}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem}
+
+/* ── TEMPLATE BLOCK CSS — mirrors shortcode-theme-details.php exactly ── */
+.etd-wrap{container-type:inline-size;--etd-teal:#0FA3B1;--etd-orange:#F77F00;--etd-purple:#9B4DCA;--etd-yellow:#FFD23F;--etd-pink:#FF6B9D;--etd-navy:#1A202C;--etd-gray-50:#F9FAFB;--etd-gray-100:#F3F4F6;--etd-gray-200:#E5E7EB;--etd-gray-300:#D1D5DB;--etd-gray-400:#9CA3AF;--etd-gray-500:#6B7280;--etd-gray-600:#4B5563;--etd-white:#FFFFFF;--etd-shadow-sm:0 1px 2px 0 rgb(0 0 0/.05);--etd-shadow-md:0 4px 6px -1px rgb(0 0 0/.1);--etd-shadow-lg:0 10px 15px -3px rgb(0 0 0/.1);font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--etd-navy);line-height:1.6;border:1px solid var(--eg-color-border,#e9ecef);border-radius:8px;overflow:hidden}
+.etd-theme-section{background:linear-gradient(135deg,rgba(15,163,177,.07) 0%,rgba(155,77,202,.06) 38%,rgba(99,102,241,.05) 62%,rgba(16,185,129,.06) 100%);padding:2rem;position:relative;overflow:hidden}
+.etd-badge-container{position:absolute;top:2rem;right:2rem;display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;z-index:10}
+.etd-badge{display:inline-block;background:linear-gradient(135deg,var(--etd-orange),var(--etd-pink));color:var(--etd-white);padding:.4rem 1rem;border-radius:2rem;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;box-shadow:var(--etd-shadow-md)}
+.etd-view-more{color:var(--etd-teal);text-decoration:none;font-size:.9rem;font-weight:500}
+.etd-theme-section h2{font-family:'DM Serif Display',Georgia,serif;font-size:2rem;color:var(--etd-navy);margin-bottom:.25rem;font-weight:400;display:flex;align-items:center;gap:.5rem}
+.etd-theme-icon{font-size:2.25rem;line-height:1}
+.etd-month-label{font-size:1rem;font-weight:600;color:var(--etd-teal);margin-bottom:1.5rem}
+.etd-sponsor-intro{display:flex;align-items:flex-start;gap:1.5rem;margin-bottom:1.5rem}
+.etd-sponsor-headshot{flex-shrink:0;width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid var(--etd-orange);box-shadow:0 4px 16px rgba(247,127,0,.25)}
+.etd-sponsor-headshot img{width:100%;height:100%;object-fit:cover}
+.etd-sponsor-headshot-fallback{width:100%;height:100%;background:linear-gradient(135deg,var(--etd-orange),var(--etd-pink));display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--etd-white);font-weight:700;font-family:'DM Serif Display',Georgia,serif}
+.etd-sponsor-text{flex:1}
+.etd-sponsor-byline{display:inline-flex;align-items:center;gap:.5rem;background:rgba(247,127,0,.10);border:1px solid rgba(247,127,0,.3);border-radius:2rem;padding:.3rem .85rem;font-size:.78rem;font-weight:600;color:var(--etd-orange);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.04em}
+.etd-sponsor-text p{color:var(--etd-gray-600);font-size:1rem;line-height:1.6}
+.etd-games-grid{display:flex;flex-direction:column;gap:.75rem}
+.etd-game-card{background:var(--etd-white);border-radius:.75rem;padding:1.25rem;box-shadow:var(--etd-shadow-sm);border:2px solid transparent;border-left:4px solid var(--etd-card-color,var(--etd-teal));transition:all .3s cubic-bezier(.4,0,.2,1);display:grid;grid-template-columns:auto 1fr auto auto auto;gap:1.25rem;align-items:center;cursor:pointer}
+.etd-game-card:hover{transform:translateX(4px);box-shadow:var(--etd-shadow-md);border-color:var(--etd-card-color,var(--etd-teal));background:var(--etd-gray-50)}
+.etd-game-card.crossword{--etd-card-color:var(--etd-teal)}
+.etd-game-card.trivia{--etd-card-color:var(--etd-orange)}
+.etd-game-card.scenario{--etd-card-color:var(--etd-purple)}
+.etd-game-card.taxonomy{--etd-card-color:#059669}
+.etd-game-card.survey{--etd-card-color:var(--etd-pink)}
+.etd-game-icon{width:48px;height:48px;background:var(--etd-card-color,var(--etd-teal));border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--etd-white);box-shadow:var(--etd-shadow-sm);transition:transform .3s;flex-shrink:0}
+.etd-game-card:hover .etd-game-icon{transform:scale(1.05) rotate(3deg)}
+.etd-game-info{display:flex;flex-direction:column;gap:.25rem;min-width:0}
+.etd-game-title{font-size:1.125rem;font-weight:700;color:var(--etd-navy);margin:0}
+.etd-game-description{color:var(--etd-gray-600);line-height:1.4;font-size:.85rem;margin:0}
+.etd-game-status{display:flex;flex-direction:column;align-items:flex-start;gap:.375rem;flex-shrink:0}
+.etd-status-badge{padding:.25rem .625rem;border-radius:.875rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.etd-status-badge.available{background:#D1FAE5;color:#065F46}
+.etd-status-badge.coming-soon{background:var(--etd-gray-200);color:var(--etd-gray-600)}
+.etd-difficulty{display:flex;gap:.25rem;align-items:center}
+.etd-difficulty-label{font-size:.7rem;color:var(--etd-gray-600);margin-right:.25rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.etd-difficulty-dot{width:7px;height:7px;border-radius:50%;background:var(--etd-gray-300)}
+.etd-difficulty-dot.filled{background:var(--etd-card-color,var(--etd-teal))}
+.etd-game-cta{background:var(--etd-card-color,var(--etd-teal));color:var(--etd-white);border:none;padding:.625rem 1.25rem;border-radius:.5rem;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.etd-game-cta:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--etd-shadow-md)}
+.etd-game-cta:disabled{opacity:.5;cursor:not-allowed}
+.etd-completion{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:1rem;font-weight:700;flex-shrink:0}
+.etd-completion.completed{background:linear-gradient(135deg,#10B981,#059669);color:var(--etd-white);box-shadow:0 2px 8px rgba(16,185,129,.3)}
+.etd-completion.not-completed{background:var(--etd-gray-100);color:var(--etd-gray-400);border:2px dashed var(--etd-gray-300)}
+.etd-dvmiq{margin-top:2rem;padding:1.5rem;background:linear-gradient(135deg,#6366F1 0%,#8B5CF6 100%);border-radius:1rem;color:var(--etd-white);position:relative;overflow:hidden}
+.etd-dvmiq::before{content:'';position:absolute;top:-50%;right:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 70%);pointer-events:none}
+.etd-dvmiq-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;position:relative;z-index:1}
+.etd-dvmiq-logo{font-size:1.125rem;font-weight:700}
+.etd-dvmiq-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;opacity:.9;font-weight:600}
+.etd-dvmiq-points{background:rgba(255,255,255,.25);padding:.375rem .875rem;border-radius:2rem;font-weight:700;font-size:.9rem;border:1px solid rgba(255,255,255,.3)}
+.etd-dvmiq-content{position:relative;z-index:1}
+.etd-dvmiq-title{font-size:1.375rem;font-weight:700;margin-bottom:.625rem;line-height:1.3}
+.etd-dvmiq-desc{font-size:.9rem;line-height:1.5;opacity:.95;margin-bottom:1.25rem}
+.etd-dvmiq-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.etd-dvmiq-meta-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem;background:rgba(255,255,255,.15);padding:.5rem .75rem;border-radius:.5rem}
+.etd-dvmiq-cta{background:var(--etd-white);color:#6366F1;border:none;padding:.875rem 2rem;border-radius:.625rem;font-weight:700;font-size:1rem;cursor:pointer;transition:all .3s;font-family:inherit;box-shadow:0 4px 12px rgba(0,0,0,.15);width:100%}
+.etd-dvmiq-cta:hover{transform:translateY(-2px);background:#F9FAFB}
+@container(max-width:540px){
+  .etd-badge-container{position:static;flex-direction:row;align-items:center;margin-bottom:1rem}
+  .etd-theme-section{padding:1.5rem}
+  .etd-sponsor-intro{flex-direction:column;align-items:flex-start}
+  .etd-game-card{grid-template-columns:auto 1fr;gap:1rem}
+  .etd-game-info{grid-column:1/-1;order:3}
+  .etd-game-status{order:2;align-items:flex-end}
+  .etd-game-cta{order:4;grid-column:1/-1}
+  .etd-completion{order:1}
+}
+</style>
+</head>
+<body>
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[element_theme_details]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+<div class="wb-body">
+  <div class="wb-panel">
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field-label">Width <span id="vp-label">760px</span></div>
+      <input type="range" class="wb-range" id="vp-slider" min="320" max="800" value="760" step="10">
+      <div class="wb-width-presets" style="margin-top:.5rem">
+        <button class="wb-width-btn" data-width="400">400</button>
+        <button class="wb-width-btn active" data-width="760">760</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+      <div class="wb-note" style="margin-bottom:.75rem;font-size:.65rem;color:var(--wb-label)">Static shortcode — layout controlled by PHP attributes passed in page editor.</div>
+      <div class="wb-toggle-row"><span class="wb-toggle-label">Show Sponsor Photo</span><label class="wb-toggle"><input type="checkbox" id="ctrl-photo" checked><div class="wb-toggle-track"></div></label></div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Data Params</div>
+      <div class="wb-note">month<br>theme_icon<br>theme_title<br>theme_subtitle<br>view_more_url<br><span style="color:var(--wb-border)">— PHP / data layer only —</span></div>
+    </div>
+  </div>
+
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">760px</div>
+      <div class="wb-viewport-frame">
+
+        <!-- TEMPLATE BLOCK START -->
+        <div class="etd-wrap">
+          <section class="etd-theme-section">
+
+            <div class="etd-badge-container">
+              <span class="etd-badge">November 2026</span>
+              <a href="#" class="etd-view-more">View More →</a>
+            </div>
+
+            <div class="etd-theme-header">
+              <h2><span class="etd-theme-icon">🐾</span> Dr. Christman's Corner</h2>
+              <div class="etd-month-label">Sponsored by Dr. Adam Christman, DVM, MBA</div>
+
+              <div class="etd-sponsor-intro">
+                <div class="etd-sponsor-headshot">
+                  <img id="wb-photo" src="https://placehold.co/110x110/F77F00/ffffff?text=AC" alt="Dr. Adam Christman">
+                  <div class="etd-sponsor-headshot-fallback" style="display:none">AC</div>
+                </div>
+                <div class="etd-sponsor-text">
+                  <span class="etd-sponsor-byline">✦ Guest Curator</span>
+                  <p>Dr. Adam Christman, DVM, MBA, is the Chief Veterinary Officer of dvm360® and one of veterinary medicine's most recognizable voices — a podcast host, social media influencer with over 2 million followers, and proud dad to four dachshunds. This month, he's curated five games that reflect the things he cares about most.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="etd-games-grid">
+
+              <div class="etd-game-card crossword">
+                <div class="etd-game-icon">📋</div>
+                <div class="etd-game-info">
+                  <h3 class="etd-game-title">Frankly, Dachshunds</h3>
+                  <p class="etd-game-description">The Long and the Short of Everyone's Favorite Breed — fun, fact-packed dachshund trivia crossword.</p>
+                </div>
+                <div class="etd-game-status">
+                  <span class="etd-status-badge available">Available</span>
+                  <div class="etd-difficulty"><span class="etd-difficulty-label">Difficulty:</span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot"></span></div>
+                </div>
+                <button class="etd-game-cta">Play Now</button>
+                <div class="etd-completion completed">✓</div>
+              </div>
+
+              <div class="etd-game-card trivia">
+                <div class="etd-game-icon">🎲</div>
+                <div class="etd-game-info">
+                  <h3 class="etd-game-title">Dr. C's Potpourri</h3>
+                  <p class="etd-game-description">Bizarre biology, unexpected diagnoses, and head-tilting pet behaviors.</p>
+                </div>
+                <div class="etd-game-status">
+                  <span class="etd-status-badge available">Available</span>
+                  <div class="etd-difficulty"><span class="etd-difficulty-label">Difficulty:</span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot"></span></div>
+                </div>
+                <button class="etd-game-cta">Play Now</button>
+                <div class="etd-completion not-completed">—</div>
+              </div>
+
+              <div class="etd-game-card scenario">
+                <div class="etd-game-icon">💬</div>
+                <div class="etd-game-info">
+                  <h3 class="etd-game-title">Between Care and Capacity</h3>
+                  <p class="etd-game-description">Navigate emotional conversations, financial limitations, and team dynamics.</p>
+                </div>
+                <div class="etd-game-status">
+                  <span class="etd-status-badge coming-soon">Coming Soon</span>
+                  <div class="etd-difficulty"><span class="etd-difficulty-label">Difficulty:</span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot filled"></span></div>
+                </div>
+                <button class="etd-game-cta" disabled>Nov 10</button>
+                <div class="etd-completion not-completed">—</div>
+              </div>
+
+              <div class="etd-game-card taxonomy">
+                <div class="etd-game-icon">🦁</div>
+                <div class="etd-game-info">
+                  <h3 class="etd-game-title">Hakuna Taxata</h3>
+                  <p class="etd-game-description">Match well-known creatures to their real scientific names.</p>
+                </div>
+                <div class="etd-game-status">
+                  <span class="etd-status-badge coming-soon">Coming Soon</span>
+                  <div class="etd-difficulty"><span class="etd-difficulty-label">Difficulty:</span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot filled"></span><span class="etd-difficulty-dot"></span></div>
+                </div>
+                <button class="etd-game-cta" disabled>Nov 17</button>
+                <div class="etd-completion not-completed">—</div>
+              </div>
+
+              <div class="etd-game-card survey">
+                <div class="etd-game-icon">📊</div>
+                <div class="etd-game-info">
+                  <h3 class="etd-game-title">The Emotional Load Survey</h3>
+                  <p class="etd-game-description">Capture the realities of veterinary practice — not to diagnose, but to recognize patterns.</p>
+                </div>
+                <div class="etd-game-status">
+                  <span class="etd-status-badge coming-soon">Coming Soon</span>
+                  <div class="etd-difficulty"><span class="etd-difficulty-label">Difficulty:</span><span class="etd-difficulty-dot"></span><span class="etd-difficulty-dot"></span><span class="etd-difficulty-dot"></span></div>
+                </div>
+                <button class="etd-game-cta" disabled>Nov 24</button>
+                <div class="etd-completion not-completed">—</div>
+              </div>
+
+            </div><!-- /.etd-games-grid -->
+
+            <div class="etd-dvmiq">
+              <div class="etd-dvmiq-header">
+                <div><div class="etd-dvmiq-logo">🧠 dvmIQ</div><div class="etd-dvmiq-label">Monthly Challenge</div></div>
+                <div class="etd-dvmiq-points">+150 pts</div>
+              </div>
+              <div class="etd-dvmiq-content">
+                <h3 class="etd-dvmiq-title">Dr. C's Clinical Curveballs</h3>
+                <p class="etd-dvmiq-desc">Dr. Christman hand-picked 10 cases that stumped him, surprised him, or changed how he practices.</p>
+                <div class="etd-dvmiq-meta">
+                  <div class="etd-dvmiq-meta-item"><span>📝</span> 10 Cases</div>
+                  <div class="etd-dvmiq-meta-item"><span>⏱️</span> 20 minutes</div>
+                  <div class="etd-dvmiq-meta-item"><span>🎓</span> 0.5 CE Credits</div>
+                  <div class="etd-dvmiq-meta-item"><span>🔥</span> 512 taken</div>
+                </div>
+                <button class="etd-dvmiq-cta">Start Quiz</button>
+              </div>
+            </div>
+
+          </section>
+        </div>
+        <!-- TEMPLATE BLOCK END -->
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function setWidth(w){ var vp=document.getElementById('viewport'); vp.style.width=w+'px'; document.getElementById('vp-label').textContent=w+'px'; document.getElementById('vp-size-label').textContent=w+'px'; document.getElementById('vp-slider').value=w; document.querySelectorAll('.wb-width-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.width)===w);}); }
+  document.getElementById('vp-slider').addEventListener('input',function(){ setWidth(parseInt(this.value)); });
+  document.querySelectorAll('.wb-width-btn').forEach(function(btn){ btn.addEventListener('click',function(){ setWidth(parseInt(this.dataset.width)); }); });
+  document.getElementById('ctrl-photo').addEventListener('change',function(){
+    var img=document.getElementById('wb-photo');
+    var fallback=img.nextElementSibling;
+    if(this.checked){ img.style.display=''; fallback.style.display='none'; }
+    else { img.style.display='none'; fallback.style.display='flex'; }
+  });
+  setWidth(760);
+})();
+</script>
+</body>
+</html>

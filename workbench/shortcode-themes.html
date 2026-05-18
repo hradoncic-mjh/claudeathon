@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [element_themes]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:300px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-field{margin-bottom:.875rem}.wb-field:last-child{margin-bottom:0}
+.wb-toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.wb-toggle-label{font-size:.72rem;color:var(--wb-label)}
+.wb-toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.wb-toggle input{opacity:0;width:0;height:0}
+.wb-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:background .2s;border:1px solid var(--wb-border)}
+.wb-toggle input:checked+.wb-toggle-track{background:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-toggle-track::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.wb-toggle input:checked+.wb-toggle-track::after{left:19px}
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);container-type:inline-size}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem}
+.wb-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.62rem;line-height:1.6;padding:.6rem;resize:vertical;min-height:200px;outline:none;transition:border-color .2s}
+.wb-textarea:focus{border-color:var(--wb-accent)}
+.wb-apply-btn{width:100%;margin-top:.5rem;padding:.4rem;background:rgba(15,163,177,.15);border:1px solid var(--wb-accent);border-radius:6px;color:var(--wb-accent);font-size:.7rem;font-family:var(--wb-mono);font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.wb-apply-btn:hover{background:rgba(15,163,177,.25)}
+.wb-note{font-size:.65rem;color:var(--wb-muted);line-height:1.7;font-family:var(--wb-mono)}
+</style>
+<link rel="stylesheet" href="../../assets/css/shortcodes/common.css">
+<link rel="stylesheet" href="../../assets/css/shortcodes/themes.css">
+</head>
+<body>
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[element_themes]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+<div class="wb-body">
+  <div class="wb-panel">
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span id="vp-label">760px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="320" max="800" value="760" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn" data-width="400">400</button>
+        <button class="wb-width-btn active" data-width="760">760</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+      <div class="wb-toggle-row"><span class="wb-toggle-label">Show Curator</span><label class="wb-toggle"><input type="checkbox" id="ctrl-curator" checked><div class="wb-toggle-track"></div></label></div>
+      <div class="wb-toggle-row"><span class="wb-toggle-label">Show dvmIQ Block</span><label class="wb-toggle"><input type="checkbox" id="ctrl-dvmiq" checked><div class="wb-toggle-track"></div></label></div>
+      <div class="wb-toggle-row"><span class="wb-toggle-label">Show Completion Rings</span><label class="wb-toggle"><input type="checkbox" id="ctrl-completion" checked><div class="wb-toggle-track"></div></label></div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Data Params</div>
+      <div class="wb-note">theme_slug<br>is_active<br>sort / page_size<br>card_link_base<br><span style="color:var(--wb-border)">— PHP / data layer only —</span></div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Data</div>
+      <textarea class="wb-textarea" id="sample-data">{
+  "period": "November 2026",
+  "icon": "🐾",
+  "title": "Dr. Christman's Corner",
+  "subtitle": "Curated by Dr. Adam Christman, DVM, MBA",
+  "curator_initials": "AC",
+  "curator_bio": "Chief Veterinary Officer of dvm360®, podcast host, and proud dad to four dachshunds. This month he curated five games reflecting what he cares about most.",
+  "view_more_url": "/themes/",
+  "games": [
+    {"title":"Frankly, Dachshunds","desc":"The Long and Short of Everyone's Favorite Breed","type":"crossword","icon":"📋","difficulty":2,"available":true,"completed":true},
+    {"title":"Dr. C's Potpourri","desc":"Bizarre biology and unexpected diagnoses","type":"trivia","icon":"🎲","difficulty":2,"available":true,"completed":false},
+    {"title":"Between Care and Capacity","desc":"Decision-based scenarios for difficult conversations","type":"scenario","icon":"💬","difficulty":3,"available":false,"launch":"Nov 10"},
+    {"title":"Hakuna Taxata","desc":"Match characters to their scientific names","type":"default","icon":"🦁","difficulty":2,"available":false,"launch":"Nov 17"},
+    {"title":"The Emotional Load Survey","desc":"Reflective survey on veterinary practice realities","type":"survey","icon":"📊","difficulty":1,"available":false,"launch":"Nov 24"}
+  ],
+  "dvmiq": {
+    "title": "Dr. C's Clinical Curveballs",
+    "desc": "10 cases that stumped him, surprised him, or changed how he practices.",
+    "points": 150,
+    "meta": ["10 Cases","20 minutes","0.5 CE Credits","512 taken"]
+  }
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+  </div>
+
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">760px</div>
+      <div class="wb-viewport-frame">
+        <!-- TEMPLATE BLOCK START -->
+        <div class="et-themes-wrap">
+        <div id="shortcode-output" class="etd-wrap">
+          <section class="etd-theme-section">
+            <div class="etd-badge-container">
+              <span class="etd-badge" id="wb-period">November 2026</span>
+              <a href="#" class="etd-view-more" id="wb-viewmore">View More →</a>
+            </div>
+            <div class="etd-theme-header">
+              <h2><span class="etd-theme-icon" id="wb-icon">🐾</span><span id="wb-title">Theme Title</span></h2>
+              <div class="etd-month-label" id="wb-subtitle">Subtitle</div>
+              <div id="wb-curator-block" class="etd-sponsor-intro">
+                <div class="etd-sponsor-headshot" id="wb-initials">AC</div>
+                <div class="etd-sponsor-text">
+                  <span class="etd-sponsor-byline">✦ Guest Curator</span>
+                  <p id="wb-bio">Curator bio goes here.</p>
+                </div>
+              </div>
+            </div>
+            <div class="etd-games-grid" id="wb-games-grid"></div>
+            <div id="wb-dvmiq-block" class="etd-dvmiq">
+              <div class="etd-dvmiq-header">
+                <div><div class="etd-dvmiq-logo">🧠 dvmIQ</div><div class="etd-dvmiq-label">Monthly Challenge</div></div>
+                <div class="etd-dvmiq-points" id="wb-dvmiq-pts">+150 pts</div>
+              </div>
+              <div class="etd-dvmiq-content">
+                <h3 class="etd-dvmiq-title" id="wb-dvmiq-title">Monthly Challenge</h3>
+                <p class="etd-dvmiq-desc" id="wb-dvmiq-desc">Description here.</p>
+                <div class="etd-dvmiq-meta" id="wb-dvmiq-meta"></div>
+                <button class="etd-dvmiq-cta">Start Quiz</button>
+              </div>
+            </div>
+          </section>
+        </div><!-- /.etd-wrap -->
+        </div><!-- /.et-themes-wrap -->
+        <!-- TEMPLATE BLOCK END -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state = { showCurator:true, showDvmiq:true, showCompletion:true, data:null, width:760 };
+
+  function parseData(){ try{ state.data=JSON.parse(document.getElementById('sample-data').value); }catch(e){} }
+
+  var typeIcons = { crossword:'📋', trivia:'🎲', scenario:'💬', survey:'📊', default:'🎮' };
+
+  function gameCardHTML(g){
+    var type = g.type||'default';
+    var icon = g.icon || typeIcons[type] || '🎮';
+    var dots = [1,2,3].map(function(i){ return '<span class="etd-difficulty-dot'+(i<=(g.difficulty||1)?' filled':'')+'"></span>'; }).join('');
+    var completion = state.showCompletion ? '<div class="etd-completion'+(g.completed?' completed':'')+'">'+( g.completed?'✓':'—')+'</div>' : '';
+    var cta = g.available ? '<button class="etd-game-cta">Play Now</button>' : '<button class="etd-game-cta" disabled>'+(g.launch||'Coming Soon')+'</button>';
+    var badge = g.available ? '<span class="etd-status-badge available">Available</span>' : '<span class="etd-status-badge coming-soon">Coming Soon</span>';
+    return '<div class="etd-game-card '+type+'">'+
+      '<div class="etd-game-icon">'+icon+'</div>'+
+      '<div class="etd-game-info"><h3 class="etd-game-title">'+g.title+'</h3><p class="etd-game-description">'+g.desc+'</p></div>'+
+      '<div class="etd-game-status">'+badge+'<div class="etd-difficulty"><span class="etd-difficulty-label">Diff:</span>'+dots+'</div></div>'+
+      cta+completion+
+    '</div>';
+  }
+
+  function render(){
+    var d = state.data || {};
+    document.getElementById('wb-period').textContent = d.period||'';
+    document.getElementById('wb-icon').textContent = d.icon||'🎓';
+    document.getElementById('wb-title').textContent = d.title||'';
+    document.getElementById('wb-subtitle').textContent = d.subtitle||'';
+    document.getElementById('wb-initials').textContent = d.curator_initials||'??';
+    document.getElementById('wb-bio').textContent = d.curator_bio||'';
+    document.getElementById('wb-curator-block').style.display = state.showCurator ? '' : 'none';
+    document.getElementById('wb-games-grid').innerHTML = (d.games||[]).map(gameCardHTML).join('');
+    // dvmIQ
+    var dvmiq = d.dvmiq||{};
+    document.getElementById('wb-dvmiq-block').style.display = state.showDvmiq ? '' : 'none';
+    document.getElementById('wb-dvmiq-title').textContent = dvmiq.title||'Monthly Challenge';
+    document.getElementById('wb-dvmiq-desc').textContent = dvmiq.desc||'';
+    document.getElementById('wb-dvmiq-pts').textContent = dvmiq.points ? '+'+dvmiq.points+' pts' : '';
+    document.getElementById('wb-dvmiq-meta').innerHTML = (dvmiq.meta||[]).map(function(m){ return '<div class="etd-dvmiq-meta-item">'+m+'</div>'; }).join('');
+  }
+
+  function setWidth(w){ state.width=w; var vp=document.getElementById('viewport'); vp.style.width=w+'px'; document.getElementById('vp-label').textContent=w+'px'; document.getElementById('vp-size-label').textContent=w+'px'; document.getElementById('vp-slider').value=w; document.querySelectorAll('.wb-width-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.width)===w);}); }
+
+  document.getElementById('vp-slider').addEventListener('input',function(){ setWidth(parseInt(this.value)); });
+  document.querySelectorAll('.wb-width-btn').forEach(function(btn){ btn.addEventListener('click',function(){ setWidth(parseInt(this.dataset.width)); }); });
+  document.getElementById('ctrl-curator').addEventListener('change',function(){ state.showCurator=this.checked; render(); });
+  document.getElementById('ctrl-dvmiq').addEventListener('change',function(){ state.showDvmiq=this.checked; render(); });
+  document.getElementById('ctrl-completion').addEventListener('change',function(){ state.showCompletion=this.checked; render(); });
+  document.getElementById('apply-data').addEventListener('click',function(){ parseData(); render(); });
+
+  parseData(); setWidth(760); render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Element Games — Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d14;
+  --surface:#12151f;
+  --surface-2:#1a1d2b;
+  --border:#22263a;
+  --border-bright:#2e3450;
+  --teal:#0FA3B1;
+  --orange:#F77F00;
+  --purple:#9B4DCA;
+  --pink:#FF6B9D;
+  --green:#10B981;
+  --navy:#1A202C;
+  --text:#e4e6f0;
+  --muted:#8892a4;
+  --label:#5a6481;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Poppins',sans-serif;
+  --serif:'DM Serif Display',Georgia,serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+/* ── Top Bar ── */
+.topbar{display:flex;align-items:center;gap:1.25rem;padding:0 2rem;height:56px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--teal);letter-spacing:.06em}
+.topbar-divider{width:1px;height:18px;background:var(--border)}
+.topbar-subtitle{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.topbar-spacer{flex:1}
+.topbar-version{font-family:var(--mono);font-size:.62rem;color:var(--label);padding:.2rem .55rem;border:1px solid var(--border);border-radius:4px}
+
+/* ── Hero ── */
+.hero{padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(15,163,177,.12) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:1rem;display:inline-flex;align-items:center;gap:.5rem}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';display:inline-block;width:24px;height:1px;background:var(--teal);opacity:.5}
+.hero-title{font-family:var(--serif);font-size:3rem;font-weight:400;color:var(--text);line-height:1.15;margin-bottom:1rem}
+.hero-title span{color:var(--teal)}
+.hero-desc{font-size:.95rem;color:var(--muted);max-width:560px;margin:0 auto 2rem;line-height:1.75}
+.hero-stats{display:inline-flex;gap:2.5rem;padding:1rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.hero-stat-value{font-family:var(--mono);font-size:1.5rem;font-weight:600;color:var(--text)}
+.hero-stat-label{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+
+/* ── Section ── */
+.section{padding:2.5rem 2rem}
+.section-header{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.75rem}
+.section-title{font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.section-line{flex:1;height:1px;background:var(--border)}
+
+/* ── Shortcode Grid ── */
+.shortcode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem}
+
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .2s,box-shadow .2s;text-decoration:none;cursor:pointer;position:relative}
+.sc-card:hover{border-color:var(--card-accent,var(--teal));transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 0 1px var(--card-accent,var(--teal)) inset}
+.sc-card-accent{height:3px;background:var(--card-accent,var(--teal))}
+.sc-card-body{padding:1.5rem;flex:1}
+.sc-card-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+.sc-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.375rem;flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border-bright)}
+.sc-card-meta{flex:1;min-width:0}
+.sc-card-shortcode{font-family:var(--mono);font-size:.7rem;color:var(--card-accent,var(--teal));margin-bottom:.25rem;font-weight:600}
+.sc-card-name{font-size:1rem;font-weight:600;color:var(--text);line-height:1.3}
+.sc-card-desc{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:1.25rem}
+.sc-card-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1.25rem}
+.sc-tag{font-family:var(--mono);font-size:.6rem;padding:.2rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px;color:var(--label)}
+.sc-tag.highlight{border-color:var(--card-accent,var(--teal));color:var(--card-accent,var(--teal));background:rgba(15,163,177,.06)}
+.sc-card-footer{padding:.875rem 1.5rem;background:rgba(255,255,255,.02);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sc-card-params{font-family:var(--mono);font-size:.6rem;color:var(--label)}
+.sc-card-open{font-family:var(--mono);font-size:.65rem;color:var(--card-accent,var(--teal));display:flex;align-items:center;gap:.35rem;transition:gap .15s}
+.sc-card:hover .sc-card-open{gap:.6rem}
+.sc-card-open::after{content:'→'}
+
+/* ── How It Works ── */
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.how-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem}
+.how-num{font-family:var(--mono);font-size:.65rem;font-weight:600;color:var(--teal);letter-spacing:.08em;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.how-num::before{content:attr(data-n);width:22px;height:22px;border-radius:50%;background:rgba(15,163,177,.12);border:1px solid rgba(15,163,177,.3);display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.how-title{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.4rem}
+.how-desc{font-size:.78rem;color:var(--muted);line-height:1.6}
+
+/* ── Legend ── */
+.legend{display:flex;flex-wrap:wrap;gap:1.25rem;padding:1.25rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:2rem}
+.legend-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── Footer ── */
+footer{margin-top:auto;padding:1.5rem 2rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+.footer-note{font-family:var(--mono);font-size:.62rem;color:var(--label)}
+footer .spacer{flex:1}
+
+/* ── Keyboard hint ── */
+.kbd{display:inline-block;font-family:var(--mono);font-size:.6rem;padding:.1rem .4rem;background:var(--surface-2);border:1px solid var(--border);border-radius:3px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">⚡ EG DESIGN STUDIO</span>
+  <div class="topbar-divider"></div>
+  <span class="topbar-subtitle">element-games / workbenches</span>
+  <div class="topbar-spacer"></div>
+  <span class="topbar-version">v1.3.1</span>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">Interactive Design Workbenches</div>
+  <h1 class="hero-title">Element Games<br><span>Design Studio</span></h1>
+  <p class="hero-desc">Each shortcode has a live design workbench. Adjust params, swap sample data, and resize the viewport — then hand off the Template Block to the PHP layer.</p>
+  <div class="hero-stats">
+    <div><div class="hero-stat-value">6</div><div class="hero-stat-label">Shortcodes</div></div>
+    <div><div class="hero-stat-value">6</div><div class="hero-stat-label">Workbenches</div></div>
+    <div><div class="hero-stat-value">0</div><div class="hero-stat-label">Build Steps</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Color Key</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#0FA3B1"></span>Header / Auth</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#F77F00"></span>Games Catalog</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#9B4DCA"></span>Leaderboard</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#FF6B9D"></span>Theme Details (static)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Theme Details (dynamic)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#6366F1"></span>Login Status</div>
+  </div>
+
+  <div class="shortcode-grid">
+
+    <!-- game_header_menu -->
+    <a class="sc-card" href="shortcode-game-header.html" style="--card-accent:#0FA3B1">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">🔰</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[game_header_menu]</div>
+            <div class="sc-card-name">Game Header Menu</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Two-pill header context menu: partner sites dropdown (left) and user account dropdown (right). Renders guest or logged-in state based on auth. Listens for <code>player_logged_in</code> / <code>player_logged_out</code> events.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">logged-in state</span>
+          <span class="sc-tag highlight">partner sites list</span>
+          <span class="sc-tag">user avatar</span>
+          <span class="sc-tag">points + rank</span>
+          <span class="sc-tag">dropdowns</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">4 PHP attrs + WP settings</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+    <!-- login_status -->
+    <a class="sc-card" href="shortcode-login-status.html" style="--card-accent:#6366F1">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">🔑</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[login_status]</div>
+            <div class="sc-card-name">Login Status</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Compact inline status bar. Shows the current player handle when logged in, or a login link when anonymous. Fires <code>element_games_reload_all</code> on logout to refresh all widgets on the page.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">logged-in state</span>
+          <span class="sc-tag highlight">show_email toggle</span>
+          <span class="sc-tag">logout button</span>
+          <span class="sc-tag">anonymous fallback</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">2 PHP attrs</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+    <!-- element_leaderboard_slim -->
+    <a class="sc-card" href="shortcode-leaderboard-slim.html" style="--card-accent:#9B4DCA">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">🏆</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[element_leaderboard_slim]</div>
+            <div class="sc-card-name">Leaderboard Slim</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Sidebar-width leaderboard widget with Year / Month period tabs and Individuals / Clinics sub-tabs. Logged-out users see a blurred preview with a sign-in gate instead of real scores.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">logged-in state</span>
+          <span class="sc-tag highlight">period tabs</span>
+          <span class="sc-tag highlight">subtabs</span>
+          <span class="sc-tag">my score callout</span>
+          <span class="sc-tag">blurred gate</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">4 PHP attrs</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+    <!-- element_games -->
+    <a class="sc-card" href="shortcode-games.html" style="--card-accent:#F77F00">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">🎮</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[element_games]</div>
+            <div class="sc-card-name">Games Catalog</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Responsive game card grid. Fetches from <code>GET /api/games</code> server-side and pre-renders. After load, <code>elementGamesHydrate()</code> fills per-user completion context in one batch call. Supports vertical + horizontal layouts, paged and view-more modes.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">layout: vertical / horizontal</span>
+          <span class="sc-tag highlight">columns 1–4</span>
+          <span class="sc-tag highlight">display mode</span>
+          <span class="sc-tag">show_points</span>
+          <span class="sc-tag">show_difficulty</span>
+          <span class="sc-tag">show_categories</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">14 PHP attrs</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+    <!-- element_theme_details -->
+    <a class="sc-card" href="shortcode-theme-details.html" style="--card-accent:#FF6B9D">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">📅</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[element_theme_details]</div>
+            <div class="sc-card-name">Theme Details (Static)</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Hardcoded monthly curator block. Content is authored directly in the shortcode attributes or WP page editor — no API call. Includes curator headshot, game roster with difficulty + availability, and the dvmIQ challenge callout.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">static content</span>
+          <span class="sc-tag">curator headshot</span>
+          <span class="sc-tag">game roster</span>
+          <span class="sc-tag">dvmIQ block</span>
+          <span class="sc-tag">completion rings</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">5 PHP attrs (static)</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+    <!-- element_themes -->
+    <a class="sc-card" href="shortcode-themes.html" style="--card-accent:#10B981">
+      <div class="sc-card-accent"></div>
+      <div class="sc-card-body">
+        <div class="sc-card-header">
+          <div class="sc-card-icon">🎓</div>
+          <div class="sc-card-meta">
+            <div class="sc-card-shortcode">[element_themes]</div>
+            <div class="sc-card-name">Theme Details (Dynamic)</div>
+          </div>
+        </div>
+        <div class="sc-card-desc">Data-driven version of the theme block. Fetches from <code>GET /api/games/themes</code> server-side, renders one block per theme returned. Completion rings are hydrated client-side by the shared <code>elementGamesHydrate()</code> function alongside game cards.</div>
+        <div class="sc-card-tags">
+          <span class="sc-tag highlight">show_curator toggle</span>
+          <span class="sc-tag highlight">show_dvmiq toggle</span>
+          <span class="sc-tag highlight">completion rings</span>
+          <span class="sc-tag">multi-theme</span>
+          <span class="sc-tag">API-driven</span>
+        </div>
+      </div>
+      <div class="sc-card-footer">
+        <span class="sc-card-params">8 PHP attrs</span>
+        <span class="sc-card-open">Open Workbench</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Workflow</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="how-grid">
+    <div class="how-step">
+      <div class="how-num" data-n="1">Open Workbench</div>
+      <div class="how-title">Adjust in browser</div>
+      <div class="how-desc">Resize the viewport, toggle design params, and edit the sample data JSON to simulate real content and edge cases.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num" data-n="2">Edit Template Block</div>
+      <div class="how-title">Designer owns the canvas</div>
+      <div class="how-desc">Modify the HTML and CSS between <code>TEMPLATE BLOCK START</code> / <code>END</code> comments. The workbench chrome never ships.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num" data-n="3">Return to Jeff</div>
+      <div class="how-title">Hand off the file</div>
+      <div class="how-desc">Save the updated <code>.html</code> file and return it. Jeff brings it to Claude, who extracts the Template Block and converts it to PHP.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num" data-n="4">Integrate + Ship</div>
+      <div class="how-title">PHP conversion</div>
+      <div class="how-desc">Claude merges the template into the shortcode PHP. The <code>.html</code> files are excluded from the WordPress plugin zip automatically.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-note">element-games/includes/shortcodes/ — .html files excluded from WP package</span>
+  <div class="spacer"></div>
+  <span class="footer-note">Press <span class="kbd">⌘K</span> in VS Code → Package for WordPress</span>
+</footer>
+
+</body>
+</html>

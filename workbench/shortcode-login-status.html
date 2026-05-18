@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [login_status]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:280px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-field{margin-bottom:.875rem}.wb-field:last-child{margin-bottom:0}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem}
+.wb-toggle-row{display:flex;align-items:center;justify-content:space-between}
+.wb-toggle-label{font-size:.72rem;color:var(--wb-label)}
+.wb-toggle{position:relative;width:36px;height:20px}
+.wb-toggle input{opacity:0;width:0;height:0}
+.wb-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:background .2s;border:1px solid var(--wb-border)}
+.wb-toggle input:checked+.wb-toggle-track{background:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-toggle-track::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.wb-toggle input:checked+.wb-toggle-track::after{left:19px}
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);container-type:inline-size;padding:1.25rem}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.62rem;line-height:1.6;padding:.6rem;resize:vertical;min-height:100px;outline:none;transition:border-color .2s}
+.wb-textarea:focus{border-color:var(--wb-accent)}
+.wb-apply-btn{width:100%;margin-top:.5rem;padding:.4rem;background:rgba(15,163,177,.15);border:1px solid var(--wb-accent);border-radius:6px;color:var(--wb-accent);font-size:.7rem;font-family:var(--wb-mono);font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.wb-apply-btn:hover{background:rgba(15,163,177,.25)}
+
+/* ── TEMPLATE BLOCK CSS ── */
+.ls-wrap{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:15px 20px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px}
+.ls-wrap .status-loading{color:#6c757d;font-size:14px}
+.ls-wrap .status-logged-in,.ls-wrap .status-logged-out{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.ls-wrap .player-handle{font-weight:600;color:#0066cc;font-size:16px}
+.ls-wrap .player-email{font-size:13px;color:#6c757d;margin-top:2px}
+.ls-wrap .logout-btn{padding:8px 16px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;transition:background .2s}
+.ls-wrap .logout-btn:hover{background:#5a6268}
+.ls-wrap .login-link{display:inline-block;padding:8px 20px;background:linear-gradient(90deg,#0066cc,#0052a3);color:white;text-decoration:none;border-radius:4px;font-size:14px;transition:transform .2s}
+.ls-wrap .login-link:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,102,204,.3)}
+.ls-wrap .anonymous-message{color:#6c757d;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[login_status]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+<div class="wb-body">
+  <div class="wb-panel">
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span id="vp-label">600px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="280" max="800" value="600" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn" data-width="360">360</button>
+        <button class="wb-width-btn active" data-width="600">600</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+      <div class="wb-field">
+        <div class="wb-toggle-row">
+          <span class="wb-toggle-label">Logged In State</span>
+          <label class="wb-toggle"><input type="checkbox" id="ctrl-loggedin" checked><div class="wb-toggle-track"></div></label>
+        </div>
+      </div>
+      <div class="wb-field">
+        <div class="wb-toggle-row">
+          <span class="wb-toggle-label">Show Email</span>
+          <label class="wb-toggle"><input type="checkbox" id="ctrl-showemail"><div class="wb-toggle-track"></div></label>
+        </div>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Data</div>
+      <textarea class="wb-textarea" id="sample-data">{
+  "playerHandle": "DrSarahChen",
+  "email": "sarah.chen@vetclinic.com",
+  "login_url": "/login/"
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+  </div>
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">600px</div>
+      <div class="wb-viewport-frame">
+        <!-- TEMPLATE BLOCK START -->
+        <div id="shortcode-output" class="ls-wrap">
+          <div id="ls-content"></div>
+        </div>
+        <!-- TEMPLATE BLOCK END -->
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var state = { loggedIn: true, showEmail: false, data: null, width: 600 };
+  var vpSlider = document.getElementById('vp-slider');
+  var vpLabel  = document.getElementById('vp-label');
+  var vpSizeLabel = document.getElementById('vp-size-label');
+  var viewport = document.getElementById('viewport');
+
+  function parseData(){ try{ state.data = JSON.parse(document.getElementById('sample-data').value); }catch(e){} }
+
+  function render(){
+    var d = state.data || {};
+    var content = document.getElementById('ls-content');
+    if(state.loggedIn){
+      var html = '<div class="status-logged-in"><div class="status-info"><div class="player-handle">'+(d.playerHandle||'Player')+'</div>';
+      if(state.showEmail && d.email) html += '<div class="player-email">'+d.email+'</div>';
+      html += '</div><button class="logout-btn">Log Out</button></div>';
+      content.innerHTML = html;
+    } else {
+      content.innerHTML = '<div class="status-logged-out"><div class="anonymous-message">Not logged in — playing anonymously</div><a href="'+(d.login_url||'/login/')+'" class="login-link">Log In</a></div>';
+    }
+  }
+
+  function setWidth(w){ state.width=w; viewport.style.width=w+'px'; vpLabel.textContent=w+'px'; vpSizeLabel.textContent=w+'px'; vpSlider.value=w; document.querySelectorAll('.wb-width-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.width)===w);}); }
+
+  document.getElementById('ctrl-loggedin').addEventListener('change',function(){ state.loggedIn=this.checked; render(); });
+  document.getElementById('ctrl-showemail').addEventListener('change',function(){ state.showEmail=this.checked; render(); });
+  document.getElementById('apply-data').addEventListener('click',function(){ parseData(); render(); });
+  vpSlider.addEventListener('input',function(){ setWidth(parseInt(this.value)); });
+  document.querySelectorAll('.wb-width-btn').forEach(function(btn){ btn.addEventListener('click',function(){ setWidth(parseInt(this.dataset.width)); }); });
+
+  parseData(); setWidth(600); render();
+})();
+</script>
+</body>
+</html>

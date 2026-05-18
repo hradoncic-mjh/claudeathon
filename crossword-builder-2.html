@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Constructor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --paper: #f5ecd6;
+            --paper-deep: #ebe0c2;
+            --grid-line: #d4c5a0;
+            --active-cell: #ffe9a3;
+            --active-cell-tint: rgba(255, 233, 163, 0.45);
+            --black-cell: #1a1a1a;
+            --focus-border: #1a1a1a;
+            --rule: #5a4a36;
+            --accent: #c43d2e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            color: var(--ink);
+            padding: 2rem;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* Paper texture — subtle dots overlay, matching the mockup */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(rgba(180, 150, 100, 0.18) 0.8px, transparent 0.8px),
+                radial-gradient(rgba(150, 120, 80, 0.12) 0.6px, transparent 0.6px);
+            background-size: 6px 6px, 11px 11px;
+            background-position: 0 0, 3px 3px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.7;
+        }
+        
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            max-width: 1400px;
+            margin: 0 auto 2.5rem;
+            padding-bottom: 1.25rem;
+            position: relative;
+        }
+        
+        header::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-top: 3px solid var(--ink);
+            border-bottom: 1px solid var(--ink);
+            height: 6px;
+        }
+        
+        .masthead {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            border-top: 3px solid var(--ink);
+            border-bottom: 1px solid var(--ink);
+            padding-top: 0.5rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            color: var(--rule);
+            text-transform: uppercase;
+        }
+        
+        .masthead .center {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 400;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 4.5rem;
+            letter-spacing: -0.025em;
+            line-height: 1;
+            margin: 0.75rem 0 0.5rem;
+            color: var(--ink);
+        }
+        
+        h1 em {
+            font-style: italic;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--rule);
+        }
+        
+        .subtitle .rule {
+            flex: 1;
+            height: 1px;
+            background: var(--rule);
+            opacity: 0.4;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 3rem;
+            align-items: flex-start;
+        }
+        
+        .grid-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .stats-strip {
+            background: white;
+            border: 2px solid var(--ink);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.08);
+            display: flex;
+            align-items: stretch;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .stat-item {
+            flex: 1;
+            text-align: left;
+            padding: 1rem 1.25rem;
+            border-right: 1px solid var(--ink);
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: center;
+        }
+        
+        .stat-item:last-child {
+            border-right: none;
+        }
+        
+        .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            color: var(--rule);
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.85rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--ink);
+        }
+        
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .crossword-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(25, 1fr);
+            gap: 0;
+            border: 3px solid var(--ink);
+            box-shadow: 12px 12px 0 rgba(0,0,0,0.12);
+            background: white;
+        }
+        
+        .cell {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--grid-line);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.12s ease, border-color 0.12s ease;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+        
+        .cell:hover {
+            background: #fff5d1;
+        }
+        
+        .cell.focused {
+            background: var(--active-cell);
+            border: 2px solid var(--focus-border);
+            z-index: 10;
+            box-shadow: inset 0 0 0 1px var(--ink);
+        }
+        
+        .cell.black {
+            background: var(--black-cell);
+            cursor: default;
+        }
+        
+        .cell.black:hover {
+            background: var(--black-cell);
+        }
+        
+        .cell.highlighted {
+            background: var(--active-cell-tint);
+        }
+        
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            text-transform: uppercase;
+            outline: none;
+            caret-color: transparent;
+            color: var(--ink);
+        }
+        
+        .controls {
+            width: 300px;
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .control-section {
+            background: white;
+            border: 2px solid var(--ink);
+            margin-bottom: 1.25rem;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .control-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            background: var(--ink);
+            color: var(--paper);
+            padding: 0.65rem 1.25rem;
+            margin: 0;
+        }
+        
+        .control-section-body {
+            padding: 1.25rem;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        
+        button {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            padding: 0.7rem 1.25rem;
+            border: 2px solid var(--ink);
+            background: white;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+            position: relative;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .button-group button::after {
+            content: "›";
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            opacity: 0.6;
+            transition: transform 0.15s ease;
+        }
+        
+        button:hover {
+            background: var(--ink);
+            color: var(--paper);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+        }
+        
+        .button-group button:hover::after {
+            transform: translateX(2px);
+            opacity: 1;
+        }
+        
+        button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        
+        .info {
+            font-size: 0.8rem;
+            line-height: 1.65;
+            color: var(--rule);
+        }
+        
+        .info strong {
+            color: var(--ink);
+            font-weight: 600;
+        }
+        
+        .direction-indicator {
+            margin-bottom: 0.9rem;
+            padding: 0.75rem 0.9rem;
+            background: var(--active-cell);
+            border: 1px solid var(--ink);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        
+        .direction-indicator .status {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            margin-bottom: 0.15rem;
+            color: var(--rule);
+        }
+        
+        .status {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.4rem;
+            color: var(--rule);
+        }
+            margin-bottom: 0.5rem;
+            opacity: 0.6;
+        }
+        
+        .shift-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .shift-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .shift-button {
+            width: 40px;
+            height: 40px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            font-size: 1.25rem;
+            border: 2px solid var(--ink);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+        
+        .shift-button:hover {
+            background: var(--ink);
+            color: var(--paper);
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        
+        .shift-button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .crossword-grid {
+            animation: fadeIn 0.6s ease;
+        }
+        
+        .controls {
+            animation: fadeIn 0.6s ease 0.1s backwards;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--paper);
+            border: 4px solid var(--ink);
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: auto;
+            box-shadow: 20px 20px 0 rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .modal-content textarea {
+            width: 100%;
+            height: 400px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            padding: 1rem;
+            border: 2px solid var(--ink);
+            background: white;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            text-align: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="masthead">
+            <span>VOL. 25 · GRID EDITION</span>
+            <span class="center">— The Daily Grid —</span>
+            <span>VetArcade · Workshop</span>
+        </div>
+        <h1>Crossword <em>Constructor</em></h1>
+        <div class="subtitle">
+            <span>Lay out · Import · Export</span>
+            <span class="rule"></span>
+            <span>Grid 25 × 25</span>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="grid-container">
+            <div class="stats-strip">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-grid-size">0×0</div>
+                    <div class="stat-label">Used Grid</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-total-words">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-across">0</div>
+                    <div class="stat-label">Across</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-down">0</div>
+                    <div class="stat-label">Down</div>
+                </div>
+            </div>
+            
+            <div class="grid-wrapper">
+                <div class="crossword-grid" id="grid"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-section">
+                <h2>Shift</h2>
+                <div class="control-section-body">
+                    <div class="shift-controls">
+                        <button class="shift-button" onclick="shiftGrid('up')" title="Shift Up">↑</button>
+                        <div class="shift-row">
+                            <button class="shift-button" onclick="shiftGrid('left')" title="Shift Left">←</button>
+                            <button class="shift-button" onclick="shiftGrid('right')" title="Shift Right">→</button>
+                        </div>
+                        <button class="shift-button" onclick="shiftGrid('down')" title="Shift Down">↓</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h2>Actions</h2>
+                <div class="control-section-body">
+                    <div class="button-group">
+                        <button onclick="showImportModal()">Import Layout</button>
+                        <button onclick="exportGrid()">Export Layout</button>
+                        <button onclick="showClearConfirm()">Clear Grid</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h2>Direction</h2>
+                <div class="control-section-body">
+                    <div class="direction-indicator">
+                        <div class="status">Current</div>
+                        <div id="direction-display">→ Across</div>
+                    </div>
+                    <div class="info">
+                        <strong>Click once</strong> to select<br>
+                        <strong>Click again</strong> to toggle direction
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h2>Keyboard</h2>
+                <div class="control-section-body">
+                    <div class="info">
+                        • Type to fill cells<br>
+                        • Arrow keys to navigate<br>
+                        • Space/Delete to clear<br>
+                        • Tab to toggle direction
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Modal -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h2>Export Layout</h2>
+            <div class="info" style="margin-bottom: 1rem;">
+                <strong>Export Size:</strong>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; cursor: pointer;">
+                    <input type="radio" name="exportSize" value="trimmed" checked style="margin-right: 0.5rem;">
+                    <strong>Trimmed</strong> - Export only used grid area
+                </label>
+                <label style="display: block; cursor: pointer;">
+                    <input type="radio" name="exportSize" value="full" style="margin-right: 0.5rem;">
+                    <strong>Full 25×25</strong> - Export entire grid
+                </label>
+            </div>
+            <textarea id="exportTextarea" readonly></textarea>
+            <div class="modal-buttons">
+                <button onclick="copyToClipboard()">Copy to Clipboard</button>
+                <button onclick="closeModal('exportModal')">Close</button>
+            </div>
+            <div class="info" style="margin-top: 1rem;">
+                <strong>Legend:</strong> # = black cell, - = empty cell, Letters = filled cells
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Modal -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <h2>Import Layout</h2>
+            <div class="info" style="margin-bottom: 1rem;">
+                Paste your 25×25 grid layout below. Use # for black cells, - for empty cells, and letters for filled cells.
+            </div>
+            <textarea id="importTextarea" placeholder="Paste your grid here...&#10;Each line should be 25 characters&#10;You should have 25 lines total"></textarea>
+            <div class="modal-buttons">
+                <button onclick="importLayout()">Import</button>
+                <button onclick="closeModal('importModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Clear Confirm Modal -->
+    <div class="modal" id="clearModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>Clear Grid?</h2>
+            <div class="info" style="margin: 1.5rem 0;">
+                Are you sure you want to clear the entire grid? This action cannot be undone.
+            </div>
+            <div class="modal-buttons">
+                <button onclick="clearGrid()">Yes, Clear Grid</button>
+                <button onclick="closeModal('clearModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const GRID_SIZE = 25;
+        let currentCell = null;
+        let direction = 'across'; // 'across' or 'down'
+        const grid = [];
+        
+        // Initialize grid
+        const gridElement = document.getElementById('grid');
+        
+        for (let row = 0; row < GRID_SIZE; row++) {
+            grid[row] = [];
+            for (let col = 0; col < GRID_SIZE; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                
+                const input = document.createElement('input');
+                input.maxLength = 1;
+                input.addEventListener('input', handleInput);
+                input.addEventListener('keydown', handleKeyDown);
+                
+                cell.appendChild(input);
+                cell.addEventListener('click', (e) => handleCellClick(row, col, e));
+                
+                gridElement.appendChild(cell);
+                grid[row][col] = {
+                    element: cell,
+                    input: input,
+                    value: '',
+                    isBlack: false
+                };
+            }
+        }
+        
+        function handleCellClick(row, col, event) {
+            const cellData = grid[row][col];
+            
+            // Can't select black cells
+            if (cellData.isBlack) return;
+            
+            // If clicking the currently focused cell, toggle direction
+            if (currentCell && currentCell.row === row && currentCell.col === col) {
+                direction = direction === 'across' ? 'down' : 'across';
+                updateDirectionDisplay();
+                highlightCurrentWord();
+                return;
+            }
+            
+            // Otherwise, select this cell
+            selectCell(row, col);
+        }
+        
+        function selectCell(row, col) {
+            // Clear previous selection
+            if (currentCell) {
+                grid[currentCell.row][currentCell.col].element.classList.remove('focused');
+            }
+            
+            // Clear highlights
+            clearHighlights();
+            
+            // Set new selection
+            currentCell = { row, col };
+            const cellData = grid[row][col];
+            cellData.element.classList.add('focused');
+            cellData.input.focus();
+            
+            highlightCurrentWord();
+        }
+        
+        function highlightCurrentWord() {
+            clearHighlights();
+            
+            if (!currentCell) return;
+            
+            const { row, col } = currentCell;
+            
+            if (direction === 'across') {
+                // Highlight the row
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (!grid[row][c].isBlack && !(row === currentCell.row && c === currentCell.col)) {
+                        grid[row][c].element.classList.add('highlighted');
+                    }
+                }
+            } else {
+                // Highlight the column
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    if (!grid[r][col].isBlack && !(r === currentCell.row && col === currentCell.col)) {
+                        grid[r][col].element.classList.add('highlighted');
+                    }
+                }
+            }
+        }
+        
+        function clearHighlights() {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    grid[row][col].element.classList.remove('highlighted');
+                }
+            }
+        }
+        
+        function handleInput(event) {
+            const input = event.target;
+            const value = input.value.toUpperCase();
+            
+            if (value && /[A-Z]/.test(value)) {
+                input.value = value;
+                moveToNext();
+            }
+            
+            updateStats();
+        }
+        
+        function handleKeyDown(event) {
+            if (!currentCell) return;
+            
+            const { row, col } = currentCell;
+            
+            // Tab to toggle direction
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                direction = direction === 'across' ? 'down' : 'across';
+                updateDirectionDisplay();
+                highlightCurrentWord();
+                return;
+            }
+            
+            // Space or Delete to clear
+            if (event.key === ' ' || event.key === 'Delete') {
+                event.preventDefault();
+                grid[row][col].input.value = '';
+                grid[row][col].value = '';
+                updateStats();
+                return;
+            }
+            
+            // Backspace
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                grid[row][col].input.value = '';
+                grid[row][col].value = '';
+                moveToPrevious();
+                updateStats();
+                return;
+            }
+            
+            // Arrow keys
+            if (event.key.startsWith('Arrow')) {
+                event.preventDefault();
+                handleArrowKey(event.key);
+                return;
+            }
+        }
+        
+        function handleArrowKey(key) {
+            if (!currentCell) return;
+            
+            let { row, col } = currentCell;
+            
+            switch(key) {
+                case 'ArrowUp':
+                    row = Math.max(0, row - 1);
+                    break;
+                case 'ArrowDown':
+                    row = Math.min(GRID_SIZE - 1, row + 1);
+                    break;
+                case 'ArrowLeft':
+                    col = Math.max(0, col - 1);
+                    break;
+                case 'ArrowRight':
+                    col = Math.min(GRID_SIZE - 1, col + 1);
+                    break;
+            }
+            
+            // Skip black cells
+            while (grid[row][col].isBlack) {
+                if (key === 'ArrowUp' && row > 0) row--;
+                else if (key === 'ArrowDown' && row < GRID_SIZE - 1) row++;
+                else if (key === 'ArrowLeft' && col > 0) col--;
+                else if (key === 'ArrowRight' && col < GRID_SIZE - 1) col++;
+                else break;
+            }
+            
+            if (!grid[row][col].isBlack) {
+                selectCell(row, col);
+            }
+        }
+        
+        function moveToNext() {
+            if (!currentCell) return;
+            
+            let { row, col } = currentCell;
+            
+            if (direction === 'across') {
+                col++;
+                while (col < GRID_SIZE && grid[row][col].isBlack) col++;
+                if (col < GRID_SIZE) {
+                    selectCell(row, col);
+                }
+            } else {
+                row++;
+                while (row < GRID_SIZE && grid[row][col].isBlack) row++;
+                if (row < GRID_SIZE) {
+                    selectCell(row, col);
+                }
+            }
+        }
+        
+        function moveToPrevious() {
+            if (!currentCell) return;
+            
+            let { row, col } = currentCell;
+            
+            if (direction === 'across') {
+                col--;
+                while (col >= 0 && grid[row][col].isBlack) col--;
+                if (col >= 0) {
+                    selectCell(row, col);
+                }
+            } else {
+                row--;
+                while (row >= 0 && grid[row][col].isBlack) row--;
+                if (row >= 0) {
+                    selectCell(row, col);
+                }
+            }
+        }
+        
+        function updateDirectionDisplay() {
+            const display = document.getElementById('direction-display');
+            display.textContent = direction === 'across' ? '→ Across' : '↓ Down';
+        }
+        
+        function calculateStats() {
+            // Calculate used grid dimensions
+            let minRow = GRID_SIZE, maxRow = -1;
+            let minCol = GRID_SIZE, maxCol = -1;
+            
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (grid[row][col].input.value || grid[row][col].isBlack) {
+                        minRow = Math.min(minRow, row);
+                        maxRow = Math.max(maxRow, row);
+                        minCol = Math.min(minCol, col);
+                        maxCol = Math.max(maxCol, col);
+                    }
+                }
+            }
+            
+            const usedRows = maxRow >= 0 ? maxRow - minRow + 1 : 0;
+            const usedCols = maxCol >= 0 ? maxCol - minCol + 1 : 0;
+            
+            // Count words - looking for sequences of 2+ consecutive cells with letters
+            let acrossWords = 0;
+            let downWords = 0;
+            
+            // Count across words
+            for (let row = 0; row < GRID_SIZE; row++) {
+                let consecutiveLetters = 0;
+                
+                for (let col = 0; col <= GRID_SIZE; col++) {
+                    // Check if current cell has a letter
+                    const hasLetter = col < GRID_SIZE && 
+                                     !grid[row][col].isBlack && 
+                                     grid[row][col].input.value && 
+                                     /[A-Z]/i.test(grid[row][col].input.value);
+                    
+                    if (hasLetter) {
+                        consecutiveLetters++;
+                    } else {
+                        // End of sequence - count if 2 or more consecutive letters
+                        if (consecutiveLetters >= 2) {
+                            acrossWords++;
+                        }
+                        consecutiveLetters = 0;
+                    }
+                }
+            }
+            
+            // Count down words
+            for (let col = 0; col < GRID_SIZE; col++) {
+                let consecutiveLetters = 0;
+                
+                for (let row = 0; row <= GRID_SIZE; row++) {
+                    // Check if current cell has a letter
+                    const hasLetter = row < GRID_SIZE && 
+                                     !grid[row][col].isBlack && 
+                                     grid[row][col].input.value && 
+                                     /[A-Z]/i.test(grid[row][col].input.value);
+                    
+                    if (hasLetter) {
+                        consecutiveLetters++;
+                    } else {
+                        // End of sequence - count if 2 or more consecutive letters
+                        if (consecutiveLetters >= 2) {
+                            downWords++;
+                        }
+                        consecutiveLetters = 0;
+                    }
+                }
+            }
+            
+            return {
+                usedRows,
+                usedCols,
+                acrossWords,
+                downWords,
+                totalWords: acrossWords + downWords
+            };
+        }
+        
+        function updateStats() {
+            const stats = calculateStats();
+            
+            document.getElementById('stat-grid-size').textContent = 
+                stats.usedCols > 0 ? `${stats.usedCols}×${stats.usedRows}` : '0×0';
+            document.getElementById('stat-total-words').textContent = stats.totalWords;
+            document.getElementById('stat-across').textContent = stats.acrossWords;
+            document.getElementById('stat-down').textContent = stats.downWords;
+        }
+        
+        function shiftGrid(direction) {
+            // Check if shift would cause data loss
+            if (wouldLoseData(direction)) {
+                alert('Cannot shift: content would be pushed off the grid. Clear the edge cells first.');
+                return;
+            }
+            
+            // Create a temporary copy of the grid data
+            const tempGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null).map(() => ({
+                value: '',
+                isBlack: false
+            })));
+            
+            // Copy current state to temp
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    tempGrid[row][col].value = grid[row][col].input.value;
+                    tempGrid[row][col].isBlack = grid[row][col].isBlack;
+                }
+            }
+            
+            // Clear the grid
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    grid[row][col].input.value = '';
+                    grid[row][col].isBlack = false;
+                    grid[row][col].element.classList.remove('black');
+                }
+            }
+            
+            // Shift and copy back
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    let newRow = row;
+                    let newCol = col;
+                    
+                    switch(direction) {
+                        case 'left':
+                            newCol = col - 1;
+                            break;
+                        case 'right':
+                            newCol = col + 1;
+                            break;
+                        case 'up':
+                            newRow = row - 1;
+                            break;
+                        case 'down':
+                            newRow = row + 1;
+                            break;
+                    }
+                    
+                    // Only copy if destination is within bounds
+                    if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+                        grid[newRow][newCol].input.value = tempGrid[row][col].value;
+                        grid[newRow][newCol].isBlack = tempGrid[row][col].isBlack;
+                        if (tempGrid[row][col].isBlack) {
+                            grid[newRow][newCol].element.classList.add('black');
+                        }
+                    }
+                }
+            }
+            
+            // Maintain current cell selection if possible
+            if (currentCell) {
+                let newRow = currentCell.row;
+                let newCol = currentCell.col;
+                
+                switch(direction) {
+                    case 'left':
+                        newCol--;
+                        break;
+                    case 'right':
+                        newCol++;
+                        break;
+                    case 'up':
+                        newRow--;
+                        break;
+                    case 'down':
+                        newRow++;
+                        break;
+                }
+                
+                if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+                    selectCell(newRow, newCol);
+                } else {
+                    currentCell = null;
+                    clearHighlights();
+                }
+            }
+            
+            updateStats();
+        }
+        
+        function wouldLoseData(direction) {
+            // Check if any non-empty cells would be pushed off the edge
+            switch(direction) {
+                case 'left':
+                    // Check leftmost column
+                    for (let row = 0; row < GRID_SIZE; row++) {
+                        if (grid[row][0].input.value || grid[row][0].isBlack) {
+                            return true;
+                        }
+                    }
+                    break;
+                case 'right':
+                    // Check rightmost column
+                    for (let row = 0; row < GRID_SIZE; row++) {
+                        if (grid[row][GRID_SIZE - 1].input.value || grid[row][GRID_SIZE - 1].isBlack) {
+                            return true;
+                        }
+                    }
+                    break;
+                case 'up':
+                    // Check top row
+                    for (let col = 0; col < GRID_SIZE; col++) {
+                        if (grid[0][col].input.value || grid[0][col].isBlack) {
+                            return true;
+                        }
+                    }
+                    break;
+                case 'down':
+                    // Check bottom row
+                    for (let col = 0; col < GRID_SIZE; col++) {
+                        if (grid[GRID_SIZE - 1][col].input.value || grid[GRID_SIZE - 1][col].isBlack) {
+                            return true;
+                        }
+                    }
+                    break;
+            }
+            return false;
+        }
+        
+        function exportGrid() {
+            // Show modal first
+            document.getElementById('exportModal').classList.add('active');
+            
+            // Generate export on radio button change
+            updateExportPreview();
+            
+            // Add event listeners to radio buttons
+            document.querySelectorAll('input[name="exportSize"]').forEach(radio => {
+                radio.addEventListener('change', updateExportPreview);
+            });
+        }
+        
+        function updateExportPreview() {
+            const exportSize = document.querySelector('input[name="exportSize"]:checked').value;
+            let exportText;
+            
+            if (exportSize === 'trimmed') {
+                exportText = generateTrimmedExport();
+            } else {
+                exportText = generateFullExport();
+            }
+            
+            document.getElementById('exportTextarea').value = exportText;
+        }
+        
+        function generateTrimmedExport() {
+            // Find the bounds of used cells
+            let minRow = GRID_SIZE, maxRow = -1;
+            let minCol = GRID_SIZE, maxCol = -1;
+            
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (grid[row][col].input.value || grid[row][col].isBlack) {
+                        minRow = Math.min(minRow, row);
+                        maxRow = Math.max(maxRow, row);
+                        minCol = Math.min(minCol, col);
+                        maxCol = Math.max(maxCol, col);
+                    }
+                }
+            }
+            
+            // If no content, return empty
+            if (maxRow === -1) {
+                return '';
+            }
+            
+            const layout = [];
+            for (let row = minRow; row <= maxRow; row++) {
+                const rowData = [];
+                for (let col = minCol; col <= maxCol; col++) {
+                    const cell = grid[row][col];
+                    if (cell.isBlack) {
+                        rowData.push('#');
+                    } else if (cell.input.value) {
+                        rowData.push(cell.input.value);
+                    } else {
+                        rowData.push('-');
+                    }
+                }
+                layout.push(rowData.join(''));
+            }
+            
+            return layout.join('\n');
+        }
+        
+        function generateFullExport() {
+            const layout = [];
+            
+            for (let row = 0; row < GRID_SIZE; row++) {
+                const rowData = [];
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const cell = grid[row][col];
+                    if (cell.isBlack) {
+                        rowData.push('#');
+                    } else if (cell.input.value) {
+                        rowData.push(cell.input.value);
+                    } else {
+                        rowData.push('-');
+                    }
+                }
+                layout.push(rowData.join(''));
+            }
+            
+            return layout.join('\n');
+        }
+        
+        function showImportModal() {
+            document.getElementById('importTextarea').value = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+        
+        function importLayout() {
+            const importText = document.getElementById('importTextarea').value;
+            const lines = importText.split('\n').filter(line => line.trim());
+            
+            if (lines.length === 0) {
+                alert('Please paste a grid layout to import.');
+                return;
+            }
+            
+            // Validate that all lines have the same length
+            const lineLength = lines[0].length;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].length !== lineLength) {
+                    alert(`Invalid import: All lines must be the same length. Line ${i + 1} is ${lines[i].length} characters, expected ${lineLength}.`);
+                    return;
+                }
+            }
+            
+            // Check if it fits in our grid
+            if (lines.length > GRID_SIZE) {
+                alert(`Invalid import: Grid has ${lines.length} rows, maximum is ${GRID_SIZE}`);
+                return;
+            }
+            
+            if (lineLength > GRID_SIZE) {
+                alert(`Invalid import: Grid has ${lineLength} columns, maximum is ${GRID_SIZE}`);
+                return;
+            }
+            
+            // Clear grid first
+            clearGridNoConfirm();
+            
+            // Import the layout (starting at top-left corner)
+            for (let row = 0; row < lines.length; row++) {
+                for (let col = 0; col < lines[row].length; col++) {
+                    const char = lines[row][col];
+                    const cell = grid[row][col];
+                    
+                    if (char === '#') {
+                        cell.isBlack = true;
+                        cell.element.classList.add('black');
+                        cell.input.value = '';
+                    } else if (char === '-') {
+                        cell.isBlack = false;
+                        cell.element.classList.remove('black');
+                        cell.input.value = '';
+                    } else if (/[A-Za-z]/.test(char)) {
+                        cell.isBlack = false;
+                        cell.element.classList.remove('black');
+                        cell.input.value = char.toUpperCase();
+                        cell.value = char.toUpperCase();
+                    }
+                }
+            }
+            
+            closeModal('importModal');
+            
+            // Select first non-black cell
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (!grid[row][col].isBlack) {
+                        selectCell(row, col);
+                        updateStats();
+                        return;
+                    }
+                }
+            }
+            
+            updateStats();
+        }
+        
+        function showClearConfirm() {
+            document.getElementById('clearModal').classList.add('active');
+        }
+        
+        function clearGridNoConfirm() {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    grid[row][col].input.value = '';
+                    grid[row][col].value = '';
+                    grid[row][col].isBlack = false;
+                    grid[row][col].element.classList.remove('black');
+                }
+            }
+            
+            currentCell = null;
+            clearHighlights();
+        }
+        
+        function clearGrid() {
+            clearGridNoConfirm();
+            closeModal('clearModal');
+            selectCell(0, 0);
+            updateStats();
+        }
+        
+        function closeModal(modalId) {
+            if (modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            } else {
+                // Close all modals
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        }
+        
+        function copyToClipboard() {
+            const textarea = document.getElementById('exportTextarea');
+            textarea.select();
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                alert('Grid layout copied to clipboard!');
+                closeModal('exportModal');
+            });
+        }
+        
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal(this.id);
+                }
+            });
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Select first cell on load
+        selectCell(0, 0);
+        updateStats();
+    </script>
+</body>
+</html>

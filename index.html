@@ -196,9 +196,114 @@
         margin-top: 5px;
       }
 
+      /* ── TOOLS SECTION ── */
+      .tools-section {
+        padding: 48px 56px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+      }
+
+      .tool-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 32px 28px;
+        background: var(--surface);
+        text-decoration: none;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+        cursor: pointer;
+      }
+
+      .tool-card:hover {
+        background: var(--surface2);
+      }
+
+      .tool-card:hover .tool-arrow {
+        transform: translateX(4px);
+        color: var(--lime);
+      }
+
+      .tool-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(39, 141, 193, 0.1);
+        border: 1px solid rgba(39, 141, 193, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--lime);
+        flex-shrink: 0;
+      }
+
+      .tool-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .tool-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 6px;
+      }
+
+      .tool-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .tool-arrow {
+        font-size: 20px;
+        color: var(--muted);
+        transition:
+          transform 0.15s,
+          color 0.15s;
+        flex-shrink: 0;
+      }
+
+      .tool-card-with-thumb {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+      }
+
+      .tool-thumb {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .tool-card-with-thumb .tool-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+      }
+
+      .tool-card-with-thumb .tool-info {
+        flex: 1;
+      }
+
+      .tool-card-with-thumb .tool-arrow {
+        flex-shrink: 0;
+      }
+
       /* ── GAMES ── */
       .games-section {
-        padding: 56px;
+        padding: 48px 56px;
       }
 
       .section-header {
@@ -234,74 +339,137 @@
         letter-spacing: 0.08em;
       }
 
-      /* ── GRID ── */
+      /* ── GAMES GRID ── */
       .games-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 2px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
       }
 
       .game-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        cursor: pointer;
-        transition:
-          background 0.18s,
-          border-color 0.18s;
-        position: relative;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
-      }
-
-      .game-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--lime);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.22s ease;
+        padding: 24px;
+        background: var(--surface);
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
       }
 
       .game-card:hover {
         background: var(--surface2);
-        border-color: rgba(39, 141, 193, 0.2);
       }
 
-      .game-card:hover::before {
-        transform: scaleX(1);
+      .game-card:hover .play-btn {
+        background: var(--lime);
+        color: #ffffff;
+        border-color: var(--lime);
       }
 
-      .game-card-header {
-        padding: 28px 28px 18px;
-        position: relative;
+      .game-card:hover .play-btn .arrow {
+        transform: translateX(3px);
+      }
+
+      /* Hover Popup */
+      .game-card:hover .game-popup {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .game-popup {
+        position: absolute;
+        top: 100%;
+        left: 12px;
+        right: 12px;
+        background: var(--surface2);
+        border: 1px solid rgba(39, 141, 193, 0.3);
+        border-radius: 8px;
+        padding: 16px 20px;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: all 0.2s ease;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        margin-top: 4px;
+      }
+
+      .game-popup::before {
+        content: "";
+        position: absolute;
+        top: -6px;
+        left: 24px;
+        width: 12px;
+        height: 12px;
+        background: var(--surface2);
+        border-left: 1px solid rgba(39, 141, 193, 0.3);
+        border-top: 1px solid rgba(39, 141, 193, 0.3);
+        transform: rotate(45deg);
+      }
+
+      .popup-title {
+        display: none;
+      }
+
+      .popup-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+        margin-bottom: 12px;
+      }
+
+      .popup-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .popup-pill {
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        color: var(--lime);
+        background: rgba(39, 141, 193, 0.1);
+        padding: 4px 10px;
+        border-radius: 100px;
+        border: 1px solid rgba(39, 141, 193, 0.2);
       }
 
       .game-card-number {
+        font-family: "Space Mono", monospace;
+        font-size: 42px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.06);
         position: absolute;
-        top: 18px;
-        right: 20px;
-        font-size: 52px;
-        font-weight: 900;
-        color: rgba(255, 255, 255, 0.04);
+        top: 12px;
+        right: 16px;
         line-height: 1;
-        letter-spacing: -0.04em;
-        pointer-events: none;
+      }
+
+      .game-card-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .game-card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.3;
       }
 
       .game-card-tag {
         font-family: "Space Mono", monospace;
         font-size: 9px;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         padding: 4px 10px;
         border-radius: 100px;
-        margin-bottom: 14px;
-        display: inline-block;
       }
 
       .tag-lime {
@@ -315,88 +483,37 @@
         border: 1px solid var(--border);
       }
 
-      .game-card-title {
-        font-size: 21px;
-        font-weight: 800;
-        line-height: 1.2;
-        color: var(--white);
-        letter-spacing: -0.02em;
-        margin-bottom: 7px;
-      }
-
       .game-card-author {
         font-family: "Space Mono", monospace;
         font-size: 10px;
         color: var(--muted);
-        letter-spacing: 0.06em;
-      }
-
-      .game-card-body {
-        padding: 0 28px 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
-
-      .game-card-desc {
-        font-size: 13px;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-
-      .game-card-meta {
-        display: flex;
-        gap: 7px;
-        flex-wrap: wrap;
-      }
-
-      .meta-pill {
-        font-family: "Space Mono", monospace;
-        font-size: 9px;
-        color: var(--muted);
-        background: rgba(255, 255, 255, 0.04);
-        padding: 4px 9px;
-        border-radius: 100px;
-        letter-spacing: 0.05em;
-        border: 1px solid var(--border);
+        margin-top: auto;
+        margin-bottom: 16px;
       }
 
       .play-btn {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        width: calc(100% - 56px);
-        margin: 4px 28px 28px;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
         background: transparent;
         color: var(--lime);
         border: 1px solid rgba(39, 141, 193, 0.28);
-        padding: 13px 18px;
+        padding: 10px 14px;
         font-family: "Space Mono", monospace;
-        font-size: 11px;
-        letter-spacing: 0.12em;
+        font-size: 10px;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         cursor: pointer;
         border-radius: 4px;
-        transition:
-          background 0.15s,
-          border-color 0.15s,
-          color 0.15s;
-      }
-
-      .game-card:hover .play-btn {
-        background: var(--lime);
-        color: #ffffff;
-        border-color: var(--lime);
+        transition: all 0.15s;
+        margin-top: auto;
       }
 
       .play-btn .arrow {
-        font-size: 15px;
+        font-size: 12px;
         transition: transform 0.15s;
-      }
-
-      .game-card:hover .play-btn .arrow {
-        transform: translateX(4px);
       }
 
       /* ── FOOTER ── */
@@ -529,6 +646,15 @@
       }
 
       /* ── RESPONSIVE ── */
+      @media (max-width: 1100px) {
+        .tools-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .games-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
       @media (max-width: 768px) {
         .hub-header {
           padding: 0 24px;
@@ -550,8 +676,23 @@
         .stat-row:last-child {
           border-radius: 0 8px 8px 0;
         }
+        .tools-section {
+          padding: 32px 24px;
+        }
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+        .tool-desc {
+          display: none;
+        }
+        .tool-thumb {
+          height: 100px;
+        }
         .games-section {
           padding: 32px 24px;
+        }
+        .games-grid {
+          grid-template-columns: 1fr;
         }
         .hub-footer {
           padding: 20px 24px;
@@ -559,9 +700,8 @@
           gap: 8px;
           text-align: center;
         }
-        .games-grid {
-          grid-template-columns: 1fr;
-          gap: 1px;
+        .game-popup {
+          display: none;
         }
         .hero-title {
           font-size: 48px;
@@ -607,282 +747,362 @@
         </div>
       </section>
 
+      <!-- LAYOUT & TOOLING SECTION -->
+      <section class="tools-section">
+        <div class="section-header">
+          <div class="section-eyebrow">Layout & Tooling</div>
+          <div class="section-count">4 resources</div>
+        </div>
+
+        <div class="tools-grid">
+          <a
+            href="crossword-builder-2.html"
+            class="tool-card tool-card-with-thumb"
+          >
+            <img
+              src="header-images/crosswordthumbnail.png"
+              alt="Crossword Constructor"
+              class="tool-thumb"
+            />
+            <div class="tool-content">
+              <div class="tool-info">
+                <h3 class="tool-title">Crossword Constructor</h3>
+                <p class="tool-desc">
+                  25x25 grid builder with import/export and shift controls
+                </p>
+              </div>
+              <span class="tool-arrow">→</span>
+            </div>
+          </a>
+
+          <a
+            href="game-center-dr-christman-2-6.html"
+            class="tool-card tool-card-with-thumb"
+          >
+            <img
+              src="header-images/gamecenterthumbnail.png"
+              alt="Pawzzles Game Center"
+              class="tool-thumb"
+            />
+            <div class="tool-content">
+              <div class="tool-info">
+                <h3 class="tool-title">Design/Interactivity Mockup</h3>
+                <p class="tool-desc">
+                  Dr. Christman's themed game hub with multiple puzzle types
+                </p>
+              </div>
+              <span class="tool-arrow">→</span>
+            </div>
+          </a>
+
+          <a
+            href="element-games-wireframe 1.html"
+            class="tool-card tool-card-with-thumb"
+          >
+            <img
+              src="header-images/wireframethumbnail.png"
+              alt="Element Games Wireframe"
+              class="tool-thumb"
+            />
+            <div class="tool-content">
+              <div class="tool-info">
+                <h3 class="tool-title">Element Games Wireframe</h3>
+                <p class="tool-desc">
+                  Monochrome wireframe for veterinary education platform
+                </p>
+              </div>
+              <span class="tool-arrow">→</span>
+            </div>
+          </a>
+
+          <a href="workbench/" class="tool-card tool-card-with-thumb">
+            <img
+              src="header-images/workbenchthumbnail.png"
+              alt="Workbench"
+              class="tool-thumb"
+            />
+            <div class="tool-content">
+              <div class="tool-info">
+                <h3 class="tool-title">Widget Workbench</h3>
+                <p class="tool-desc">
+                  Development tools and experimental components
+                </p>
+              </div>
+              <span class="tool-arrow">→</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- GAMES SECTION -->
       <main class="games-section">
         <div class="section-header">
-          <div class="section-eyebrow">Browse all games</div>
-          <div class="section-count">11 games available</div>
+          <div class="section-eyebrow">Games</div>
+          <div class="section-count">11 available</div>
         </div>
 
         <div class="games-grid">
           <div class="game-card" onclick="openGame('alex')">
-            <div class="game-card-header">
-              <div class="game-card-number">01</div>
-              <span class="game-card-tag tag-lime">Diagnosis · Quiz</span>
+            <div class="game-card-number">01</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Diagnosis</span>
               <h2 class="game-card-title">Diagnosis Detective</h2>
-              <p class="game-card-author">By Alex's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Alex's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Solve veterinary cases using patient history, symptoms, and lab
                 results. Each case reveals clues progressively — diagnose before
                 time runs out.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🔍 Case-Based</span>
-                <span class="meta-pill">Timed</span>
-                <span class="meta-pill">Scoring</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Case-Based</span>
+                <span class="popup-pill">Timed</span>
+                <span class="popup-pill">Scoring</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('brad')">
-            <div class="game-card-header">
-              <div class="game-card-number">02</div>
-              <span class="game-card-tag tag-white"
-                >Trivia · Animal Health</span
-              >
+            <div class="game-card-number">02</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-white">Trivia</span>
               <h2 class="game-card-title">Animal Health Pro</h2>
-              <p class="game-card-author">By Brad's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Brad's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Multiple-choice veterinary trivia across species, pharmacology,
                 anatomy, and clinical practice. Progressive difficulty with
                 educational feedback.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">📋 Multiple Choice</span>
-                <span class="meta-pill">Multi-Species</span>
-                <span class="meta-pill">Leaderboard</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Multiple Choice</span>
+                <span class="popup-pill">Multi-Species</span>
+                <span class="popup-pill">Leaderboard</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('cody')">
-            <div class="game-card-header">
-              <div class="game-card-number">03</div>
-              <span class="game-card-tag tag-lime">Word Guess · Cyberpunk</span>
+            <div class="game-card-number">03</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Word Guess</span>
               <h2 class="game-card-title">ClueChaser</h2>
-              <p class="game-card-author">By Cody's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Cody's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Cyberpunk-themed veterinary word guessing. Clues reveal
                 progressively every 10 seconds — the faster you guess, the
                 higher your score.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">⚡ Timed Clues</span>
-                <span class="meta-pill">5 Cases</span>
-                <span class="meta-pill">Score Attack</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Timed Clues</span>
+                <span class="popup-pill">5 Cases</span>
+                <span class="popup-pill">Score Attack</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('david')">
-            <div class="game-card-header">
-              <div class="game-card-number">04</div>
-              <span class="game-card-tag tag-white"
-                >Word · Wheel of Fortune</span
-              >
+            <div class="game-card-number">04</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-white">Word</span>
               <h2 class="game-card-title">Vet Wheel</h2>
-              <p class="game-card-author">By David's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">David's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Wheel of Fortune format with cancer diagnosis terms. Guess
                 letters, use hints, and earn early-solve bonuses. Persistent
                 leaderboard tracks top scores.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🎡 Letter Guess</span>
-                <span class="meta-pill">Cancer Terms</span>
-                <span class="meta-pill">Leaderboard</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Letter Guess</span>
+                <span class="popup-pill">Cancer Terms</span>
+                <span class="popup-pill">Leaderboard</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('steve')">
-            <div class="game-card-header">
-              <div class="game-card-number">05</div>
-              <span class="game-card-tag tag-lime">Word Guess · Tiers</span>
+            <div class="game-card-number">05</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Word Guess</span>
               <h2 class="game-card-title">Medical Word Game</h2>
-              <p class="game-card-author">By Steve's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Steve's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Three difficulty tiers with progressive hints and detailed
                 medical info after each answer. Full-word guessing earns massive
                 early-solve bonuses.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🎓 3 Difficulties</span>
-                <span class="meta-pill">5 Hints/Word</span>
-                <span class="meta-pill">Medical Info</span>
+              <div class="popup-meta">
+                <span class="popup-pill">3 Difficulties</span>
+                <span class="popup-pill">5 Hints/Word</span>
+                <span class="popup-pill">Medical Info</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('parker-wordsearch')">
-            <div class="game-card-header">
-              <div class="game-card-number">06</div>
-              <span class="game-card-tag tag-white"
-                >Word Search · Multi-Theme</span
-              >
+            <div class="game-card-number">06</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-white">Word Search</span>
               <h2 class="game-card-title">Word Search Quiz</h2>
-              <p class="game-card-author">By Parker's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Parker's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Find hidden answers in a letter grid. 4 visual themes, timed
                 gameplay, achievements, leaderboards, and a built-in quiz
                 creator to make your own.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🔍 Word Grid</span>
-                <span class="meta-pill">4 Themes</span>
-                <span class="meta-pill">Achievements</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Word Grid</span>
+                <span class="popup-pill">4 Themes</span>
+                <span class="popup-pill">Achievements</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('parker-chain')">
-            <div class="game-card-header">
-              <div class="game-card-number">07</div>
-              <span class="game-card-tag tag-lime">Trivia · Progressive</span>
+            <div class="game-card-number">07</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Trivia</span>
               <h2 class="game-card-title">Chain Reaction</h2>
-              <p class="game-card-author">By Parker's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
-                Each correct answer unlocks the next challenge. Health-themed
-                trivia with escalating difficulty — how far can you go?
-              </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">⛓️ Chain Format</span>
-                <span class="meta-pill">Health Ed</span>
-                <span class="meta-pill">Progressive</span>
-              </div>
-            </div>
+            <span class="game-card-author">Parker's Team</span>
             <button class="play-btn">
               <span>Play Game</span><span class="arrow">→</span>
             </button>
+            <div class="game-popup">
+              <p class="popup-desc">
+                Each correct answer unlocks the next challenge. Health-themed
+                trivia with escalating difficulty — how far can you go?
+              </p>
+              <div class="popup-meta">
+                <span class="popup-pill">Chain Format</span>
+                <span class="popup-pill">Health Ed</span>
+                <span class="popup-pill">Progressive</span>
+              </div>
+            </div>
           </div>
 
           <div class="game-card" onclick="openGame('harun-cryptogram')">
-            <div class="game-card-header">
-              <div class="game-card-number">08</div>
-              <span class="game-card-tag tag-white">Puzzle · Cipher</span>
+            <div class="game-card-number">08</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-white">Puzzle</span>
               <h2 class="game-card-title">Veterinary Cryptogram</h2>
-              <p class="game-card-author">By Harun's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Harun's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Decode encrypted veterinary terms and phrases. Each letter is
                 substituted — crack the cipher to reveal the hidden medical
                 message.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🔐 Cipher</span>
-                <span class="meta-pill">Vet Terms</span>
-                <span class="meta-pill">Puzzle</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Cipher</span>
+                <span class="popup-pill">Vet Terms</span>
+                <span class="popup-pill">Puzzle</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('harun-vetguess')">
-            <div class="game-card-header">
-              <div class="game-card-number">09</div>
-              <span class="game-card-tag tag-lime">Daily · Brain Training</span>
+            <div class="game-card-number">09</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Daily</span>
               <h2 class="game-card-title">VetGames</h2>
-              <p class="game-card-author">By Harun's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Harun's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Daily veterinary brain training with multiple mini-game modes.
                 Bite-sized challenges to keep your clinical knowledge sharp
                 every day.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🧠 Daily</span>
-                <span class="meta-pill">Multi-Mode</span>
-                <span class="meta-pill">Brain Training</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Daily</span>
+                <span class="popup-pill">Multi-Mode</span>
+                <span class="popup-pill">Brain Training</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('harun-predisposed')">
-            <div class="game-card-header">
-              <div class="game-card-number">10</div>
-              <span class="game-card-tag tag-white">Drag & Drop · Breeds</span>
+            <div class="game-card-number">10</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-white">Drag & Drop</span>
               <h2 class="game-card-title">Predisposed</h2>
-              <p class="game-card-author">By Harun's Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">Harun's Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Two mystery breeds — guess their names for bonus points, then
                 drag each malady to the more predisposed breed. 5 rounds, timed,
                 scored on accuracy and speed.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🧬 Breed vs Breed</span>
-                <span class="meta-pill">Drag & Drop</span>
-                <span class="meta-pill">5 Rounds</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Breed vs Breed</span>
+                <span class="popup-pill">Drag & Drop</span>
+                <span class="popup-pill">5 Rounds</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
 
           <div class="game-card" onclick="openGame('Diagnosis Detective 2.0')">
-            <div class="game-card-header">
-              <div class="game-card-number">11</div>
-              <span class="game-card-tag tag-lime"
-                >Diagnosis · Interactive</span
-              >
+            <div class="game-card-number">11</div>
+            <div class="game-card-info">
+              <span class="game-card-tag tag-lime">Interactive</span>
               <h2 class="game-card-title">Diagnosis Detective 2.0</h2>
-              <p class="game-card-author">By VetArcade Team</p>
             </div>
-            <div class="game-card-body">
-              <p class="game-card-desc">
+            <span class="game-card-author">VetArcade Team</span>
+            <button class="play-btn">
+              <span>Play Game</span><span class="arrow">→</span>
+            </button>
+            <div class="game-popup">
+              <p class="popup-desc">
                 Experience a vivid veterinary clinic. Examine patients, discover
                 clues in the environment, and solve realistic diagnostic cases
                 with branching decision trees.
               </p>
-              <div class="game-card-meta">
-                <span class="meta-pill">🏥 Interactive Environment</span>
-                <span class="meta-pill">Case-Solving</span>
-                <span class="meta-pill">16-Bit Style</span>
+              <div class="popup-meta">
+                <span class="popup-pill">Interactive Environment</span>
+                <span class="popup-pill">Case-Solving</span>
+                <span class="popup-pill">16-Bit Style</span>
               </div>
             </div>
-            <button class="play-btn">
-              <span>Play Game</span><span class="arrow">→</span>
-            </button>
           </div>
         </div>
       </main>

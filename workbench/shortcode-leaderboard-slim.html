@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [element_leaderboard_slim]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   WORKBENCH CHROME — never touches shortcode output
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --wb-bg:        #0f1117;
+  --wb-surface:   #1a1d27;
+  --wb-border:    #2a2d3a;
+  --wb-accent:    #0FA3B1;
+  --wb-orange:    #F77F00;
+  --wb-text:      #e2e4ed;
+  --wb-muted:     #6b7280;
+  --wb-label:     #9ca3af;
+  --wb-panel-w:   300px;
+  --wb-mono:      'IBM Plex Mono', monospace;
+  --wb-sans:      'Poppins', sans-serif;
+}
+
+body {
+  font-family: var(--wb-sans);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Top bar ── */
+.wb-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  height: 48px;
+  background: var(--wb-surface);
+  border-bottom: 1px solid var(--wb-border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.wb-topbar-title {
+  font-family: var(--wb-mono);
+  font-size: .75rem;
+  color: var(--wb-accent);
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.wb-topbar-shortcode {
+  font-family: var(--wb-mono);
+  font-size: .7rem;
+  color: var(--wb-muted);
+  background: rgba(255,255,255,.05);
+  padding: .2rem .6rem;
+  border-radius: 4px;
+  border: 1px solid var(--wb-border);
+}
+.wb-topbar-spacer { flex: 1; }
+.wb-topbar-badge {
+  font-family: var(--wb-mono);
+  font-size: .65rem;
+  color: var(--wb-muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* ── Main layout ── */
+.wb-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Left control panel ── */
+.wb-panel {
+  width: var(--wb-panel-w);
+  background: var(--wb-surface);
+  border-right: 1px solid var(--wb-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.wb-panel-section {
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--wb-border);
+}
+.wb-panel-section:last-child { border-bottom: none; }
+
+.wb-section-label {
+  font-family: var(--wb-mono);
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--wb-muted);
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.wb-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--wb-border);
+}
+
+.wb-field { margin-bottom: .875rem; }
+.wb-field:last-child { margin-bottom: 0; }
+
+.wb-field-label {
+  font-size: .7rem;
+  color: var(--wb-label);
+  margin-bottom: .35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.wb-field-value {
+  font-family: var(--wb-mono);
+  font-size: .65rem;
+  color: var(--wb-accent);
+}
+
+/* Segmented control */
+.wb-seg {
+  display: flex;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--wb-border);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 3px;
+}
+.wb-seg-btn {
+  flex: 1;
+  padding: .3rem .4rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--wb-muted);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--wb-sans);
+  white-space: nowrap;
+}
+.wb-seg-btn:hover { color: var(--wb-text); background: rgba(255,255,255,.06); }
+.wb-seg-btn.active {
+  background: var(--wb-accent);
+  color: #fff;
+}
+
+/* Toggle */
+.wb-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wb-toggle-label { font-size: .72rem; color: var(--wb-label); }
+.wb-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+}
+.wb-toggle input { opacity: 0; width: 0; height: 0; }
+.wb-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  border: 1px solid var(--wb-border);
+}
+.wb-toggle input:checked + .wb-toggle-track { background: var(--wb-accent); border-color: var(--wb-accent); }
+.wb-toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  transition: left .2s;
+}
+.wb-toggle input:checked + .wb-toggle-track::after { left: 19px; }
+
+/* Range slider */
+.wb-range {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wb-border);
+  outline: none;
+  cursor: pointer;
+}
+.wb-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--wb-accent);
+  cursor: pointer;
+  transition: transform .15s;
+}
+.wb-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* Width presets */
+.wb-width-presets {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+.wb-width-btn {
+  padding: .25rem .5rem;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--wb-border);
+  border-radius: 4px;
+  font-size: .65rem;
+  font-family: var(--wb-mono);
+  color: var(--wb-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.wb-width-btn:hover { color: var(--wb-text); border-color: var(--wb-accent); }
+.wb-width-btn.active { color: var(--wb-accent); border-color: var(--wb-accent); background: rgba(15,163,177,.1); }
+
+/* Data editor textarea */
+.wb-textarea {
+  width: 100%;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--wb-border);
+  border-radius: 6px;
+  color: var(--wb-text);
+  font-family: var(--wb-mono);
+  font-size: .62rem;
+  line-height: 1.6;
+  padding: .6rem;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: border-color .2s;
+}
+.wb-textarea:focus { border-color: var(--wb-accent); }
+
+.wb-apply-btn {
+  width: 100%;
+  margin-top: .5rem;
+  padding: .4rem;
+  background: rgba(15,163,177,.15);
+  border: 1px solid var(--wb-accent);
+  border-radius: 6px;
+  color: var(--wb-accent);
+  font-size: .7rem;
+  font-family: var(--wb-mono);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .04em;
+}
+.wb-apply-btn:hover { background: rgba(15,163,177,.25); }
+
+/* ── Preview area ── */
+.wb-preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(15,163,177,.06) 0%, transparent 60%),
+    repeating-linear-gradient(
+      0deg, transparent, transparent 24px,
+      rgba(255,255,255,.015) 24px, rgba(255,255,255,.015) 25px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 24px,
+      rgba(255,255,255,.015) 24px, rgba(255,255,255,.015) 25px
+    );
+}
+
+.wb-viewport {
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+
+.wb-viewport-label {
+  font-family: var(--wb-mono);
+  font-size: .6rem;
+  color: var(--wb-muted);
+  text-align: center;
+  margin-bottom: .5rem;
+  letter-spacing: .06em;
+}
+
+.wb-viewport-frame {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08),
+    0 20px 60px rgba(0,0,0,.5);
+  padding: 1.25rem;
+}
+
+/* ── Shortcode param badge bar ── */
+.wb-params-bar {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  justify-content: center;
+}
+.wb-param-badge {
+  font-family: var(--wb-mono);
+  font-size: .6rem;
+  padding: .2rem .5rem;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--wb-border);
+  border-radius: 4px;
+  color: var(--wb-muted);
+}
+.wb-param-badge span { color: var(--wb-accent); }
+
+/* ============================================================
+   TEMPLATE BLOCK — this is what ships to PHP
+   Designers work inside here. Everything above is workbench only.
+   ============================================================ */
+
+/* Shortcode scoped styles */
+.els-wrap {
+  --els-teal:      #0FA3B1;
+  --els-orange:    #F77F00;
+  --els-purple:    #9B4DCA;
+  --els-navy:      #1A202C;
+  --els-gray-50:   #F9FAFB;
+  --els-gray-100:  #F3F4F6;
+  --els-gray-200:  #E5E7EB;
+  --els-gray-300:  #D1D5DB;
+  --els-gray-400:  #9CA3AF;
+  --els-gray-500:  #6B7280;
+  --els-gray-600:  #4B5563;
+  --els-gray-800:  #1F2937;
+  --els-white:     #FFFFFF;
+  --els-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / .05);
+  --els-shadow-md: 0 4px 6px -1px rgb(0 0 0 / .1);
+
+  background: var(--els-white);
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid var(--eg-color-border, #e9ecef);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--els-navy);
+  line-height: 1.6;
+}
+
+.els-header {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  margin-bottom: 1rem;
+  padding-bottom: .75rem;
+  border-bottom: 2px solid var(--els-gray-100);
+}
+.els-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--els-teal), var(--els-purple));
+  border-radius: .625rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.125rem; color: var(--els-white); flex-shrink: 0;
+}
+.els-title {
+  font-size: 1rem; font-weight: 700; color: var(--els-navy);
+  flex: 1; margin: 0;
+}
+.els-period-toggle {
+  display: flex; gap: .25rem;
+  background: var(--els-gray-100);
+  padding: .25rem; border-radius: .375rem;
+}
+.els-period-btn {
+  padding: .25rem .625rem; background: transparent; border: none;
+  border-radius: .25rem; font-size: .7rem; font-weight: 600;
+  color: var(--els-gray-600); cursor: pointer; transition: all .2s;
+  font-family: inherit; text-transform: uppercase; letter-spacing: .03em;
+}
+.els-period-btn:hover { background: rgba(255,255,255,.5); }
+.els-period-btn.active { background: var(--els-white); color: var(--els-teal); box-shadow: var(--els-shadow-sm); }
+
+.els-tab { display: none; }
+.els-tab.active { display: block; }
+.els-subtab { display: none; }
+.els-subtab.active { display: block; }
+
+.els-subtab-bar {
+  display: flex; gap: .375rem; margin-bottom: 1rem;
+  background: var(--els-gray-100); padding: .25rem; border-radius: .5rem;
+}
+.els-subtab-btn {
+  flex: 1; padding: .4rem .625rem; background: transparent; border: none;
+  border-radius: .375rem; font-size: .75rem; font-weight: 600;
+  color: var(--els-gray-600); cursor: pointer; transition: all .2s; font-family: inherit;
+}
+.els-subtab-btn.active { background: var(--els-white); color: var(--els-orange); box-shadow: var(--els-shadow-sm); }
+
+.els-my-score { display: flex; justify-content: center; margin-bottom: .75rem; }
+.els-score-card {
+  width: 130px; height: 84px;
+  background: linear-gradient(135deg, var(--els-teal), var(--els-purple));
+  border-radius: 1rem; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: .125rem;
+  box-shadow: 0 4px 12px rgba(15,163,177,.3); position: relative;
+}
+.els-score-card::before {
+  content: ''; position: absolute; inset: 3px;
+  background: var(--els-white); border-radius: .85rem; z-index: 0;
+}
+.els-score-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: var(--els-teal); position: relative; z-index: 1; }
+.els-score-value { font-size: 1.5rem; font-weight: 700; color: var(--els-navy); line-height: 1; position: relative; z-index: 1; }
+.els-score-rank { font-size: .7rem; font-weight: 600; color: var(--els-gray-600); position: relative; z-index: 1; }
+
+.els-list { display: flex; flex-direction: column; gap: .5rem; }
+.els-item {
+  display: flex; align-items: center; gap: .625rem;
+  padding: .625rem; background: var(--els-gray-50);
+  border-radius: .625rem; transition: all .2s;
+}
+.els-item:hover { background: var(--els-gray-100); transform: translateX(4px); }
+.els-rank {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .8rem; color: var(--els-white);
+  flex-shrink: 0; background: var(--els-gray-400);
+}
+.els-item:nth-child(1) .els-rank { background: linear-gradient(135deg,#FFD700,#FFA500); box-shadow: 0 2px 8px rgba(255,215,0,.4); }
+.els-item:nth-child(2) .els-rank { background: linear-gradient(135deg,#C0C0C0,#A0A0A0); }
+.els-item:nth-child(3) .els-rank { background: linear-gradient(135deg,#CD7F32,#B8732D); }
+
+.els-player-info { flex: 1; min-width: 0; }
+.els-player-name { font-weight: 600; color: var(--els-navy); font-size: .875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.els-player-sub { font-size: .7rem; color: var(--els-gray-600); }
+.els-points { font-weight: 700; color: var(--els-teal); font-size: .9rem; white-space: nowrap; }
+
+.els-item.clinic .els-player-name::before { content: '🏥'; margin-right: .375rem; }
+
+.els-footer { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--els-gray-200); text-align: center; }
+.els-view-all { color: var(--els-gray-600); text-decoration: none; font-size: .8rem; font-weight: 500; transition: color .2s; }
+.els-view-all:hover { color: var(--els-teal); }
+
+/* Auth gate */
+.els-auth-gate { text-align: center; padding: 1.25rem .5rem; }
+.els-auth-trophy { font-size: 2.5rem; margin-bottom: .625rem; display: block; filter: drop-shadow(0 2px 4px rgba(15,163,177,.25)); }
+.els-auth-heading { font-size: 1rem; font-weight: 700; color: var(--els-navy); margin: 0 0 .375rem 0; }
+.els-auth-copy { font-size: .82rem; color: var(--els-gray-600); line-height: 1.5; margin: 0 0 1rem 0; }
+.els-auth-actions { display: flex; flex-direction: column; gap: .5rem; }
+.els-btn-primary {
+  display: block; padding: .625rem 1.25rem;
+  background: linear-gradient(135deg, var(--els-teal), var(--els-purple));
+  color: var(--els-white); text-decoration: none; border-radius: .5rem;
+  font-weight: 700; font-size: .875rem; transition: all .2s; text-align: center;
+  box-shadow: 0 2px 8px rgba(15,163,177,.25);
+}
+.els-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(15,163,177,.35); color: var(--els-white); }
+.els-btn-secondary {
+  display: block; padding: .625rem 1.25rem; background: var(--els-white);
+  color: var(--els-teal); text-decoration: none; border-radius: .5rem;
+  font-weight: 600; font-size: .875rem; border: 1.5px solid var(--els-teal); transition: all .2s; text-align: center;
+}
+.els-btn-secondary:hover { background: var(--els-teal); color: var(--els-white); transform: translateY(-2px); }
+.els-auth-divider { display: flex; align-items: center; gap: .5rem; color: var(--els-gray-400); font-size: .75rem; }
+.els-auth-divider::before, .els-auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--els-gray-200); }
+
+.els-preview { margin-top: .875rem; position: relative; }
+.els-preview-list { display: flex; flex-direction: column; gap: .4rem; }
+.els-preview-item {
+  display: flex; align-items: center; gap: .5rem; padding: .5rem;
+  background: var(--els-gray-50); border-radius: .5rem;
+  filter: blur(2.5px); pointer-events: none; user-select: none;
+}
+.els-preview-fade {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--els-white));
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     WORKBENCH CHROME
+══════════════════════════════════════════════ -->
+<div class="wb-topbar">
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[element_leaderboard_slim]</span>
+  <div class="wb-topbar-spacer"></div>
+  <span class="wb-topbar-badge">Designer Preview</span>
+</div>
+
+<div class="wb-body">
+
+  <!-- ── Control Panel ── -->
+  <div class="wb-panel">
+
+    <!-- VIEWPORT -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span class="wb-field-value" id="vp-label">360px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="280" max="800" value="360" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn active" data-width="360">360</button>
+        <button class="wb-width-btn" data-width="480">480</button>
+        <button class="wb-width-btn" data-width="600">600</button>
+        <button class="wb-width-btn" data-width="768">768</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+
+    <!-- DESIGN PARAMS -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+
+      <div class="wb-field">
+        <div class="wb-toggle-row">
+          <span class="wb-toggle-label">Logged In State</span>
+          <label class="wb-toggle">
+            <input type="checkbox" id="ctrl-loggedin" checked>
+            <div class="wb-toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="wb-field" id="field-defaulttab">
+        <div class="wb-field-label">Default Tab</div>
+        <div class="wb-seg">
+          <button class="wb-seg-btn active" data-param="default_tab" data-val="month">Month</button>
+          <button class="wb-seg-btn" data-param="default_tab" data-val="year">Year</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA PARAMS (read-only info) -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Data Params</div>
+      <div style="font-size:.65rem; color: var(--wb-muted); line-height:1.7; font-family: var(--wb-mono);">
+        login_url<br>
+        register_url<br>
+        leaderboard_url<br>
+        <span style="color:var(--wb-border); font-size:.6rem;">— PHP / data layer only —</span>
+      </div>
+    </div>
+
+    <!-- SAMPLE DATA -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Data</div>
+      <textarea class="wb-textarea" id="sample-data" spellcheck="false">{
+  "myScore": { "value": "2,847", "rank": "#12 of 1,247" },
+  "myScoreMonth": { "value": "325", "rank": "#18 of 423" },
+  "leaderboard_url": "/leaderboard/",
+  "login_url": "/login/",
+  "register_url": "/register/",
+  "year": [
+    { "name": "Dr. Sarah Chen", "sub": "148 games", "pts": "15,240" },
+    { "name": "Dr. James Mitchell", "sub": "142 games", "pts": "14,890" },
+    { "name": "Dr. Emily Park", "sub": "135 games", "pts": "13,725" }
+  ],
+  "individuals": [
+    { "name": "Dr. Sarah Chen", "sub": "12 games", "pts": "1,245" },
+    { "name": "Dr. James Mitchell", "sub": "10 games", "pts": "1,180" },
+    { "name": "Dr. Emily Park", "sub": "11 games", "pts": "1,095" },
+    { "name": "Dr. Michael Torres", "sub": "8 games", "pts": "890" },
+    { "name": "Dr. Lisa Anderson", "sub": "9 games", "pts": "875" }
+  ],
+  "clinics": [
+    { "name": "VCA Animal Hospital", "sub": "45 active", "pts": "8,920" },
+    { "name": "BluePearl Pet Hospital", "sub": "38 active", "pts": "7,540" },
+    { "name": "Banfield Pet Hospital", "sub": "52 active", "pts": "6,890" },
+    { "name": "Animal Medical Center", "sub": "31 active", "pts": "5,230" },
+    { "name": "Veterinary Specialists", "sub": "27 active", "pts": "4,675" }
+  ]
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+
+  </div><!-- /.wb-panel -->
+
+  <!-- ── Preview Area ── -->
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">360px</div>
+      <div class="wb-viewport-frame">
+
+        <!-- ══════════════════════════════════════════════
+             TEMPLATE BLOCK START
+             Designers own everything inside here.
+             Workbench JS reads #shortcode-output to render.
+        ══════════════════════════════════════════════ -->
+        <div id="shortcode-output" class="els-wrap">
+
+          <!-- Header -->
+          <div class="els-header">
+            <div class="els-icon">🏆</div>
+            <h3 class="els-title">Leaderboard</h3>
+            <div class="els-period-toggle" id="period-toggle">
+              <button class="els-period-btn" data-tab="tab-year">Year</button>
+              <button class="els-period-btn active" data-tab="tab-month">Month</button>
+            </div>
+          </div>
+
+          <!-- LOGGED IN STATE -->
+          <div id="state-loggedin">
+
+            <!-- Year tab -->
+            <div class="els-tab" id="tab-year">
+              <div class="els-my-score">
+                <div class="els-score-card">
+                  <div class="els-score-label">My Score</div>
+                  <div class="els-score-value" data-bind="myScore.value">2,847</div>
+                  <div class="els-score-rank" data-bind="myScore.rank">#12 of 1,247</div>
+                </div>
+              </div>
+              <div class="els-list" id="list-year"></div>
+            </div>
+
+            <!-- Month tab -->
+            <div class="els-tab active" id="tab-month">
+              <div class="els-subtab-bar">
+                <button class="els-subtab-btn active" data-subtab="subtab-individuals">Individuals</button>
+                <button class="els-subtab-btn" data-subtab="subtab-clinics">Clinics</button>
+              </div>
+              <div class="els-subtab active" id="subtab-individuals">
+                <div class="els-my-score">
+                  <div class="els-score-card">
+                    <div class="els-score-label">My Score</div>
+                    <div class="els-score-value" data-bind="myScoreMonth.value">325</div>
+                    <div class="els-score-rank" data-bind="myScoreMonth.rank">#18 of 423</div>
+                  </div>
+                </div>
+                <div class="els-list" id="list-individuals"></div>
+              </div>
+              <div class="els-subtab" id="subtab-clinics">
+                <div class="els-list" id="list-clinics"></div>
+              </div>
+            </div>
+
+          </div><!-- /#state-loggedin -->
+
+          <!-- LOGGED OUT STATE -->
+          <div id="state-loggedout" style="display:none;">
+            <div class="els-auth-gate">
+              <span class="els-auth-trophy">🏆</span>
+              <h4 class="els-auth-heading">See Where You Rank</h4>
+              <p class="els-auth-copy">Sign in to track your score, compete with peers, and see how your clinic stacks up against others nationwide.</p>
+              <div class="els-auth-actions">
+                <a href="#" class="els-btn-primary" data-bind-href="login_url">Sign In</a>
+                <div class="els-auth-divider">or</div>
+                <a href="#" class="els-btn-secondary" data-bind-href="register_url">Create a Free Account</a>
+              </div>
+            </div>
+            <div class="els-preview" aria-hidden="true">
+              <div class="els-preview-list">
+                <div class="els-preview-item">
+                  <div class="els-rank" style="background:linear-gradient(135deg,#FFD700,#FFA500);">1</div>
+                  <div class="els-player-info"><div class="els-player-name">Dr. ██████ ████</div><div class="els-player-sub">12 games played</div></div>
+                  <div class="els-points">1,245</div>
+                </div>
+                <div class="els-preview-item">
+                  <div class="els-rank" style="background:linear-gradient(135deg,#C0C0C0,#A0A0A0);">2</div>
+                  <div class="els-player-info"><div class="els-player-name">Dr. ███ ████████</div><div class="els-player-sub">10 games played</div></div>
+                  <div class="els-points">1,180</div>
+                </div>
+                <div class="els-preview-item">
+                  <div class="els-rank" style="background:linear-gradient(135deg,#CD7F32,#B8732D);">3</div>
+                  <div class="els-player-info"><div class="els-player-name">Dr. █████ ████</div><div class="els-player-sub">11 games played</div></div>
+                  <div class="els-points">1,095</div>
+                </div>
+              </div>
+              <div class="els-preview-fade"></div>
+            </div>
+          </div><!-- /#state-loggedout -->
+
+          <!-- Footer -->
+          <div class="els-footer">
+            <a href="#" class="els-view-all" data-bind-href="leaderboard_url">View Full Leaderboard →</a>
+          </div>
+
+        </div><!-- /#shortcode-output / TEMPLATE BLOCK END -->
+
+      </div><!-- /.wb-viewport-frame -->
+    </div><!-- /.wb-viewport -->
+
+    <!-- Live shortcode string -->
+    <div class="wb-params-bar" id="params-bar"></div>
+
+  </div><!-- /.wb-preview-area -->
+
+</div><!-- /.wb-body -->
+
+
+<script>
+// ============================================================
+// WORKBENCH ENGINE — not part of the shortcode
+// ============================================================
+(function() {
+  'use strict';
+
+  // ── State ──────────────────────────────────────────────────
+  const state = {
+    loggedIn:   true,
+    defaultTab: 'month',
+    data:       null,
+    width:      360
+  };
+
+  // ── Elements ───────────────────────────────────────────────
+  const viewport     = document.getElementById('viewport');
+  const vpSlider     = document.getElementById('vp-slider');
+  const vpLabel      = document.getElementById('vp-label');
+  const vpSizeLabel  = document.getElementById('vp-size-label');
+  const ctrlLoggedIn = document.getElementById('ctrl-loggedin');
+  const sampleData   = document.getElementById('sample-data');
+  const applyBtn     = document.getElementById('apply-data');
+  const paramsBar    = document.getElementById('params-bar');
+
+  // ── Helpers ────────────────────────────────────────────────
+  function parseData() {
+    try {
+      state.data = JSON.parse(sampleData.value);
+    } catch(e) {
+      console.warn('Invalid JSON in sample data', e);
+    }
+  }
+
+  function buildListHTML(items, isClinic) {
+    return items.map((item, i) =>
+      `<div class="els-item${isClinic ? ' clinic' : ''}">
+        <div class="els-rank">${i + 1}</div>
+        <div class="els-player-info">
+          <div class="els-player-name">${item.name}</div>
+          <div class="els-player-sub">${item.sub}</div>
+        </div>
+        <div class="els-points">${item.pts}</div>
+      </div>`
+    ).join('');
+  }
+
+  function hydrate() {
+    if (!state.data) return;
+    const d = state.data;
+
+    // Lists
+    const ly = document.getElementById('list-year');
+    const li = document.getElementById('list-individuals');
+    const lc = document.getElementById('list-clinics');
+    if (ly && d.year)        ly.innerHTML = buildListHTML(d.year, false);
+    if (li && d.individuals) li.innerHTML = buildListHTML(d.individuals, false);
+    if (lc && d.clinics)     lc.innerHTML = buildListHTML(d.clinics, true);
+
+    // data-bind text nodes
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const path = el.getAttribute('data-bind').split('.');
+      let val = d;
+      path.forEach(k => { val = val && val[k]; });
+      if (val !== undefined) el.textContent = val;
+    });
+
+    // data-bind-href
+    document.querySelectorAll('[data-bind-href]').forEach(el => {
+      const key = el.getAttribute('data-bind-href');
+      if (d[key]) el.href = d[key];
+    });
+  }
+
+  function applyLoggedIn() {
+    const li = document.getElementById('state-loggedin');
+    const lo = document.getElementById('state-loggedout');
+    const pt = document.getElementById('period-toggle');
+    if (state.loggedIn) {
+      li.style.display = '';
+      lo.style.display = 'none';
+      pt.style.display = '';
+    } else {
+      li.style.display = 'none';
+      lo.style.display = '';
+      pt.style.display = 'none';
+    }
+  }
+
+  function applyDefaultTab() {
+    document.querySelectorAll('.els-period-btn').forEach(btn => {
+      const isActive = btn.getAttribute('data-tab') === 'tab-' + state.defaultTab;
+      btn.classList.toggle('active', isActive);
+    });
+    document.querySelectorAll('.els-tab').forEach(tab => {
+      const isActive = tab.id === 'tab-' + state.defaultTab;
+      tab.classList.toggle('active', isActive);
+    });
+  }
+
+  function setWidth(w) {
+    state.width = w;
+    viewport.style.width = w + 'px';
+    vpLabel.textContent = w + 'px';
+    vpSizeLabel.textContent = w + 'px';
+    vpSlider.value = w;
+    document.querySelectorAll('.wb-width-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.width) === w);
+    });
+  }
+
+  function updateParamsBar() {
+    const d = state.data || {};
+    paramsBar.innerHTML = [
+      `<span class="wb-param-badge">default_tab=<span>"${state.defaultTab}"</span></span>`,
+      `<span class="wb-param-badge">logged_in=<span>${state.loggedIn}</span></span>`,
+      `<span class="wb-param-badge">login_url=<span>"${d.login_url || '/login/'}"</span></span>`,
+      `<span class="wb-param-badge">leaderboard_url=<span>"${d.leaderboard_url || '#'}"</span></span>`,
+    ].join('');
+  }
+
+  function render() {
+    applyLoggedIn();
+    applyDefaultTab();
+    hydrate();
+    updateParamsBar();
+  }
+
+  // ── Viewport controls ──────────────────────────────────────
+  vpSlider.addEventListener('input', () => setWidth(parseInt(vpSlider.value)));
+
+  document.querySelectorAll('.wb-width-btn').forEach(btn => {
+    btn.addEventListener('click', () => setWidth(parseInt(btn.dataset.width)));
+  });
+
+  // ── Design param controls ──────────────────────────────────
+  ctrlLoggedIn.addEventListener('change', () => {
+    state.loggedIn = ctrlLoggedIn.checked;
+    render();
+  });
+
+  document.querySelectorAll('.wb-seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const param = btn.dataset.param;
+      const val   = btn.dataset.val;
+      // deactivate siblings
+      btn.closest('.wb-seg').querySelectorAll('.wb-seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (param === 'default_tab') state.defaultTab = val;
+      render();
+    });
+  });
+
+  // ── Sample data ────────────────────────────────────────────
+  applyBtn.addEventListener('click', () => { parseData(); render(); });
+
+  // ── Shortcode tab interaction (lives inside template) ──────
+  document.addEventListener('click', function(e) {
+    // Period tabs
+    const periodBtn = e.target.closest('.els-period-btn');
+    if (periodBtn && periodBtn.closest('#shortcode-output')) {
+      const targetId = periodBtn.getAttribute('data-tab');
+      periodBtn.closest('.els-period-toggle').querySelectorAll('.els-period-btn').forEach(b => b.classList.remove('active'));
+      periodBtn.classList.add('active');
+      document.querySelectorAll('.els-tab').forEach(t => t.classList.remove('active'));
+      const target = document.getElementById(targetId);
+      if (target) target.classList.add('active');
+    }
+    // Sub-tabs
+    const subtabBtn = e.target.closest('.els-subtab-btn');
+    if (subtabBtn && subtabBtn.closest('#shortcode-output')) {
+      const targetId = subtabBtn.getAttribute('data-subtab');
+      subtabBtn.closest('.els-subtab-bar').querySelectorAll('.els-subtab-btn').forEach(b => b.classList.remove('active'));
+      subtabBtn.classList.add('active');
+      const parentTab = subtabBtn.closest('.els-tab');
+      if (parentTab) parentTab.querySelectorAll('.els-subtab').forEach(st => st.classList.remove('active'));
+      const target = document.getElementById(targetId);
+      if (target) target.classList.add('active');
+    }
+  });
+
+  // ── Init ───────────────────────────────────────────────────
+  parseData();
+  setWidth(360);
+  render();
+
+})();
+</script>
+
+</body>
+</html>

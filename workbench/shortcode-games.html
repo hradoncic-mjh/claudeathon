@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [element_games]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-orange:#F77F00;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:300px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-field{margin-bottom:.875rem}.wb-field:last-child{margin-bottom:0}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem;display:flex;justify-content:space-between;align-items:center}
+.wb-field-value{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-accent)}
+.wb-seg{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:6px;padding:3px;gap:3px}
+.wb-seg-btn{flex:1;padding:.3rem .4rem;background:transparent;border:none;border-radius:4px;font-size:.68rem;font-weight:600;color:var(--wb-muted);cursor:pointer;transition:all .15s;font-family:var(--wb-sans);white-space:nowrap}
+.wb-seg-btn:hover{color:var(--wb-text);background:rgba(255,255,255,.06)}
+.wb-seg-btn.active{background:var(--wb-accent);color:#fff}
+.wb-toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.wb-toggle-label{font-size:.72rem;color:var(--wb-label)}
+.wb-toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.wb-toggle input{opacity:0;width:0;height:0}
+.wb-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:background .2s;border:1px solid var(--wb-border)}
+.wb-toggle input:checked+.wb-toggle-track{background:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-toggle-track::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.wb-toggle input:checked+.wb-toggle-track::after{left:19px}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);container-type:inline-size;padding:1.5rem}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.62rem;line-height:1.6;padding:.6rem;resize:vertical;min-height:140px;outline:none;transition:border-color .2s}
+.wb-textarea:focus{border-color:var(--wb-accent)}
+.wb-apply-btn{width:100%;margin-top:.5rem;padding:.4rem;background:rgba(15,163,177,.15);border:1px solid var(--wb-accent);border-radius:6px;color:var(--wb-accent);font-size:.7rem;font-family:var(--wb-mono);font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.wb-apply-btn:hover{background:rgba(15,163,177,.25)}
+.wb-note{font-size:.65rem;color:var(--wb-muted);line-height:1.7;font-family:var(--wb-mono)}
+.wb-params-bar{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem;justify-content:center}
+.wb-param-badge{font-family:var(--wb-mono);font-size:.6rem;padding:.2rem .5rem;background:rgba(255,255,255,.05);border:1px solid var(--wb-border);border-radius:4px;color:var(--wb-muted)}
+.wb-param-badge span{color:var(--wb-accent)}
+
+/* ── TEMPLATE BLOCK CSS ── */
+.eg-games{font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif}
+.eg-grid{display:grid;gap:1.5rem}
+.eg-card{background:#fff;border:1px solid #e9ecef;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+.eg-card:hover{transform:translateY(-4px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.eg-card__image{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:2rem;color:white;font-weight:700}
+.eg-card__content{padding:1.5rem;flex:1;display:flex;flex-direction:column;gap:.75rem}
+.eg-card__title{margin:0;font-size:1.125rem;font-weight:600;color:#333;line-height:1.3}
+.eg-card__subtitle{margin:0;color:#666;font-size:.875rem;line-height:1.4}
+.eg-card__meta{display:flex;flex-wrap:wrap;gap:.375rem;align-items:center}
+.eg-pill{display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.eg-pill--type{background:#e3f2fd;color:#1976d2}
+.eg-pill--category{background:#f5f5f5;color:#555}
+.eg-pill--difficulty{background:#fff8e1;color:#f57f17}
+.eg-card__points{padding:.6rem .75rem;background:#f8f8f8;border-radius:4px;display:flex;align-items:baseline;gap:.5rem}
+.eg-points__value{font-size:1.375rem;font-weight:700;color:#333}
+.eg-points__label{font-size:.8rem;color:#4caf50;font-weight:500}
+.eg-points__bonus{font-size:.875rem;color:#ff9800;font-weight:600;margin-left:auto}
+.eg-card__actions{padding:1.5rem;padding-top:0}
+.eg-card__play-btn{display:block;width:100%;padding:.75rem;background:#0066cc;color:white;text-align:center;text-decoration:none;border-radius:4px;font-weight:600;transition:background .2s;border:none;cursor:pointer;font-family:inherit;font-size:1rem}
+.eg-card__play-btn:hover{background:#0052a3}
+.eg-view-more{text-align:center;margin:2rem 0 0;padding-top:1.5rem;border-top:1px solid #e0e0e0}
+.eg-view-more__link{display:inline-block;padding:.75rem 1.5rem;background:linear-gradient(90deg,#0066cc,#0052a3);color:white;text-decoration:none;border-radius:4px;font-weight:600;transition:transform .2s,box-shadow .2s}
+.eg-view-more__link:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,102,204,.3)}
+
+/* Horizontal layout */
+.eg-games.layout-horizontal .eg-grid{grid-template-columns:1fr}
+.eg-games.layout-horizontal .eg-card{flex-direction:row}
+.eg-games.layout-horizontal .eg-card__image{width:180px;min-width:180px;aspect-ratio:auto;height:auto}
+.eg-games.layout-horizontal .eg-card__content{flex:1}
+.eg-games.layout-horizontal .eg-card__actions{padding:1.5rem;padding-left:0;display:flex;align-items:center;min-width:140px}
+</style>
+</head>
+<body>
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[element_games]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+<div class="wb-body">
+  <div class="wb-panel">
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span class="wb-field-value" id="vp-label">760px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="320" max="800" value="760" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn" data-width="360">360</button>
+        <button class="wb-width-btn" data-width="540">540</button>
+        <button class="wb-width-btn active" data-width="760">760</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Layout</div>
+        <div class="wb-seg">
+          <button class="wb-seg-btn active" data-param="layout" data-val="vertical">Vertical</button>
+          <button class="wb-seg-btn" data-param="layout" data-val="horizontal">Horizontal</button>
+        </div>
+      </div>
+      <div class="wb-field">
+        <div class="wb-field-label">Columns <span class="wb-field-value" id="col-label">3</span></div>
+        <input type="range" class="wb-range" id="ctrl-columns" min="1" max="4" value="3" step="1">
+      </div>
+      <div class="wb-field">
+        <div class="wb-field-label">Display Mode</div>
+        <div class="wb-seg">
+          <button class="wb-seg-btn active" data-param="display_mode" data-val="view_more">View More</button>
+          <button class="wb-seg-btn" data-param="display_mode" data-val="paged">Paged</button>
+        </div>
+      </div>
+      <div class="wb-field">
+        <div class="wb-field-label">Page Size <span class="wb-field-value" id="pagesize-label">6</span></div>
+        <input type="range" class="wb-range" id="ctrl-pagesize" min="1" max="12" value="6" step="1">
+      </div>
+      <div class="wb-field">
+        <div class="wb-toggle-row"><span class="wb-toggle-label">Show Points</span><label class="wb-toggle"><input type="checkbox" id="ctrl-points" checked><div class="wb-toggle-track"></div></label></div>
+        <div class="wb-toggle-row"><span class="wb-toggle-label">Show Bonus</span><label class="wb-toggle"><input type="checkbox" id="ctrl-bonus" checked><div class="wb-toggle-track"></div></label></div>
+        <div class="wb-toggle-row"><span class="wb-toggle-label">Show Difficulty</span><label class="wb-toggle"><input type="checkbox" id="ctrl-difficulty" checked><div class="wb-toggle-track"></div></label></div>
+        <div class="wb-toggle-row"><span class="wb-toggle-label">Show Categories</span><label class="wb-toggle"><input type="checkbox" id="ctrl-categories" checked><div class="wb-toggle-track"></div></label></div>
+        <div class="wb-toggle-row"><span class="wb-toggle-label">Show Play Count</span><label class="wb-toggle"><input type="checkbox" id="ctrl-playcount"><div class="wb-toggle-track"></div></label></div>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Data Params</div>
+      <div class="wb-note">category_slug<br>type_slug<br>theme_slug<br>difficulty_id<br>sort<br><span style="color:var(--wb-border)">— PHP / data layer only —</span></div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Data</div>
+      <textarea class="wb-textarea" id="sample-data">{
+  "view_more_url": "/all-games/",
+  "games": [
+    {"title":"Canine Cardiology Quiz","subtitle":"Test your knowledge of heart conditions in dogs","type":"Quiz","difficulty":"Intermediate","points":450,"bonus":50,"play_count":1247,"categories":["Cardiology"]},
+    {"title":"Feline Dermatology Crossword","subtitle":"Skin conditions and treatments for cats","type":"Crossword","difficulty":"Advanced","points":600,"play_count":892,"categories":["Dermatology"]},
+    {"title":"Emergency Triage Scenarios","subtitle":"Critical decision-making in urgent care","type":"Scenario","difficulty":"Expert","points":800,"bonus":100,"play_count":634,"categories":["Emergency","Surgery"]},
+    {"title":"Frankly, Dachshunds","subtitle":"The Long and Short of Everyone's Favorite Breed","type":"Wordle","difficulty":"Intermediate","points":300,"play_count":2104,"categories":["Breeds"]},
+    {"title":"Avian Anatomy Word Search","subtitle":"Find the hidden terms in bird anatomy","type":"Word Search","difficulty":"Beginner","points":200,"bonus":25,"play_count":543,"categories":["Exotic Animals"]},
+    {"title":"Feline Nutrition Speed Quiz","subtitle":"How fast can you answer nutrition questions?","type":"Speed Quiz","difficulty":"Intermediate","points":500,"bonus":75,"play_count":788,"categories":["Nutrition"]},
+    {"title":"Equine Lameness Evaluation","subtitle":"Diagnosing gait abnormalities in horses","type":"Quiz","difficulty":"Advanced","points":550,"bonus":50,"play_count":421,"categories":["Equine"]},
+    {"title":"Small Animal Pharmacology","subtitle":"Drug interactions and dosing for dogs and cats","type":"Crossword","difficulty":"Advanced","points":700,"bonus":100,"play_count":316,"categories":["Pharmacology"]},
+    {"title":"Reptile Husbandry Poll","subtitle":"Share your exotic pet care practices","type":"Survey","difficulty":"Beginner","points":150,"play_count":1532,"categories":["Exotic Animals"]},
+    {"title":"Soft Tissue Surgery Scenarios","subtitle":"Walk through real surgical decision trees","type":"Scenario","difficulty":"Expert","points":900,"bonus":150,"play_count":289,"categories":["Surgery"]},
+    {"title":"Eye Spy: Veterinary Ophthalmology","subtitle":"Guess the ocular condition in 6 tries","type":"Wordle","difficulty":"Intermediate","points":300,"play_count":677,"categories":["Ophthalmology"]},
+    {"title":"Veterinary Dentistry Speed Round","subtitle":"Tooth charts, grades, and extractions — fast","type":"Speed Quiz","difficulty":"Intermediate","points":480,"bonus":60,"play_count":904,"categories":["Dentistry"]}
+  ]
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+  </div>
+
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">760px</div>
+      <div class="wb-viewport-frame">
+        <!-- TEMPLATE BLOCK START -->
+        <div id="shortcode-output" class="eg-games">
+          <div class="eg-grid" id="eg-grid"></div>
+          <div id="eg-footer"></div>
+        </div>
+        <!-- TEMPLATE BLOCK END -->
+      </div>
+    </div>
+    <div class="wb-params-bar" id="params-bar"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state = { layout:'vertical', columns:3, displayMode:'view_more', pageSize:6, currentPage:1, showPoints:true, showBonus:true, showDifficulty:true, showCategories:true, showPlayCount:false, data:null, width:760 };
+
+  function parseData(){ try{ state.data=JSON.parse(document.getElementById('sample-data').value); }catch(e){} }
+
+  var typeColors = { Quiz:'#e3f2fd', Crossword:'#e8f5e9', Scenario:'#f3e5f5', Survey:'#fff3e0', default:'#f5f5f5' };
+  var typeTextColors = { Quiz:'#1976d2', Crossword:'#2e7d32', Scenario:'#7b1fa2', Survey:'#e65100', default:'#555' };
+
+  function cardHTML(g){
+    var initial = (g.title||'G')[0].toUpperCase();
+    var tColor = typeColors[g.type]||typeColors.default;
+    var tText  = typeTextColors[g.type]||typeTextColors.default;
+    var h = '<div class="eg-card">';
+    h += '<div class="eg-card__image" style="background:linear-gradient(135deg,'+tColor+',#e0e0e0);color:'+tText+';font-size:2.5rem">'+initial+'</div>';
+    h += '<div class="eg-card__content">';
+    h += '<h3 class="eg-card__title">'+g.title+'</h3>';
+    if(g.subtitle) h += '<p class="eg-card__subtitle">'+g.subtitle+'</p>';
+    h += '<div class="eg-card__meta">';
+    if(g.type) h += '<span class="eg-pill eg-pill--type" style="background:'+tColor+';color:'+tText+'">'+g.type+'</span>';
+    if(state.showDifficulty && g.difficulty) h += '<span class="eg-pill eg-pill--difficulty">'+g.difficulty+'</span>';
+    if(state.showCategories && g.categories) g.categories.forEach(function(c){ h+='<span class="eg-pill eg-pill--category">'+c+'</span>'; });
+    h += '</div>';
+    if(state.showPoints && g.points){
+      h += '<div class="eg-card__points"><span class="eg-points__value">'+g.points.toLocaleString()+'</span><span class="eg-points__label">pts</span>';
+      if(state.showBonus && g.bonus) h += '<span class="eg-points__bonus">+'+g.bonus+' bonus</span>';
+      h += '</div>';
+    }
+    if(state.showPlayCount && g.play_count) h += '<p style="margin:0;font-size:.8rem;color:#888">'+g.play_count.toLocaleString()+' plays</p>';
+    h += '</div>';
+    h += '<div class="eg-card__actions"><button class="eg-card__play-btn">Play Game</button></div>';
+    h += '</div>';
+    return h;
+  }
+
+  function render(){
+    var d = state.data || { games:[] };
+    var allGames = d.games || [];
+    var wrap = document.getElementById('shortcode-output');
+    var grid = document.getElementById('eg-grid');
+    var footer = document.getElementById('eg-footer');
+
+    wrap.className = 'eg-games' + (state.layout==='horizontal' ? ' layout-horizontal' : '');
+    var cols = state.layout==='horizontal' ? 1 : state.columns;
+    grid.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+
+    if(state.displayMode==='paged'){
+      var totalPages = Math.max(1, Math.ceil(allGames.length / state.pageSize));
+      // Clamp currentPage in case pageSize changed
+      state.currentPage = Math.min(state.currentPage, totalPages);
+      var offset = (state.currentPage - 1) * state.pageSize;
+      var pageGames = allGames.slice(offset, offset + state.pageSize);
+      grid.innerHTML = pageGames.map(cardHTML).join('');
+
+      var btnStyle = 'padding:.5rem 1rem;border:1px solid #dee2e6;background:#fff;cursor:pointer;border-radius:4px;font-size:.875rem;font-family:inherit;';
+      var disabledStyle = 'opacity:.4;cursor:not-allowed;';
+      var prevDisabled = state.currentPage <= 1;
+      var nextDisabled = state.currentPage >= totalPages;
+      footer.innerHTML =
+        '<div style="display:flex;justify-content:center;align-items:center;gap:1rem;margin:2rem 0 0;padding-top:1.5rem;border-top:1px solid #e0e0e0">' +
+        '<button id="wb-prev" style="'+btnStyle+(prevDisabled?disabledStyle:'')+'" '+(prevDisabled?'disabled':'')+'>← Previous</button>' +
+        '<span style="font-size:.875rem;color:#495057">Page '+state.currentPage+' of '+totalPages+'</span>' +
+        '<button id="wb-next" style="'+btnStyle+(nextDisabled?disabledStyle:'')+'" '+(nextDisabled?'disabled':'')+'>Next →</button>' +
+        '</div>';
+
+      var prevBtn = document.getElementById('wb-prev');
+      var nextBtn = document.getElementById('wb-next');
+      if(prevBtn) prevBtn.addEventListener('click', function(){ if(state.currentPage > 1){ state.currentPage--; render(); } });
+      if(nextBtn) nextBtn.addEventListener('click', function(){ if(state.currentPage < totalPages){ state.currentPage++; render(); } });
+
+    } else {
+      grid.innerHTML = allGames.map(cardHTML).join('');
+      if(state.displayMode==='view_more' && d.view_more_url){
+        footer.innerHTML = '<div class="eg-view-more"><a href="'+d.view_more_url+'" class="eg-view-more__link">View All Games</a></div>';
+      } else { footer.innerHTML=''; }
+    }
+
+    updateParams();
+  }
+
+  function updateParams(){
+    document.getElementById('params-bar').innerHTML = [
+      '<span class="wb-param-badge">layout=<span>"'+state.layout+'"</span></span>',
+      '<span class="wb-param-badge">columns=<span>'+state.columns+'</span></span>',
+      '<span class="wb-param-badge">display_mode=<span>"'+state.displayMode+'"</span></span>',
+      state.displayMode==='paged' ? '<span class="wb-param-badge">page_size=<span>'+state.pageSize+'</span></span>' : '',
+      '<span class="wb-param-badge">show_points=<span>'+state.showPoints+'</span></span>',
+      '<span class="wb-param-badge">show_difficulty=<span>'+state.showDifficulty+'</span></span>',
+    ].join('');
+  }
+
+  function setWidth(w){ state.width=w; var vp=document.getElementById('viewport'); vp.style.width=w+'px'; document.getElementById('vp-label').textContent=w+'px'; document.getElementById('vp-size-label').textContent=w+'px'; document.getElementById('vp-slider').value=w; document.querySelectorAll('.wb-width-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.width)===w);}); }
+
+  document.getElementById('vp-slider').addEventListener('input',function(){ setWidth(parseInt(this.value)); });
+  document.querySelectorAll('.wb-width-btn').forEach(function(btn){ btn.addEventListener('click',function(){ setWidth(parseInt(this.dataset.width)); }); });
+
+  document.querySelectorAll('.wb-seg-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      btn.closest('.wb-seg').querySelectorAll('.wb-seg-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      var p=btn.dataset.param, v=btn.dataset.val;
+      if(p==='layout') state.layout=v;
+      if(p==='display_mode'){ state.displayMode=v; state.currentPage=1; }
+      render();
+    });
+  });
+
+  document.getElementById('ctrl-columns').addEventListener('input',function(){ state.columns=parseInt(this.value); document.getElementById('col-label').textContent=this.value; render(); });
+  document.getElementById('ctrl-pagesize').addEventListener('input',function(){ state.pageSize=parseInt(this.value); state.currentPage=1; document.getElementById('pagesize-label').textContent=this.value; render(); });
+  document.getElementById('ctrl-points').addEventListener('change',function(){ state.showPoints=this.checked; render(); });
+  document.getElementById('ctrl-bonus').addEventListener('change',function(){ state.showBonus=this.checked; render(); });
+  document.getElementById('ctrl-difficulty').addEventListener('change',function(){ state.showDifficulty=this.checked; render(); });
+  document.getElementById('ctrl-categories').addEventListener('change',function(){ state.showCategories=this.checked; render(); });
+  document.getElementById('ctrl-playcount').addEventListener('change',function(){ state.showPlayCount=this.checked; render(); });
+  document.getElementById('apply-data').addEventListener('click',function(){ parseData(); render(); });
+
+  parseData(); setWidth(760); render();
+})();
+</script>
+</body>
+</html>

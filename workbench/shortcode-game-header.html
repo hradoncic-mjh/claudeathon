@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [game_header_menu]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/shortcodes/game-header-menu.css">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-orange:#F77F00;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:300px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-field{margin-bottom:.875rem}.wb-field:last-child{margin-bottom:0}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem;display:flex;justify-content:space-between}
+.wb-field-value{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-accent)}
+.wb-toggle-row{display:flex;align-items:center;justify-content:space-between}
+.wb-toggle-label{font-size:.72rem;color:var(--wb-label)}
+.wb-toggle{position:relative;width:36px;height:20px}
+.wb-toggle input{opacity:0;width:0;height:0}
+.wb-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:background .2s;border:1px solid var(--wb-border)}
+.wb-toggle input:checked+.wb-toggle-track{background:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-toggle-track::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.wb-toggle input:checked+.wb-toggle-track::after{left:19px}
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{container-type:inline-size;background:#fff;border-radius:8px;overflow:visible;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);padding:1rem;position:relative;min-height:80px}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.62rem;line-height:1.6;padding:.6rem;resize:vertical;min-height:120px;outline:none;transition:border-color .2s}
+.wb-textarea:focus{border-color:var(--wb-accent)}
+.wb-apply-btn{width:100%;margin-top:.5rem;padding:.4rem;background:rgba(15,163,177,.15);border:1px solid var(--wb-accent);border-radius:6px;color:var(--wb-accent);font-size:.7rem;font-family:var(--wb-mono);font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.wb-apply-btn:hover{background:rgba(15,163,177,.25)}
+.wb-note{font-size:.65rem;color:var(--wb-muted);line-height:1.5;font-family:var(--wb-mono)}
+
+/* ── TEMPLATE BLOCK CSS ── */
+/* Inherits from game-header-menu.css — this block adds workbench context */
+.ghm-demo-context{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding:.5rem 1rem;
+  background:#f8f9fa;
+  border-radius:6px;
+  border:1px solid #e9ecef;
+  gap:.75rem;
+}
+.ghm-demo-page-label{
+  font-size:.8rem;
+  color:#6c757d;
+  font-family:'Poppins',sans-serif;
+  flex:1;
+}
+</style>
+</head>
+<body>
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[game_header_menu]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+<div class="wb-body">
+  <div class="wb-panel">
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span class="wb-field-value" id="vp-label">760px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="320" max="800" value="760" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn" data-width="420">420</button>
+        <button class="wb-width-btn active" data-width="760">760</button>
+        <button class="wb-width-btn" data-width="800">full</button>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+      <div class="wb-field">
+        <div class="wb-toggle-row">
+          <span class="wb-toggle-label">Logged In State</span>
+          <label class="wb-toggle"><input type="checkbox" id="ctrl-loggedin" checked><div class="wb-toggle-track"></div></label>
+        </div>
+      </div>
+      <div class="wb-field">
+        <div class="wb-toggle-row">
+          <span class="wb-toggle-label">Show Partner Sites</span>
+          <label class="wb-toggle"><input type="checkbox" id="ctrl-showpartner" checked><div class="wb-toggle-track"></div></label>
+        </div>
+      </div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Data Params</div>
+      <div class="wb-note">profile_url<br>stats_url<br>achievements_url<br>settings_url<br><span style="color:var(--wb-border)">— PHP / data layer only —</span></div>
+    </div>
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Data</div>
+      <textarea class="wb-textarea" id="sample-data">{
+  "playerHandle": "DrSarahChen",
+  "email": "sarah@vetclinic.com",
+  "points": 2847,
+  "rank": 12,
+  "partner_label": "Our Sites",
+  "partner_sites": [
+    {"label": "dvm360", "url": "#"},
+    {"label": "Vet Times", "url": "#"},
+    {"label": "Today's Vet", "url": "#"}
+  ]
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+  </div>
+
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport">
+      <div class="wb-viewport-label" id="vp-size-label">760px</div>
+      <div class="wb-viewport-frame">
+        <!-- TEMPLATE BLOCK START -->
+        <div class="ghm-demo-context">
+          <span class="ghm-demo-page-label">Game Page Header</span>
+          <div id="shortcode-output" class="eg-header-right-menus">
+
+            <!-- Partner Sites Pill -->
+            <div class="eg-partner-sites-menu" id="wb-partner-menu">
+              <button class="eg-partner-sites-trigger" type="button" aria-haspopup="true" aria-expanded="false" id="wb-partner-trigger">
+                <span class="eg-partner-label" id="wb-partner-label">Our Sites</span>
+                <span class="eg-dropdown-caret">&#9660;</span>
+              </button>
+              <div class="eg-partner-sites-dropdown" id="wb-partner-dropdown" role="menu">
+                <div class="eg-partner-sites-header">Our Family of Sites</div>
+                <div class="eg-partner-sites-grid" id="wb-partner-grid"></div>
+              </div>
+            </div>
+
+            <!-- User Menu Pill -->
+            <div class="eg-user-menu" id="wb-user-menu">
+              <button class="eg-user-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false" id="wb-user-trigger">
+                <div class="eg-user-avatar" id="wb-avatar">?</div>
+                <div class="eg-user-info">
+                  <span class="eg-user-handle" id="wb-handle">Login</span>
+                </div>
+                <span class="eg-dropdown-caret">&#9660;</span>
+              </button>
+              <div class="eg-user-menu-dropdown" id="wb-user-dropdown" role="menu"></div>
+            </div>
+
+          </div>
+        </div>
+        <!-- TEMPLATE BLOCK END -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state = { loggedIn: true, showPartner: true, data: null, width: 760 };
+  var vpSlider = document.getElementById('vp-slider');
+  var vpLabel  = document.getElementById('vp-label');
+  var vpSizeLabel = document.getElementById('vp-size-label');
+  var viewport = document.getElementById('viewport');
+
+  function parseData(){ try{ state.data = JSON.parse(document.getElementById('sample-data').value); }catch(e){} }
+
+  function render(){
+    var d = state.data || {};
+    // Partner pill
+    var partnerMenu = document.getElementById('wb-partner-menu');
+    partnerMenu.style.display = state.showPartner ? '' : 'none';
+    document.getElementById('shortcode-output').classList.toggle('eg-partner-hidden', !state.showPartner);
+    document.getElementById('wb-partner-label').textContent = d.partner_label || 'Our Sites';
+    var grid = document.getElementById('wb-partner-grid');
+    grid.innerHTML = '';
+    if(d.partner_sites){ d.partner_sites.forEach(function(s){ var a=document.createElement('a'); a.href=s.url||'#'; a.className='eg-partner-site-item'; a.setAttribute('role','menuitem'); a.innerHTML='<span class="eg-partner-site-name">'+s.label+'</span>'; grid.appendChild(a); }); }
+    // User pill
+    var avatar = document.getElementById('wb-avatar');
+    var handle = document.getElementById('wb-handle');
+    var dropdown = document.getElementById('wb-user-dropdown');
+    if(state.loggedIn){
+      var h = d.playerHandle || 'Player';
+      var initials = h.replace(/[^a-zA-Z0-9]/g,'').substring(0,2).toUpperCase();
+      avatar.textContent = initials;
+      avatar.classList.remove('eg-avatar-guest');
+      handle.textContent = h;
+      var pts = d.points ? Number(d.points).toLocaleString()+' pts' : '';
+      dropdown.innerHTML =
+        '<div class="eg-user-menu-header"><div class="eg-user-menu-name">'+h+'</div>'+(d.email?'<div class="eg-user-menu-email">'+d.email+'</div>':'')+'</div>'+
+        '<div class="eg-user-menu-items">'+
+          '<a href="#" class="eg-user-menu-item" role="menuitem"><span class="eg-menu-item-icon">&#128100;</span><span>My Profile</span></a>'+
+          '<a href="#" class="eg-user-menu-item" role="menuitem"><span class="eg-menu-item-icon">&#128202;</span><span>My Stats</span></a>'+
+          '<a href="#" class="eg-user-menu-item" role="menuitem"><span class="eg-menu-item-icon">&#127942;</span><span>Achievements</span></a>'+
+          '<a href="#" class="eg-user-menu-item" role="menuitem"><span class="eg-menu-item-icon">&#9881;&#65039;</span><span>Settings</span></a>'+
+        '</div>'+
+        '<div class="eg-user-menu-divider"></div>'+
+        '<div class="eg-user-menu-stats">'+
+          '<div class="eg-user-stat"><div class="eg-user-stat-value">'+(pts||'—')+'</div><div class="eg-user-stat-label">Total Points</div></div>'+
+          '<div class="eg-user-stat"><div class="eg-user-stat-value">'+(d.rank?'#'+d.rank:'—')+'</div><div class="eg-user-stat-label">Global Rank</div></div>'+
+        '</div>'+
+        '<div class="eg-user-menu-divider"></div>'+
+        '<div class="eg-user-menu-items"><button type="button" class="eg-user-menu-item eg-logout-btn"><span class="eg-menu-item-icon">&#128682;</span><span>Sign Out</span></button></div>';
+    } else {
+      avatar.textContent = '?';
+      avatar.classList.add('eg-avatar-guest');
+      handle.textContent = 'Login';
+      dropdown.innerHTML = '';
+    }
+  }
+
+  function setWidth(w){ state.width=w; viewport.style.width=w+'px'; vpLabel.textContent=w+'px'; vpSizeLabel.textContent=w+'px'; vpSlider.value=w; document.querySelectorAll('.wb-width-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.width)===w);}); }
+
+  // Dropdown toggles
+  document.getElementById('wb-partner-trigger').addEventListener('click',function(e){
+    e.stopPropagation();
+    var d=document.getElementById('wb-partner-dropdown');
+    var open=d.classList.contains('eg-active');
+    closeAll();
+    if(!open){ d.classList.add('eg-active'); this.setAttribute('aria-expanded','true'); }
+  });
+  document.getElementById('wb-user-trigger').addEventListener('click',function(e){
+    e.stopPropagation();
+    var d=document.getElementById('wb-user-dropdown');
+    var open=d.classList.contains('eg-active');
+    closeAll();
+    if(!open && state.loggedIn){ d.classList.add('eg-active'); this.setAttribute('aria-expanded','true'); }
+  });
+  function closeAll(){
+    document.querySelectorAll('.eg-partner-sites-dropdown,.eg-user-menu-dropdown').forEach(function(d){d.classList.remove('eg-active');});
+    document.querySelectorAll('[aria-expanded]').forEach(function(b){b.setAttribute('aria-expanded','false');});
+  }
+  document.addEventListener('click', closeAll);
+
+  document.getElementById('ctrl-loggedin').addEventListener('change',function(){ state.loggedIn=this.checked; closeAll(); render(); });
+  document.getElementById('ctrl-showpartner').addEventListener('change',function(){ state.showPartner=this.checked; render(); });
+  document.getElementById('apply-data').addEventListener('click',function(){ parseData(); render(); });
+  vpSlider.addEventListener('input',function(){ setWidth(parseInt(this.value)); });
+  document.querySelectorAll('.wb-width-btn').forEach(function(btn){ btn.addEventListener('click',function(){ setWidth(parseInt(this.dataset.width)); }); });
+
+  parseData(); setWidth(760); render();
+})();
+</script>
+</body>
+</html>

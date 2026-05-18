@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workbench — [element_category_teaser]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Workbench Chrome ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--wb-bg:#0f1117;--wb-surface:#1a1d27;--wb-border:#2a2d3a;--wb-accent:#0FA3B1;--wb-text:#e2e4ed;--wb-muted:#6b7280;--wb-label:#9ca3af;--wb-panel-w:300px;--wb-mono:'IBM Plex Mono',monospace;--wb-sans:'Poppins',sans-serif}
+body{font-family:var(--wb-sans);background:var(--wb-bg);color:var(--wb-text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.wb-topbar{display:flex;align-items:center;gap:1rem;padding:0 1.25rem;height:48px;background:var(--wb-surface);border-bottom:1px solid var(--wb-border);flex-shrink:0}
+.wb-topbar-title{font-family:var(--wb-mono);font-size:.75rem;color:var(--wb-accent);font-weight:600;letter-spacing:.04em}
+.wb-topbar-shortcode{font-family:var(--wb-mono);font-size:.7rem;color:var(--wb-muted);background:rgba(255,255,255,.05);padding:.2rem .6rem;border-radius:4px;border:1px solid var(--wb-border)}
+.wb-back{font-family:var(--wb-mono);font-size:.65rem;color:var(--wb-muted);text-decoration:none;padding:.2rem .6rem;border:1px solid var(--wb-border);border-radius:4px;transition:all .15s}
+.wb-back:hover{color:var(--wb-accent);border-color:var(--wb-accent)}
+.wb-topbar-spacer{flex:1}
+.wb-body{display:flex;flex:1;overflow:hidden}
+.wb-panel{width:var(--wb-panel-w);background:var(--wb-surface);border-right:1px solid var(--wb-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.wb-panel-section{padding:1rem 1.1rem;border-bottom:1px solid var(--wb-border)}
+.wb-section-label{font-family:var(--wb-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--wb-muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.wb-section-label::after{content:'';flex:1;height:1px;background:var(--wb-border)}
+.wb-field{margin-bottom:.875rem}.wb-field:last-child{margin-bottom:0}
+.wb-field-label{font-size:.7rem;color:var(--wb-label);margin-bottom:.35rem}
+.wb-input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.7rem;padding:.45rem .6rem;outline:none;transition:border-color .2s}
+.wb-input:focus{border-color:var(--wb-accent)}
+.wb-color-row{display:flex;align-items:center;gap:.5rem}
+.wb-color-row input[type=color]{width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;flex-shrink:0}
+.wb-color-hex{flex:1}
+.wb-range{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--wb-border);outline:none;cursor:pointer}
+.wb-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--wb-accent);cursor:pointer}
+.wb-width-presets{display:flex;gap:.35rem;flex-wrap:wrap}
+.wb-width-btn{padding:.25rem .5rem;background:rgba(255,255,255,.04);border:1px solid var(--wb-border);border-radius:4px;font-size:.65rem;font-family:var(--wb-mono);color:var(--wb-muted);cursor:pointer;transition:all .15s}
+.wb-width-btn:hover{color:var(--wb-text);border-color:var(--wb-accent)}
+.wb-width-btn.active{color:var(--wb-accent);border-color:var(--wb-accent);background:rgba(15,163,177,.1)}
+.wb-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--wb-border);border-radius:6px;color:var(--wb-text);font-family:var(--wb-mono);font-size:.62rem;line-height:1.6;padding:.6rem;resize:vertical;min-height:160px;outline:none;transition:border-color .2s}
+.wb-textarea:focus{border-color:var(--wb-accent)}
+.wb-apply-btn{width:100%;margin-top:.5rem;padding:.4rem;background:rgba(15,163,177,.15);border:1px solid var(--wb-accent);border-radius:6px;color:var(--wb-accent);font-size:.7rem;font-family:var(--wb-mono);font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.wb-apply-btn:hover{background:rgba(15,163,177,.25)}
+.wb-note{font-size:.65rem;color:var(--wb-muted);line-height:1.7;font-family:var(--wb-mono)}
+.wb-token-table{width:100%;border-collapse:collapse;font-size:.6rem;font-family:var(--wb-mono)}
+.wb-token-table td{padding:.25rem .1rem;vertical-align:top;color:var(--wb-muted);line-height:1.5}
+.wb-token-table td:first-child{color:var(--wb-accent);padding-right:.4rem;white-space:nowrap}
+/* ── Preview area ── */
+.wb-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem;overflow-y:auto;background:radial-gradient(ellipse at 20% 20%,rgba(15,163,177,.06) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.015) 24px,rgba(255,255,255,.015) 25px)}
+.wb-viewport{transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wb-viewport-label{font-family:var(--wb-mono);font-size:.6rem;color:var(--wb-muted);text-align:center;margin-bottom:.5rem;letter-spacing:.06em}
+.wb-viewport-frame{background:#f8f9fa;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);container-type:inline-size;padding:24px}
+/* ── Shortcode output override for preview bg ── */
+#shortcode-output{background:#fff}
+</style>
+<link rel="stylesheet" href="../../assets/css/shortcodes/common.css">
+<link rel="stylesheet" href="../../assets/css/shortcodes/category-teaser.css">
+</head>
+<body>
+
+<div class="wb-topbar">
+  <a href="index.html" class="wb-back">← Home</a>
+  <span class="wb-topbar-title">EG Workbench</span>
+  <span class="wb-topbar-shortcode">[element_category_teaser]</span>
+  <div class="wb-topbar-spacer"></div>
+</div>
+
+<div class="wb-body">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="wb-panel">
+
+    <!-- Viewport -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Viewport</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Width <span id="vp-label">340px</span></div>
+        <input type="range" class="wb-range" id="vp-slider" min="240" max="600" value="340" step="10">
+      </div>
+      <div class="wb-width-presets">
+        <button class="wb-width-btn" data-width="240">240</button>
+        <button class="wb-width-btn active" data-width="340">340</button>
+        <button class="wb-width-btn" data-width="480">480</button>
+        <button class="wb-width-btn" data-width="600">600</button>
+      </div>
+    </div>
+
+    <!-- Design Params -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Design Params</div>
+
+      <div class="wb-field">
+        <div class="wb-field-label">category_color</div>
+        <div class="wb-color-row">
+          <input type="color" id="ctrl-color-picker" value="#00A7AF">
+          <input type="text" class="wb-input wb-color-hex" id="ctrl-color-hex" value="#00A7AF" maxlength="7">
+        </div>
+      </div>
+
+      <div class="wb-field">
+        <div class="wb-field-label">category_text</div>
+        <input type="text" class="wb-input" id="ctrl-category-text" value="CROSSWORDS" placeholder="e.g. CROSSWORDS">
+      </div>
+
+      <div class="wb-field">
+        <div class="wb-field-label">view_all_url (display only)</div>
+        <input type="text" class="wb-input" id="ctrl-view-all" value="/games/?category=crosswords" placeholder="/games/?category=...">
+      </div>
+    </div>
+
+    <!-- CSS Token Overrides -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">CSS Token Overrides</div>
+      <div class="wb-field">
+        <div class="wb-field-label">Paste overrides, then Apply</div>
+        <textarea class="wb-textarea" id="css-overrides" style="min-height:110px;">/* Example overrides:
+.ect-wrap {
+  --ect-padding: 32px;
+  --ect-radius: 24px;
+  --ect-bg: #f0fafa;
+}
+*/</textarea>
+        <button class="wb-apply-btn" id="apply-css">↺ Apply CSS</button>
+      </div>
+    </div>
+
+    <!-- Sample Data -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Sample Game Data</div>
+      <textarea class="wb-textarea" id="sample-data">{
+  "title": "Cardiology Corner",
+  "subtitle": "Intermediate · 15 min",
+  "description": "This month: Cardiology terminology. Hints powered by clinical context.",
+  "points": 75,
+  "slug": "cardiology-corner"
+}</textarea>
+      <button class="wb-apply-btn" id="apply-data">↺ Apply Data</button>
+    </div>
+
+    <!-- Token Reference -->
+    <div class="wb-panel-section">
+      <div class="wb-section-label">Token Reference</div>
+      <table class="wb-token-table">
+        <tr><td>--ect-accent</td><td>accent colour (injected by PHP)</td></tr>
+        <tr><td>--ect-radius</td><td>card border-radius</td></tr>
+        <tr><td>--ect-padding</td><td>card internal padding</td></tr>
+        <tr><td>--ect-bg</td><td>card background</td></tr>
+        <tr><td>--ect-border</td><td>card border shorthand</td></tr>
+        <tr><td>--ect-divider-color</td><td>dashed rule colour</td></tr>
+        <tr><td>--ect-text-primary</td><td>title / btn text</td></tr>
+        <tr><td>--ect-text-muted</td><td>desc / pts / labels</td></tr>
+      </table>
+    </div>
+
+  </div><!-- /.wb-panel -->
+
+  <!-- ── PREVIEW AREA ── -->
+  <div class="wb-preview-area">
+    <div class="wb-viewport" id="viewport" style="width:340px">
+      <div class="wb-viewport-label" id="vp-size-label">340px</div>
+      <div class="wb-viewport-frame">
+
+        <!-- SHORTCODE OUTPUT — mirrors shortcode-category-teaser.php render -->
+        <div id="shortcode-output"
+             class="ect-wrap"
+             style="--ect-accent: #00A7AF;">
+
+          <!-- Header row -->
+          <div class="ect-header">
+            <span class="ect-category-label" id="wb-category-label">CROSSWORDS</span>
+            <span class="ect-badge-new">NEW</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="ect-divider"></div>
+
+          <!-- Featured label -->
+          <div class="ect-featured-label">FEATURED</div>
+
+          <!-- Game block -->
+          <div class="ect-game">
+            <div class="ect-game-meta">
+              <span class="ect-game-title" id="wb-game-title">Cardiology Corner</span>
+              <span class="ect-game-pts" id="wb-game-pts">· 75 pts</span>
+            </div>
+            <p class="ect-game-desc" id="wb-game-desc">
+              This month: Cardiology terminology. Hints powered by clinical context.
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="ect-actions">
+            <a href="#" class="ect-btn ect-btn--primary" id="wb-play-btn">PLAY FEATURED →</a>
+            <a href="#" class="ect-btn ect-btn--secondary" id="wb-view-all-btn">VIEW ALL CROSSWORDS →</a>
+          </div>
+
+        </div><!-- /.ect-wrap -->
+
+      </div><!-- /.wb-viewport-frame -->
+    </div><!-- /.wb-viewport -->
+  </div><!-- /.wb-preview-area -->
+
+</div><!-- /.wb-body -->
+
+<!-- Injected CSS overrides target -->
+<style id="wb-injected-css"></style>
+
+<script>
+(function () {
+
+  /* ── Helpers ── */
+  function qs(sel) { return document.querySelector(sel); }
+  function el(id)  { return document.getElementById(id); }
+
+  /* ── State ── */
+  var state = {
+    color:        '#00A7AF',
+    categoryText: 'CROSSWORDS',
+    viewAllUrl:   '/games/?category=crosswords',
+    data:         null,
+    width:        340,
+  };
+
+  /* ── Parse sample JSON ── */
+  function parseData() {
+    try { state.data = JSON.parse(el('sample-data').value); } catch(e) {}
+  }
+
+  /* ── Render preview ── */
+  function render() {
+    var d = state.data || {};
+
+    // Accent colour
+    el('shortcode-output').style.setProperty('--ect-accent', state.color);
+
+    // Category label
+    el('wb-category-label').textContent = state.categoryText;
+
+    // View All button
+    el('wb-view-all-btn').textContent = 'VIEW ALL ' + state.categoryText + ' →';
+    el('wb-view-all-btn').href = state.viewAllUrl || '#';
+
+    // Game data
+    if (d.title) el('wb-game-title').textContent = d.title;
+    if (d.subtitle) {
+      // Show subtitle inline with title as a subdued line if present
+      el('wb-game-title').textContent = d.title || '';
+    }
+    if (d.points) {
+      el('wb-game-pts').textContent = '· ' + d.points.toLocaleString() + ' pts';
+      el('wb-game-pts').style.display = '';
+    } else {
+      el('wb-game-pts').style.display = 'none';
+    }
+    if (d.description) el('wb-game-desc').textContent = d.description;
+    if (d.description === '') el('wb-game-desc').textContent = '';
+
+    // Play button href
+    if (d.slug) {
+      el('wb-play-btn').href = '/games/' + d.slug;
+    }
+  }
+
+  /* ── Viewport width ── */
+  function setWidth(w) {
+    state.width = w;
+    var vp = el('viewport');
+    vp.style.width = w + 'px';
+    el('vp-label').textContent = w + 'px';
+    el('vp-size-label').textContent = w + 'px';
+    el('vp-slider').value = w;
+    document.querySelectorAll('.wb-width-btn').forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.dataset.width) === w);
+    });
+  }
+
+  /* ── Sync color picker ↔ hex input ── */
+  el('ctrl-color-picker').addEventListener('input', function () {
+    state.color = this.value;
+    el('ctrl-color-hex').value = this.value;
+    render();
+  });
+  el('ctrl-color-hex').addEventListener('input', function () {
+    var v = this.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      state.color = v;
+      el('ctrl-color-picker').value = v;
+      render();
+    }
+  });
+
+  /* ── Design param controls ── */
+  el('ctrl-category-text').addEventListener('input', function () {
+    state.categoryText = this.value;
+    render();
+  });
+  el('ctrl-view-all').addEventListener('input', function () {
+    state.viewAllUrl = this.value;
+    render();
+  });
+
+  /* ── Viewport slider + presets ── */
+  el('vp-slider').addEventListener('input', function () {
+    setWidth(parseInt(this.value));
+  });
+  document.querySelectorAll('.wb-width-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setWidth(parseInt(this.dataset.width));
+    });
+  });
+
+  /* ── Apply data button ── */
+  el('apply-data').addEventListener('click', function () {
+    parseData();
+    render();
+  });
+
+  /* ── Apply CSS overrides ── */
+  el('apply-css').addEventListener('click', function () {
+    el('wb-injected-css').textContent = el('css-overrides').value;
+  });
+
+  /* ── Init ── */
+  parseData();
+  setWidth(340);
+  render();
+
+})();
+</script>
+</body>
+</html>
